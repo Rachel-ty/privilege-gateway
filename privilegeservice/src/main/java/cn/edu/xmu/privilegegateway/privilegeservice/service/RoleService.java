@@ -1,11 +1,11 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.privilege.dao.RoleDao;
-import cn.edu.xmu.privilege.dao.UserDao;
-import cn.edu.xmu.privilege.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -111,7 +111,7 @@ public class RoleService {
     public ReturnObject<Object> delRolePriv(Long id){
         ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
         //删除成功，缓存中干掉用户
-        if(ret.getCode()==ResponseCode.OK) clearuserByroleId(id);
+        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
         return ret;
     }
 
@@ -128,7 +128,7 @@ public class RoleService {
         //新增
         ReturnObject<VoObject> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
         //新增成功，缓存中干掉用户
-        if(ret.getCode()==ResponseCode.OK) clearuserByroleId(roleid);
+        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
         return ret;
     }
 

@@ -1,7 +1,7 @@
 package cn.edu.xmu.privilegegateway.annotation;
 
 import cn.edu.xmu.privilegegateway.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.util.ResponseCode;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.util.ResponseUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -36,7 +36,7 @@ public class AuditAspect {
     private  static  final Logger logger = LoggerFactory.getLogger(AuditAspect. class);
 
     //Controller层切点
-    @Pointcut("@annotation(cn.edu.xmu.ooad.annotation.Audit)")
+    @Pointcut("@annotation(cn.edu.xmu.privilegegateway.annotation.Audit)")
     public void auditAspect() {
     }
 
@@ -61,7 +61,7 @@ public class AuditAspect {
         String token = request.getHeader(JwtHelper.LOGIN_TOKEN_KEY);
         if (token == null){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtil.fail(ResponseCode.AUTH_NEED_LOGIN);
+            return ResponseUtil.fail(ReturnNo.AUTH_NEED_LOGIN);
         }
 
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
@@ -75,8 +75,7 @@ public class AuditAspect {
 
         //检验/shop的api中传入token是否和departId一致
         String pathInfo = userAndDepart == null ? null : request.getPathInfo();
-        if(null!=pathInfo)
-        {
+        if(null!=pathInfo) {
             logger.debug("getPathInfo = "+ pathInfo);
             String paths[]=pathInfo.split("/");
             for(int i=0;i<paths.length;i++){
@@ -91,7 +90,7 @@ public class AuditAspect {
                         logger.debug("did ="+pathId);
                         if(!pathId.equals(departId.toString())){
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            return ResponseUtil.fail(ResponseCode.FIELD_NOTVALID, "departId不匹配");
+                            return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
                         }
                         logger.debug("success match Id!");
                     }
@@ -107,7 +106,7 @@ public class AuditAspect {
         logger.debug("around: userId ="+userId+" departId="+departId);
 //        if (userId == null) {
 //            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//            return ResponseUtil.fail(ResponseCode.AUTH_NEED_LOGIN);
+//            return ResponseUtil.fail(ReturnNo.AUTH_NEED_LOGIN);
 //        }
 
         Object[] args = joinPoint.getArgs();
@@ -121,11 +120,11 @@ public class AuditAspect {
 
             for (Annotation annotation : paramAnn) {
                 //这里判断当前注解是否为LoginUser.class
-                if (annotation.annotationType().equals(cn.edu.xmu.ooad.annotation.LoginUser.class)) {
+                if (annotation.annotationType().equals(cn.edu.xmu.privilegegateway.annotation.LoginUser.class)) {
                     //校验该参数，验证一次退出该注解
                     args[i] = userId;
                 }
-                if (annotation.annotationType().equals(cn.edu.xmu.ooad.annotation.Depart.class)) {
+                if (annotation.annotationType().equals(cn.edu.xmu.privilegegateway.annotation.Depart.class)) {
                     //校验该参数，验证一次退出该注解
                     args[i] = departId;
                 }

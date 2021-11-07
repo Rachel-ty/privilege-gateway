@@ -1,18 +1,13 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.ImgHelper;
-import cn.edu.xmu.ooad.util.JwtHelper;
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.ooad.util.encript.AES;
-import cn.edu.xmu.privilege.dao.PrivilegeDao;
-import cn.edu.xmu.privilege.dao.UserDao;
-import cn.edu.xmu.privilege.model.bo.User;
-import cn.edu.xmu.privilege.model.po.UserPo;
-import cn.edu.xmu.privilege.model.vo.*;
-import cn.edu.xmu.privilege.model.vo.PrivilegeVo;
-import cn.edu.xmu.privilege.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.ImgHelper;
+import cn.edu.xmu.privilegegateway.util.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -100,7 +95,7 @@ public class UserService {
             returnObject = new ReturnObject<>(new User(userPo));
         } else {
             logger.debug("findUserById: Not Found");
-            returnObject = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            returnObject = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         return returnObject;
@@ -121,7 +116,7 @@ public class UserService {
             returnObject = new ReturnObject<>(new User(userPo));
         } else {
             logger.debug("findUserByIdAndDid: Not Found");
-            returnObject = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            returnObject = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         return returnObject;
@@ -168,7 +163,7 @@ public class UserService {
         if ((userDao.checkUserDid(userid, did) && userDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
             return userDao.revokeRole(userid, roleid);
         } else {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
     }
 
@@ -187,7 +182,7 @@ public class UserService {
             return userDao.assignRole(createid, userid, roleid);
         }
         else {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
     }
 
@@ -214,7 +209,7 @@ public class UserService {
         if (userDao.checkUserDid(id, did) || did == Long.valueOf(0)) {
             return userDao.getUserRoles(id);
         } else {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
     }
 
@@ -242,28 +237,28 @@ public class UserService {
     public ReturnObject login(String userName, String password, String ipAddr)
     {
         ReturnObject retObj = userDao.getUserByName(userName);
-        if (retObj.getCode() != ResponseCode.OK){
+        if (retObj.getCode() != ReturnNo.OK){
             return retObj;
         }
 
         User user = (User) retObj.getData();
         password = AES.encrypt(password, User.AESPASS);
         if(user == null || !password.equals(user.getPassword())){
-            retObj = new ReturnObject<>(ResponseCode.AUTH_INVALID_ACCOUNT);
+            retObj = new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
             return retObj;
         }
         if (user.getState() != User.State.NORM){
-            retObj = new ReturnObject<>(ResponseCode.AUTH_USER_FORBIDDEN);
+            retObj = new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
             return retObj;
         }
         if (!user.getEmailVerified()){
-            return new ReturnObject<>(ResponseCode.EMAIL_NOTVERIFIED);
+            return new ReturnObject<>(ReturnNo.EMAIL_NOTVERIFIED);
         }
         if (!user.getMobileVerified()){
-            return new ReturnObject<>(ResponseCode.MOBILE_NOTVERIFIED);
+            return new ReturnObject<>(ReturnNo.MOBILE_NOTVERIFIED);
         }
         if (!user.authetic()){
-            retObj = new ReturnObject<>(ResponseCode.AUTH_USER_FORBIDDEN, "信息被篡改");
+            retObj = new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN, "信息被篡改");
             StringBuilder message = new StringBuilder().append("Login: userid = ").append(user.getId()).
                     append(", username =").append(user.getUserName()).append(" 信息被篡改");
             logger.error(message.toString());
@@ -440,7 +435,7 @@ public class UserService {
     public ReturnObject uploadImg(Long id, MultipartFile multipartFile){
         ReturnObject<User> userReturnObject = userDao.getUserById(id);
 
-        if(userReturnObject.getCode() == ResponseCode.RESOURCE_ID_NOTEXIST) {
+        if(userReturnObject.getCode() == ReturnNo.RESOURCE_ID_NOTEXIST) {
             return userReturnObject;
         }
         User user = userReturnObject.getData();
@@ -450,7 +445,7 @@ public class UserService {
             returnObject = ImgHelper.remoteSaveImg(multipartFile,2,davUsername, davPassword,baseUrl);
 
             //文件上传错误
-            if(returnObject.getCode()!=ResponseCode.OK){
+            if(returnObject.getCode()!=ReturnNo.OK){
                 logger.debug(returnObject.getErrmsg());
                 return returnObject;
             }
@@ -460,7 +455,7 @@ public class UserService {
             ReturnObject updateReturnObject = userDao.updateUserAvatar(user);
 
             //数据库更新失败，需删除新增的图片
-            if(updateReturnObject.getCode()==ResponseCode.FIELD_NOTVALID){
+            if(updateReturnObject.getCode()==ReturnNo.FIELD_NOTVALID){
                 ImgHelper.deleteRemoteImg(returnObject.getData().toString(),davUsername, davPassword,baseUrl);
                 return updateReturnObject;
             }
@@ -472,7 +467,7 @@ public class UserService {
         }
         catch (IOException e){
             logger.debug("uploadImg: I/O Error:" + baseUrl);
-            return new ReturnObject(ResponseCode.FILE_NO_WRITE_PERMISSION);
+            return new ReturnObject(ReturnNo.FILE_NO_WRITE_PERMISSION);
         }
         return returnObject;
     }

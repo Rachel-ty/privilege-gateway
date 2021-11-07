@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
-import cn.edu.xmu.privilege.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import lombok.Data;
 
 /**

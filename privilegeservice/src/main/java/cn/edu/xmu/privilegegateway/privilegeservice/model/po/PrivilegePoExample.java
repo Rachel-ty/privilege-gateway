@@ -525,6 +525,66 @@ public class PrivilegePoExample {
             return (Criteria) this;
         }
 
+        public Criteria andCreatorIdIsNull() {
+            addCriterion("creator_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdIsNotNull() {
+            addCriterion("creator_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdEqualTo(Long value) {
+            addCriterion("creator_id =", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdNotEqualTo(Long value) {
+            addCriterion("creator_id <>", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdGreaterThan(Long value) {
+            addCriterion("creator_id >", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("creator_id >=", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdLessThan(Long value) {
+            addCriterion("creator_id <", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdLessThanOrEqualTo(Long value) {
+            addCriterion("creator_id <=", value, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdIn(List<Long> values) {
+            addCriterion("creator_id in", values, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdNotIn(List<Long> values) {
+            addCriterion("creator_id not in", values, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdBetween(Long value1, Long value2) {
+            addCriterion("creator_id between", value1, value2, "creatorId");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorIdNotBetween(Long value1, Long value2) {
+            addCriterion("creator_id not between", value1, value2, "creatorId");
+            return (Criteria) this;
+        }
+
         public Criteria andGmtCreateIsNull() {
             addCriterion("gmt_create is null");
             return (Criteria) this;
@@ -582,6 +642,66 @@ public class PrivilegePoExample {
 
         public Criteria andGmtCreateNotBetween(LocalDateTime value1, LocalDateTime value2) {
             addCriterion("gmt_create not between", value1, value2, "gmtCreate");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdIsNull() {
+            addCriterion("modifier_id is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdIsNotNull() {
+            addCriterion("modifier_id is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdEqualTo(Long value) {
+            addCriterion("modifier_id =", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdNotEqualTo(Long value) {
+            addCriterion("modifier_id <>", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdGreaterThan(Long value) {
+            addCriterion("modifier_id >", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("modifier_id >=", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdLessThan(Long value) {
+            addCriterion("modifier_id <", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdLessThanOrEqualTo(Long value) {
+            addCriterion("modifier_id <=", value, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdIn(List<Long> values) {
+            addCriterion("modifier_id in", values, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdNotIn(List<Long> values) {
+            addCriterion("modifier_id not in", values, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdBetween(Long value1, Long value2) {
+            addCriterion("modifier_id between", value1, value2, "modifierId");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierIdNotBetween(Long value1, Long value2) {
+            addCriterion("modifier_id not between", value1, value2, "modifierId");
             return (Criteria) this;
         }
 

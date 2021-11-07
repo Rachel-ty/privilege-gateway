@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.privilege.model.po.PrivilegePo;
-import cn.edu.xmu.privilege.model.po.RolePo;
-import cn.edu.xmu.privilege.model.po.UserPo;
-import cn.edu.xmu.privilege.model.vo.RolePrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RolePrivilegeRetVo;
 import lombok.Data;
 
 /**

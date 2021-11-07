@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
-import cn.edu.xmu.privilege.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import lombok.Data;
 
 import java.time.LocalDateTime;

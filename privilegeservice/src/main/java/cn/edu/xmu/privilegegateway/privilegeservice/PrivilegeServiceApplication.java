@@ -1,9 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice;
 
-import cn.edu.xmu.privilege.dao.PrivilegeDao;
-import cn.edu.xmu.privilege.dao.RoleDao;
-import cn.edu.xmu.privilege.dao.UserDao;
-import org.apache.dubbo.config.spring.context.annotation.EnableDubbo;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,8 +15,8 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * @author Ming Qiu
  **/
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.ooad","cn.edu.xmu.privilege"})
-@MapperScan("cn.edu.xmu.privilege.mapper")
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway"})
+@MapperScan(basePackages = "cn.edu.xmu.privilegegateway.privilegeservice.mapper")
 @EnableDiscoveryClient
 public class PrivilegeServiceApplication implements ApplicationRunner {
 

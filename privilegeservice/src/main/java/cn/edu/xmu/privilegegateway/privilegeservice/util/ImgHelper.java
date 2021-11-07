@@ -1,4 +1,6 @@
-package cn.edu.xmu.privilegegateway.util;
+package cn.edu.xmu.privilegegateway.privilegeservice.util;
+
+import cn.edu.xmu.privilegegateway.util.*;
 
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
@@ -14,7 +16,7 @@ import java.util.UUID;
 
 public class ImgHelper {
 
-    private static Logger logger = LoggerFactory.getLogger(cn.edu.xmu.ooad.util.Common.class);
+    private static Logger logger = LoggerFactory.getLogger(ImgHelper.class);
 
     /**
      * 保存单个图片并限制大小在远程服务器，直接以multipartFile形式
@@ -32,11 +34,11 @@ public class ImgHelper {
 
         //判断是否是图片
         if(!isImg(multipartFile))
-            return new ReturnObject(ResponseCode.IMG_FORMAT_ERROR);
+            return new ReturnObject(ReturnNo.IMG_FORMAT_ERROR);
 
         //判断文件大小是否符合要求
         if(multipartFile.getSize()>size*1024*1024){
-            return new ReturnObject(ResponseCode.IMG_SIZE_EXCEED);
+            return new ReturnObject(ReturnNo.IMG_SIZE_EXCEED);
         }
 
         Sardine sardine = SardineFactory.begin(username,password);

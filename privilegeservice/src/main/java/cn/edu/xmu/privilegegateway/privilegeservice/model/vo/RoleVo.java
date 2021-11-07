@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
-import cn.edu.xmu.privilege.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

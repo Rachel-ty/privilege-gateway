@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.privilege.model.po.RolePo;
-import cn.edu.xmu.privilege.model.vo.RoleRetVo;
-import cn.edu.xmu.privilege.model.vo.RoleSimpleRetVo;
-import cn.edu.xmu.privilege.model.vo.RoleVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleSimpleRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleVo;
 import lombok.Data;
 
 import java.io.Serializable;

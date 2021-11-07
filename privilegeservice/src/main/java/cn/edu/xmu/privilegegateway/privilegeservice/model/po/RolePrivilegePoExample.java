@@ -375,6 +375,76 @@ public class RolePrivilegePoExample {
             return (Criteria) this;
         }
 
+        public Criteria andSignatureIsNull() {
+            addCriterion("signature is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureIsNotNull() {
+            addCriterion("signature is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureEqualTo(String value) {
+            addCriterion("signature =", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureNotEqualTo(String value) {
+            addCriterion("signature <>", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureGreaterThan(String value) {
+            addCriterion("signature >", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureGreaterThanOrEqualTo(String value) {
+            addCriterion("signature >=", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureLessThan(String value) {
+            addCriterion("signature <", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureLessThanOrEqualTo(String value) {
+            addCriterion("signature <=", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureLike(String value) {
+            addCriterion("signature like", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureNotLike(String value) {
+            addCriterion("signature not like", value, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureIn(List<String> values) {
+            addCriterion("signature in", values, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureNotIn(List<String> values) {
+            addCriterion("signature not in", values, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureBetween(String value1, String value2) {
+            addCriterion("signature between", value1, value2, "signature");
+            return (Criteria) this;
+        }
+
+        public Criteria andSignatureNotBetween(String value1, String value2) {
+            addCriterion("signature not between", value1, value2, "signature");
+            return (Criteria) this;
+        }
+
         public Criteria andCreatorIdIsNull() {
             addCriterion("creator_id is null");
             return (Criteria) this;
@@ -495,73 +565,123 @@ public class RolePrivilegePoExample {
             return (Criteria) this;
         }
 
-        public Criteria andSignatureIsNull() {
-            addCriterion("signature is null");
+        public Criteria andModifierIdIsNull() {
+            addCriterion("modifier_id is null");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureIsNotNull() {
-            addCriterion("signature is not null");
+        public Criteria andModifierIdIsNotNull() {
+            addCriterion("modifier_id is not null");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureEqualTo(String value) {
-            addCriterion("signature =", value, "signature");
+        public Criteria andModifierIdEqualTo(Long value) {
+            addCriterion("modifier_id =", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureNotEqualTo(String value) {
-            addCriterion("signature <>", value, "signature");
+        public Criteria andModifierIdNotEqualTo(Long value) {
+            addCriterion("modifier_id <>", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureGreaterThan(String value) {
-            addCriterion("signature >", value, "signature");
+        public Criteria andModifierIdGreaterThan(Long value) {
+            addCriterion("modifier_id >", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureGreaterThanOrEqualTo(String value) {
-            addCriterion("signature >=", value, "signature");
+        public Criteria andModifierIdGreaterThanOrEqualTo(Long value) {
+            addCriterion("modifier_id >=", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureLessThan(String value) {
-            addCriterion("signature <", value, "signature");
+        public Criteria andModifierIdLessThan(Long value) {
+            addCriterion("modifier_id <", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureLessThanOrEqualTo(String value) {
-            addCriterion("signature <=", value, "signature");
+        public Criteria andModifierIdLessThanOrEqualTo(Long value) {
+            addCriterion("modifier_id <=", value, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureLike(String value) {
-            addCriterion("signature like", value, "signature");
+        public Criteria andModifierIdIn(List<Long> values) {
+            addCriterion("modifier_id in", values, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureNotLike(String value) {
-            addCriterion("signature not like", value, "signature");
+        public Criteria andModifierIdNotIn(List<Long> values) {
+            addCriterion("modifier_id not in", values, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureIn(List<String> values) {
-            addCriterion("signature in", values, "signature");
+        public Criteria andModifierIdBetween(Long value1, Long value2) {
+            addCriterion("modifier_id between", value1, value2, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureNotIn(List<String> values) {
-            addCriterion("signature not in", values, "signature");
+        public Criteria andModifierIdNotBetween(Long value1, Long value2) {
+            addCriterion("modifier_id not between", value1, value2, "modifierId");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureBetween(String value1, String value2) {
-            addCriterion("signature between", value1, value2, "signature");
+        public Criteria andGmtModifiedIsNull() {
+            addCriterion("gmt_modified is null");
             return (Criteria) this;
         }
 
-        public Criteria andSignatureNotBetween(String value1, String value2) {
-            addCriterion("signature not between", value1, value2, "signature");
+        public Criteria andGmtModifiedIsNotNull() {
+            addCriterion("gmt_modified is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedEqualTo(LocalDateTime value) {
+            addCriterion("gmt_modified =", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedNotEqualTo(LocalDateTime value) {
+            addCriterion("gmt_modified <>", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedGreaterThan(LocalDateTime value) {
+            addCriterion("gmt_modified >", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedGreaterThanOrEqualTo(LocalDateTime value) {
+            addCriterion("gmt_modified >=", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedLessThan(LocalDateTime value) {
+            addCriterion("gmt_modified <", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedLessThanOrEqualTo(LocalDateTime value) {
+            addCriterion("gmt_modified <=", value, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedIn(List<LocalDateTime> values) {
+            addCriterion("gmt_modified in", values, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedNotIn(List<LocalDateTime> values) {
+            addCriterion("gmt_modified not in", values, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedBetween(LocalDateTime value1, LocalDateTime value2) {
+            addCriterion("gmt_modified between", value1, value2, "gmtModified");
+            return (Criteria) this;
+        }
+
+        public Criteria andGmtModifiedNotBetween(LocalDateTime value1, LocalDateTime value2) {
+            addCriterion("gmt_modified not between", value1, value2, "gmtModified");
             return (Criteria) this;
         }
     }

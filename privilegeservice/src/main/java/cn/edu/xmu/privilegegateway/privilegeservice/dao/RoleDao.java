@@ -1,15 +1,15 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.Common;
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.ooad.util.encript.SHA256;
-import cn.edu.xmu.privilege.mapper.*;
-import cn.edu.xmu.privilege.model.bo.Privilege;
-import cn.edu.xmu.privilege.model.bo.Role;
-import cn.edu.xmu.privilege.model.bo.RolePrivilege;
-import cn.edu.xmu.privilege.model.po.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -183,12 +183,12 @@ public class RoleDao {
         }
         catch (DataAccessException e){
             logger.error("selectAllRole: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
     }
 
@@ -209,7 +209,7 @@ public class RoleDao {
             if (ret == 0) {
                 //插入失败
                 logger.debug("insertRole: insert role fail " + rolePo.toString());
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("新增失败：" + rolePo.getName()));
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("新增失败：" + rolePo.getName()));
             } else {
                 //插入成功
                 logger.debug("insertRole: insert role = " + rolePo.toString());
@@ -221,17 +221,17 @@ public class RoleDao {
             if (Objects.requireNonNull(e.getMessage()).contains("auth_role.auth_role_name_uindex")) {
                 //若有重复的角色名则新增失败
                 logger.debug("updateRole: have same role name = " + rolePo.getName());
-                retObj = new ReturnObject<>(ResponseCode.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
+                retObj = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
             } else {
                 // 其他数据库错误
                 logger.debug("other sql exception : " + e.getMessage());
-                retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
             }
         }
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
         return retObj;
     }
@@ -256,7 +256,7 @@ public class RoleDao {
             if (ret == 0) {
                 //删除角色表
                 logger.debug("deleteRole: id not exist = " + id);
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("角色id不存在：" + id));
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("角色id不存在：" + id));
             } else {
                 //删除角色权限表
                 logger.debug("deleteRole: delete role id = " + id);
@@ -299,12 +299,12 @@ public class RoleDao {
         }
         catch (DataAccessException e){
             logger.error("selectAllRole: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
     }
 
@@ -330,7 +330,7 @@ public class RoleDao {
             if (ret == 0) {
                 //修改失败
                 logger.debug("updateRole: update role fail : " + rolePo.toString());
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST, String.format("角色id不存在：" + rolePo.getId()));
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("角色id不存在：" + rolePo.getId()));
             } else {
                 //修改成功
                 logger.debug("updateRole: update role = " + rolePo.toString());
@@ -341,17 +341,17 @@ public class RoleDao {
             if (Objects.requireNonNull(e.getMessage()).contains("auth_role.auth_role_name_uindex")) {
                 //若有重复的角色名则修改失败
                 logger.debug("updateRole: have same role name = " + rolePo.getName());
-                retObj = new ReturnObject<>(ResponseCode.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
+                retObj = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
             } else {
                 // 其他数据库错误
                 logger.debug("other sql exception : " + e.getMessage());
-                retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
             }
         }
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
         return retObj;
     }
@@ -368,7 +368,7 @@ public class RoleDao {
         PrivilegePo privilegepo = privilegePoMapper.selectByPrimaryKey(privid);
         RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
         if(userpo==null || privilegepo==null || rolePo==null){
-            return new ReturnObject<VoObject>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<VoObject>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         ReturnObject<Role> retObj = null;
@@ -400,7 +400,7 @@ public class RoleDao {
 
                 if (ret == 0) {
                     //插入失败
-                    return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                    return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
                 } else {
                     //插入成功
                     //清除角色权限
@@ -411,15 +411,15 @@ public class RoleDao {
                 }
             }catch (DataAccessException e){
                 // 数据库错误
-                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
             }catch (Exception e) {
                 // 其他Exception错误
-                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了错误：%s", e.getMessage()));
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了错误：%s", e.getMessage()));
             }
 
         }else{
 //            FIELD_NOTVALID
-            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("角色权限已存在"));
+            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("角色权限已存在"));
         }
 
         //组装返回的bo
@@ -445,7 +445,7 @@ public class RoleDao {
         RolePrivilegePo rolePrivilegePo = rolePrivilegePoMapper.selectByPrimaryKey(id);
         int ret = rolePrivilegePoMapper.deleteByPrimaryKey(id);
         if(ret==0){
-            retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }else{
             Long roleid = rolePrivilegePo.getRoleId();
             String key = "r_" + roleid;
@@ -478,7 +478,7 @@ public class RoleDao {
         //查看是否有此角色
         RolePo rolePo = roleMapper.selectByPrimaryKey(id);
         if(rolePo==null){
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         RolePrivilege e = new RolePrivilege();
 

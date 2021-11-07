@@ -1,18 +1,14 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.*;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.ooad.util.encript.AES;
-import cn.edu.xmu.ooad.util.encript.SHA256;
-import cn.edu.xmu.privilege.mapper.RolePoMapper;
-import cn.edu.xmu.privilege.mapper.UserPoMapper;
-import cn.edu.xmu.privilege.mapper.UserProxyPoMapper;
-import cn.edu.xmu.privilege.mapper.UserRolePoMapper;
-import cn.edu.xmu.privilege.model.bo.*;
-import cn.edu.xmu.privilege.model.po.*;
-import cn.edu.xmu.privilege.model.vo.*;
-import cn.edu.xmu.privilege.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,12 +73,12 @@ public class UserDao{
         User user = getUserById(id.longValue()).getData();
         if (user == null) {//判断是否是由于用户不存在造成的
             logger.error("findPrivsByUserId: 数据库不存在该用户 userid=" + id);
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         Long departId = user.getDepartId();
         if(departId != did) {
             logger.error("findPrivsByUserId: 店铺id不匹配 userid=" + id);
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         List<Long> roleIds = this.getRoleIdByUserId(id);
         List<Privilege> privileges = new ArrayList<>();
@@ -120,7 +116,7 @@ public class UserDao{
                 StringBuilder message = new StringBuilder().append("getUserByName: ").append("id= ")
                         .append(user.getId()).append(" username=").append(user.getUserName());
                 logger.error(message.toString());
-                return new ReturnObject<>(ResponseCode.RESOURCE_FALSIFY);
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             } else {
                 return new ReturnObject<>(user);
             }
@@ -163,26 +159,26 @@ public class UserDao{
 
         //用户id或角色id不存在
         if (user == null || rolePo == null) {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         try {
             int state = userRolePoMapper.deleteByExample(userRolePoExample);
             if (state == 0){
                 logger.warn("revokeRole: 未找到该用户角色");
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
 
 
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
 
@@ -211,7 +207,7 @@ public class UserDao{
 
         //用户id或角色id不存在
         if (user == null || create == null || rolePo == null) {
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         userRolePo.setCreatorId(createid);
@@ -233,23 +229,23 @@ public class UserDao{
                 userRolePoMapper.insert(userRolePo);
             } else {
                 logger.warn("assignRole: 该用户已拥有该角色 userid=" + userid + "roleid=" + roleid);
-                return new ReturnObject<>(ResponseCode.USER_ROLE_REGISTERED);
+                return new ReturnObject<>(ReturnNo.USER_ROLE_REGISTERED);
             }
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
         //清除缓存
         clearUserPrivCache(userid);
 
-        return new ReturnObject<>(new UserRole(userRolePo, user, new Role(rolePo), create));
+        return new ReturnObject(new UserRole(userRolePo, user, new Role(rolePo), create));
 
     }
 
@@ -322,7 +318,7 @@ public class UserDao{
             User user = getUserById(id.longValue()).getData();
             if (user == null) {
                 logger.error("getUserRoles: 数据库不存在该用户 userid=" + id);
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
         }
 
@@ -331,7 +327,7 @@ public class UserDao{
             User creator = getUserById(po.getCreatorId().longValue()).getData();
             RolePo rolePo = rolePoMapper.selectByPrimaryKey(po.getRoleId());
             if (user == null) {
-                return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
             if (creator == null) {
                 logger.error("getUserRoles: 数据库不存在该资源 userid=" + po.getCreatorId());
@@ -604,14 +600,14 @@ public class UserDao{
     public ReturnObject<User> getUserById(Long id) {
         UserPo userPo = userMapper.selectByPrimaryKey(id);
         if (userPo == null) {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         User user = new User(userPo);
         if (!user.authetic()) {
-            StringBuilder message = new StringBuilder().append("getUserById: ").append(ResponseCode.RESOURCE_FALSIFY.getMessage()).append(" id = ")
+            StringBuilder message = new StringBuilder().append("getUserById: ").append(ReturnNo.RESOURCE_FALSIFY.getMessage()).append(" id = ")
                     .append(user.getId()).append(" username =").append(user.getUserName());
             logger.error(message.toString());
-            return new ReturnObject<>(ResponseCode.RESOURCE_FALSIFY);
+            return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
         }
         return new ReturnObject<>(user);
     }
@@ -633,7 +629,7 @@ public class UserDao{
         int ret = userMapper.updateByPrimaryKeySelective(newUserPo);
         if (ret == 0) {
             logger.debug("updateUserAvatar: update fail. user id: " + user.getId());
-            returnObject = new ReturnObject(ResponseCode.FIELD_NOTVALID);
+            returnObject = new ReturnObject(ReturnNo.FIELD_NOTVALID);
         } else {
             logger.debug("updateUserAvatar: update user success : " + user.toString());
             returnObject = new ReturnObject();
@@ -644,7 +640,7 @@ public class UserDao{
     /**
      * ID获取用户信息
      * @author XQChen
-     * @param id
+     * @param Id
      * @return 用户
      */
     public UserPo findUserById(Long Id) {
@@ -665,14 +661,14 @@ public class UserDao{
      * @param did
      * @return 用户
      */
-    public UserPo findUserByIdAndDid(Long Id, Long did) {
+    public UserPo findUserByIdAndDid(Long id, Long did) {
         UserPoExample example = new UserPoExample();
         UserPoExample.Criteria criteria = example.createCriteria();
-        criteria.andIdEqualTo(Id);
+        criteria.andIdEqualTo(id);
         criteria.andDepartIdEqualTo(did);
 
-        logger.debug("findUserByIdAndDid: Id =" + Id + " did = " + did);
-        UserPo userPo = userPoMapper.selectByPrimaryKey(Id);
+        logger.debug("findUserByIdAndDid: Id =" + id + " did = " + did);
+        UserPo userPo = userPoMapper.selectByPrimaryKey(id);
 
         return userPo;
     }
@@ -715,7 +711,7 @@ public class UserDao{
         // 不修改已被逻辑废弃的账户
         if (orig == null || (orig.getState() != null && User.State.getTypeByCode(orig.getState().intValue()) == User.State.DELETE)) {
             logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         // 构造 User 对象以计算签名
@@ -739,27 +735,27 @@ public class UserDao{
             // 如果发生 Exception，判断是邮箱还是啥重复错误
             if (Objects.requireNonNull(e.getMessage()).contains("auth_user.auth_user_mobile_uindex")) {
                 logger.info("电话重复：" + userVo.getMobile());
-                retObj = new ReturnObject<>(ResponseCode.MOBILE_REGISTERED);
+                retObj = new ReturnObject<>(ReturnNo.MOBILE_REGISTERED);
             } else if (e.getMessage().contains("auth_user.auth_user_email_uindex")) {
                 logger.info("邮箱重复：" + userVo.getEmail());
-                retObj = new ReturnObject<>(ResponseCode.EMAIL_REGISTERED);
+                retObj = new ReturnObject<>(ReturnNo.EMAIL_REGISTERED);
             } else {
                 // 其他情况属未知错误
                 logger.error("数据库错误：" + e.getMessage());
-                retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                         String.format("发生了严重的数据库错误：%s", e.getMessage()));
             }
             return retObj;
         } catch (Exception e) {
             // 其他 Exception 即属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
         // 检查更新有否成功
         if (ret == 0) {
             logger.info("用户不存在或已被删除：id = " + id);
-            retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         } else {
             logger.info("用户 id = " + id + " 的资料已更新");
             retObj = new ReturnObject<>();
@@ -781,7 +777,7 @@ public class UserDao{
         int ret = userMapper.deleteByPrimaryKey(id);
         if (ret == 0) {
             logger.info("用户不存在或已被删除：id = " + id);
-            retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         } else {
             logger.info("用户 id = " + id + " 已被永久删除");
             retObj = new ReturnObject<>();
@@ -830,7 +826,7 @@ public class UserDao{
         UserPo po = createUserStateModPo(id, state);
         if (po == null) {
             logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
 
         ReturnObject<Object> retObj;
@@ -839,7 +835,7 @@ public class UserDao{
             ret = userMapper.updateByPrimaryKeySelective(po);
             if (ret == 0) {
                 logger.info("用户不存在或已被删除：id = " + id);
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             } else {
                 logger.info("用户 id = " + id + " 的状态修改为 " + state.getDescription());
                 retObj = new ReturnObject<>();
@@ -847,12 +843,12 @@ public class UserDao{
         } catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
         return retObj;
@@ -873,7 +869,7 @@ public class UserDao{
 
         //防止重复请求验证码
         if(redisTemplate.hasKey("ip_"+ip))
-            return new ReturnObject<>(ResponseCode.AUTH_USER_FORBIDDEN);
+            return new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
         else {
             //1 min中内不能重复请求
             redisTemplate.opsForValue().set("ip_"+ip,ip);
@@ -888,12 +884,12 @@ public class UserDao{
         try {
             userPo1 = userMapper.selectByExample(userPoExample1);
         }catch (Exception e) {
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
         if(userPo1.isEmpty())
-            return new ReturnObject<>(ResponseCode.MOBILE_WRONG);
+            return new ReturnObject<>(ReturnNo.MOBILE_WRONG);
         else if(!userPo1.get(0).getEmail().equals(AES.encrypt(vo.getEmail(), User.AESPASS)))
-            return new ReturnObject<>(ResponseCode.EMAIL_WRONG);
+            return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
 
 
         //随机生成验证码
@@ -919,10 +915,10 @@ public class UserDao{
 //        try {
 //            mailSender.send(msg);
 //        } catch (MailException e) {
-//            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+//            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
 //        }
 
-        return new ReturnObject<>(ResponseCode.OK);
+        return new ReturnObject<>(ReturnNo.OK);
     }
 
     /**
@@ -937,19 +933,19 @@ public class UserDao{
 
         //通过验证码取出id
         if(!redisTemplate.hasKey("cp_"+modifyPwdVo.getCaptcha()))
-            return new ReturnObject<>(ResponseCode.AUTH_INVALID_ACCOUNT);
+            return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
         String id= redisTemplate.opsForValue().get("cp_"+modifyPwdVo.getCaptcha()).toString();
 
         UserPo userpo = null;
         try {
             userpo = userPoMapper.selectByPrimaryKey(Long.parseLong(id));
         }catch (Exception e) {
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
         //新密码与原密码相同
         if(AES.decrypt(userpo.getPassword(), User.AESPASS).equals(modifyPwdVo.getNewPassword()))
-            return new ReturnObject<>(ResponseCode.PASSWORD_SAME);
+            return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
 
         //加密
         UserPo userPo = new UserPo();
@@ -960,9 +956,9 @@ public class UserDao{
             userMapper.updateByPrimaryKeySelective(userPo);
         }catch (Exception e) {
             e.printStackTrace();
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        return new ReturnObject<>(ResponseCode.OK);
+        return new ReturnObject<>(ReturnNo.OK);
     }
 
     /* auth002 end*/
@@ -1011,17 +1007,17 @@ public class UserDao{
             if (Objects.requireNonNull(e.getMessage()).contains("auth_user.user_name_uindex")) {
                 //若有重复名则修改失败
                 logger.debug("insertUser: have same user name = " + userPo.getName());
-                returnObject = new ReturnObject<>(ResponseCode.ROLE_REGISTERED, String.format("用户名重复：" + userPo.getName()));
+                returnObject = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("用户名重复：" + userPo.getName()));
             } else {
                 logger.debug("sql exception : " + e.getMessage());
-                returnObject = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+                returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
             }
         }
 
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            returnObject = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
         return returnObject;
     }
@@ -1041,13 +1037,13 @@ public class UserDao{
             logger.debug("Update User: " + userId);
             int ret=userPoMapper.updateByPrimaryKeySelective(po);
             if(ret == 0){
-                return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+                return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
             }
             logger.debug("Success Update User: " + userId);
-            return new ReturnObject<>(ResponseCode.OK);
+            return new ReturnObject<>(ReturnNo.OK);
         }catch (Exception e){
             logger.error("exception : " + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
 }

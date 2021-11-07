@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.encript.AES;
-import cn.edu.xmu.privilege.model.vo.NewUserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

@@ -1,11 +1,11 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service.impl;
 
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.privilege.dao.UserDao;
-import cn.edu.xmu.privilege.model.bo.User;
-import cn.edu.xmu.privilege.model.po.UserPo;
-import cn.edu.xmu.privilegeservice.client.IUserService;
+import cn.edu.xmu.privilegegateway.util.ResponseCode;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeserviceservice.client.IUserService;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 

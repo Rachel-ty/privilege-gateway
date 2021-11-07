@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service.impl;
 
-import cn.edu.xmu.privilege.dao.PrivilegeDao;
-import cn.edu.xmu.privilege.dao.UserDao;
-import cn.edu.xmu.privilegeservice.client.IGatewayService;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeserviceservice.client.IGatewayService;
 import org.apache.dubbo.config.annotation.DubboService;
 import org.springframework.beans.factory.annotation.Autowired;
 

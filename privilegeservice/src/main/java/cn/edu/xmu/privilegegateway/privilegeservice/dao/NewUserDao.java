@@ -1,17 +1,16 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.ooad.util.bloom.BloomFilterHelper;
-import cn.edu.xmu.ooad.util.bloom.RedisBloomFilter;
-import cn.edu.xmu.ooad.util.encript.AES;
-import cn.edu.xmu.privilege.mapper.NewUserPoMapper;
-import cn.edu.xmu.privilege.mapper.UserPoMapper;
-import cn.edu.xmu.privilege.model.bo.User;
-import cn.edu.xmu.privilege.model.po.NewUserPo;
-import cn.edu.xmu.privilege.model.po.UserPo;
-import cn.edu.xmu.privilege.model.po.UserPoExample;
-import cn.edu.xmu.privilege.model.vo.NewUserVo;
+import cn.edu.xmu.privilegegateway.util.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.BloomFilterHelper;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.RedisBloomFilter;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import com.google.common.base.Charsets;
 import com.google.common.hash.Funnels;
 import org.slf4j.Logger;
@@ -80,13 +79,13 @@ public class NewUserDao implements InitializingBean {
      */
     public ReturnObject checkBloomFilter(NewUserPo po){
         if(bloomFilter.includeByBloomFilter("email"+suffixName,po.getEmail())){
-            return new ReturnObject(ResponseCode.EMAIL_REGISTERED);
+            return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
         }
         if(bloomFilter.includeByBloomFilter("mobile"+suffixName,po.getMobile())){
-            return new ReturnObject(ResponseCode.MOBILE_REGISTERED);
+            return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
         }
         if(bloomFilter.includeByBloomFilter("userName"+suffixName,po.getUserName())){
-            return new ReturnObject(ResponseCode.USER_NAME_REGISTERED);
+            return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
         }
         return null;
 
@@ -133,15 +132,15 @@ public class NewUserDao implements InitializingBean {
         //check in user table
         if(isEmailExist(userPo.getEmail())){
             setBloomFilterByName("email",userPo);
-            return new ReturnObject(ResponseCode.EMAIL_REGISTERED);
+            return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
         }
         if(isMobileExist(userPo.getMobile())){
             setBloomFilterByName("mobile",userPo);
-            return new ReturnObject(ResponseCode.MOBILE_REGISTERED);
+            return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
         }
         if(isUserNameExist(userPo.getUserName())){
             setBloomFilterByName("userName",userPo);
-            return new ReturnObject(ResponseCode.USER_NAME_REGISTERED);
+            return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
         }
 
 
@@ -164,21 +163,21 @@ public class NewUserDao implements InitializingBean {
             String info=e.getMessage();
             if(info.contains("user_name_uindex")){
                 setBloomFilterByName("userName",userPo);
-                return new ReturnObject(ResponseCode.USER_NAME_REGISTERED);
+                return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
             }
             if(info.contains("email_uindex")){
                 setBloomFilterByName("email",userPo);
-                return new ReturnObject(ResponseCode.EMAIL_REGISTERED);
+                return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
             }
             if(info.contains("mobile_uindex")){
                 setBloomFilterByName("mobile",userPo);
-                return new ReturnObject(ResponseCode.MOBILE_REGISTERED);
+                return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
             }
 
         }
         catch (Exception e){
             logger.error("Internal error Happened:"+e.getMessage());
-            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
         return returnObject;
     }
@@ -240,7 +239,7 @@ public class NewUserDao implements InitializingBean {
             int ret = newUserPoMapper.deleteByPrimaryKey(id);
             if (ret == 0) {
                 logger.info("用户不存在或已被删除：id = " + id);
-                retObj = new ReturnObject<>(ResponseCode.RESOURCE_ID_NOTEXIST);
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             } else {
                 logger.info("用户 id = " + id + " 已被永久删除");
                 retObj = new ReturnObject<>();
@@ -249,12 +248,12 @@ public class NewUserDao implements InitializingBean {
         catch (DataAccessException e)
         {
             logger.debug("sql exception : " + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
         catch (Exception e) {
             // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            retObj = new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
         return retObj;
     }
@@ -262,7 +261,7 @@ public class NewUserDao implements InitializingBean {
     /**
      * ID获取用户信息
      * @author Li Zihan 24320182203227
-     * @param Id
+     * @param id
      * @return 用户
      */
     public NewUserPo findNewUserById(Long id) {

@@ -1,13 +1,13 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.privilege.mapper.PrivilegePoMapper;
-import cn.edu.xmu.privilege.model.bo.Privilege;
-import cn.edu.xmu.privilege.model.po.PrivilegePo;
-import cn.edu.xmu.privilege.model.po.PrivilegePoExample;
-import cn.edu.xmu.privilege.model.vo.PrivilegeVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -126,7 +126,7 @@ public class PrivilegeDao implements InitializingBean {
             privilegePos = poMapper.selectByExample(example);
         }catch (DataAccessException e){
             logger.error("findAllPrivs: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR);
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
         List<VoObject> ret = new ArrayList<>(privilegePos.size());
@@ -161,7 +161,7 @@ public class PrivilegeDao implements InitializingBean {
         /* 验证权限是否被篡改 */
         Privilege privilege = new Privilege(po);
         if(!privilege.getCacuSignature().equals(privilege.getSignature())){
-            return new ReturnObject(ResponseCode.RESOURCE_FALSIFY, "该权限可能被篡改，请联系管理员处理");
+            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY, "该权限可能被篡改，请联系管理员处理");
         }
         /* 验证数据是否重复 */
         PrivilegePoExample example = new PrivilegePoExample();
@@ -169,14 +169,14 @@ public class PrivilegeDao implements InitializingBean {
         criteria.andRequestTypeEqualTo(vo.getRequestType()).andUrlEqualTo(vo.getUrl());
 
         if(!poMapper.selectByExample(example).isEmpty()){
-            return new ReturnObject(ResponseCode.URL_SAME, "URL和RequestType不得与已有的数据重复");
+            return new ReturnObject(ReturnNo.URL_SAME, "URL和RequestType不得与已有的数据重复");
         }
         /* 开始更新 */
         PrivilegePo newPo = privilege.createUpdatePo(vo);
         try{
             newPo.setId(po.getId()); // 这里设置要更新的权限的Id
         } catch (Exception e) {
-            return new ReturnObject(ResponseCode.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
         this.poMapper.updateByPrimaryKeySelective(newPo);

@@ -1,9 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.privilege.dao.UserProxyDao;
-import cn.edu.xmu.privilege.model.bo.UserProxy;
-import cn.edu.xmu.privilege.model.vo.UserProxyVo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserProxyDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

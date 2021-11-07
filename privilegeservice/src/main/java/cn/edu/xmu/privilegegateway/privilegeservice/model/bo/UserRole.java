@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.Common;
-import cn.edu.xmu.ooad.util.encript.SHA256;
-import cn.edu.xmu.privilege.model.po.UserRolePo;
-import cn.edu.xmu.privilege.model.vo.UserRoleRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserRolePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRoleRetVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

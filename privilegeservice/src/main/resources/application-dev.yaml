@@ -14,21 +14,20 @@ spring:
   main:
     # 解决Bean重复定义问题
     allow-bean-definition-overriding: true
-  application:
-    name: privilege-service
-  profiles:
-    active: dev
   servlet:
     multipart:
       #是否使用http上传
       enabled: true
       #最大请求文件的大小
       max-request-size: 10MB
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-    initialization-mode: never
     druid:
       #初始化时建立物理连接的个数
       initial-size: 3
@@ -45,7 +44,6 @@ spring:
           #慢SQL执行时间
           slow-sql-millis: 100
       validation-query: select 1
-    sql-script-encoding: UTF-8
 
   redis:
     # Redis数据库索引（默认为0）
@@ -62,6 +60,9 @@ spring:
         max-wait: -1
     # 连接超时时间（毫秒）
     timeout: 5000
+  sql:
+    init:
+      mode: never
 
 mybatis:
   #po对象的包

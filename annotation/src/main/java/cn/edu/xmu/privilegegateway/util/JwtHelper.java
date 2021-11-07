@@ -68,7 +68,7 @@ public class JwtHelper {
             Date expireDate = getAfterDate(nowDate, 0, 0, 0, 0, 0, expireTime);
             map.put("alg", "HS256");
             map.put("typ", "JWT");
-            String tokenId = cn.edu.xmu.ooad.util.Common.genSeqNum();
+            String tokenId = cn.edu.xmu.privilegegateway.util.Tools.genSeqNum();
             StringBuilder message = new StringBuilder().append("createToken: ").append("userId = ")
                     .append(userId).append(" departId=").append(departId).append(" tokenId:").append(tokenId);
             logger.debug(message.toString());

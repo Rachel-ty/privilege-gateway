@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.mapper;
 
-import cn.edu.xmu.privilege.model.po.NewUserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 
 public interface NewUserPoMapper {
     /**

@@ -1,9 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.ooad.util.Common;
-import cn.edu.xmu.ooad.util.encript.SHA256;
-import cn.edu.xmu.privilege.model.po.UserProxyPo;
-import cn.edu.xmu.privilege.model.vo.UserProxyVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
 import lombok.Data;
 
 import java.time.LocalDateTime;

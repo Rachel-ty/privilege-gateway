@@ -1,21 +1,13 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
-import cn.edu.xmu.ooad.annotation.Audit;
-import cn.edu.xmu.ooad.annotation.Depart;
-import cn.edu.xmu.ooad.annotation.LoginUser;
-import cn.edu.xmu.ooad.model.VoObject;
-import cn.edu.xmu.ooad.util.*;
-import cn.edu.xmu.privilege.model.bo.Role;
-import cn.edu.xmu.privilege.model.bo.User;
-import cn.edu.xmu.privilege.model.vo.*;
-import cn.edu.xmu.privilege.model.vo.LoginVo;
-import cn.edu.xmu.privilege.model.vo.PrivilegeVo;
-import cn.edu.xmu.privilege.model.vo.UserProxyVo;
-import cn.edu.xmu.privilege.service.NewUserService;
-import cn.edu.xmu.privilege.service.RoleService;
-import cn.edu.xmu.privilege.service.UserProxyService;
-import cn.edu.xmu.privilege.service.UserService;
-import cn.edu.xmu.privilege.util.IpUtil;
+import cn.edu.xmu.privilegegateway.util.*;
+import cn.edu.xmu.privilegegateway.annotation.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.IpUtil;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
@@ -106,7 +98,7 @@ public class PrivilegeController {
     public Object assignRole(@LoginUser Long createid, @PathVariable Long did, @PathVariable Long userid, @PathVariable Long roleid){
 
         ReturnObject<VoObject> returnObject =  userService.assignRole(createid, userid, roleid, did);
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -153,7 +145,7 @@ public class PrivilegeController {
     @GetMapping("/shops/{did}/adminusers/{id}/roles")
     public Object getSelfRole(@PathVariable Long did, @PathVariable Long id){
         ReturnObject<List> returnObject =  userService.getUserRoles(id, did);
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getListRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -224,7 +216,7 @@ public class PrivilegeController {
         }
         ReturnObject<VoObject> returnObject = userService.changePriv(id, vo);
 
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -251,7 +243,7 @@ public class PrivilegeController {
     @GetMapping("/shops/{did}/adminusers/{id}/privileges")
     public Object getPrivsByUserId(@PathVariable Long id, @PathVariable Long did){
         ReturnObject<List> returnObject =  userService.findPrivsByUserId(id,did);
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getListRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -304,7 +296,7 @@ public class PrivilegeController {
         ReturnObject<VoObject> user = userService.findUserByIdAndDid(id, did);
         logger.debug("findUserByIdAndDid: user = " + user.getData() + " code = " + user.getCode());
 
-        if (!user.getCode().equals(ResponseCode.RESOURCE_ID_NOTEXIST)) {
+        if (!user.getCode().equals(ReturnNo.RESOURCE_ID_NOTEXIST)) {
             returnObject = Common.getRetObject(user);
         } else {
             returnObject = Common.getNullRetObj(new ReturnObject<>(user.getCode(), user.getErrmsg()), httpServletResponse);
@@ -340,7 +332,7 @@ public class PrivilegeController {
         Object object = null;
 
         if(page <= 0 || pagesize <= 0) {
-            object = Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID), httpServletResponse);
+            object = Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID), httpServletResponse);
         } else {
             ReturnObject<PageInfo<VoObject>> returnObject = userService.findAllUsers(userName, mobile, page, pagesize, did);
             logger.debug("findUserById: getUsers = " + returnObject);
@@ -387,7 +379,7 @@ public class PrivilegeController {
             return Common.getPageRetObject(returnObject);
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
         }
     }
 
@@ -438,7 +430,7 @@ public class PrivilegeController {
             }
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
         }
     }
 
@@ -471,7 +463,7 @@ public class PrivilegeController {
             return Common.decorateReturnObject(returnObject);
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
         }
     }
 
@@ -524,7 +516,7 @@ public class PrivilegeController {
             }
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ResponseCode.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
         }
     }
     //endregion
@@ -874,7 +866,7 @@ public class PrivilegeController {
             return Common.processFieldErrors(result,httpServletResponse);
         }
         ReturnObject returnObject=newUserService.register(vo);
-        if(returnObject.getCode()==ResponseCode.OK){
+        if(returnObject.getCode()==ReturnNo.OK){
             return ResponseUtil.ok(returnObject.getData());
         }
         else return ResponseUtil.fail(returnObject.getCode());
@@ -1014,7 +1006,7 @@ public class PrivilegeController {
     public Object getRolePrivs(@PathVariable Long id){
         ReturnObject<List> returnObject = roleService.findRolePrivs(id);
 
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getListRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -1063,7 +1055,7 @@ public class PrivilegeController {
         logger.debug("addRolePriv: id = "+ roleid+" userid: id = "+ userId);
         ReturnObject<VoObject> returnObject = roleService.addRolePriv(roleid, privilegeid, userId);
 
-        if (returnObject.getCode() == ResponseCode.OK) {
+        if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getRetObject(returnObject);
         } else {
             return Common.decorateReturnObject(returnObject);
@@ -1102,7 +1094,7 @@ public class PrivilegeController {
         else
         {
             logger.error("approveUser: 无权限查看此部门的用户 did=" + did);
-            return new ReturnObject<>(ResponseCode.FIELD_NOTVALID);
+            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
         }
         return returnObject;
     }

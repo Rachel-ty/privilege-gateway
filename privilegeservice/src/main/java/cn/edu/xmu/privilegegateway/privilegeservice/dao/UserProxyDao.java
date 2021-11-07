@@ -1,14 +1,14 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.ooad.util.Common;
-import cn.edu.xmu.ooad.util.ResponseCode;
-import cn.edu.xmu.ooad.util.ReturnObject;
-import cn.edu.xmu.ooad.util.encript.SHA256;
-import cn.edu.xmu.privilege.mapper.UserPoMapper;
-import cn.edu.xmu.privilege.mapper.UserProxyPoMapper;
-import cn.edu.xmu.privilege.model.bo.UserProxy;
-import cn.edu.xmu.privilege.model.po.UserProxyPo;
-import cn.edu.xmu.privilege.model.po.UserProxyPoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPoExample;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,17 +38,17 @@ public class UserProxyDao {
 
     public ReturnObject usersProxy(Long aid, Long id, UserProxy bo,Long departid) {
         if(Objects.equals(aid,id)){
-            return new ReturnObject(ResponseCode.USERPROXY_SELF);
+            return new ReturnObject(ReturnNo.USERPROXY_SELF);
         }
         if(!isBiggerBegin(bo)){
-            return new ReturnObject(ResponseCode.USERPROXY_BIGGER);
+            return new ReturnObject(ReturnNo.USERPROXY_BIGGER);
         }
         if (isExistProxy(aid, id, bo)) {
-            return new ReturnObject(ResponseCode.USERPROXY_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_CONFLICT);
         }
         if(userPoMapper.selectByPrimaryKey(id).getDepartId()!=departid)
         {
-            return new ReturnObject(ResponseCode.USERPROXY_DEPART_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_DEPART_CONFLICT);
         }
         UserProxyPo userProxyPo = new UserProxyPo();
         userProxyPo.setUserAId(aid);
@@ -67,36 +67,36 @@ public class UserProxyDao {
         catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }
 
     public ReturnObject aUsersProxy(Long aid, Long bid, UserProxy bo,Long departid) {
         if(Objects.equals(aid,bid)){
-            return new ReturnObject(ResponseCode.USERPROXY_SELF);
+            return new ReturnObject(ReturnNo.USERPROXY_SELF);
         }
 
         if(!isBiggerBegin(bo)){
-            return new ReturnObject(ResponseCode.USERPROXY_BIGGER);
+            return new ReturnObject(ReturnNo.USERPROXY_BIGGER);
         }
 
         if (isExistProxy(aid, bid, bo)) {
-            return new ReturnObject(ResponseCode.USERPROXY_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_CONFLICT);
         }
 
         if(userPoMapper.selectByPrimaryKey(aid).getDepartId()!=userPoMapper.selectByPrimaryKey(bid).getDepartId())
         {
-            return new ReturnObject(ResponseCode.USERPROXY_DEPART_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_DEPART_CONFLICT);
         }
         if(!Objects.equals(departid, 0L) && departid != userPoMapper.selectByPrimaryKey(aid).getDepartId())
         {
-            return new ReturnObject(ResponseCode.USERPROXY_DEPART_MANAGER_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_DEPART_MANAGER_CONFLICT);
         }
 
         UserProxyPo userProxyPo = new UserProxyPo();
@@ -116,12 +116,12 @@ public class UserProxyDao {
         catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }
@@ -136,16 +136,16 @@ public class UserProxyDao {
             catch (DataAccessException e) {
                 // 数据库错误
                 logger.error("数据库错误：" + e.getMessage());
-                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                         String.format("发生了严重的数据库错误：%s", e.getMessage()));
             } catch (Exception e) {
                 // 属未知错误
                 logger.error("严重错误：" + e.getMessage());
-                return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                         String.format("发生了严重的未知错误：%s", e.getMessage()));
             }
         } else {
-            return new ReturnObject(ResponseCode.RESOURCE_ID_OUTSCOPE);
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
     }
 
@@ -166,10 +166,10 @@ public class UserProxyDao {
         for(UserProxyPo po : results){
             UserProxy bo=new UserProxy(po);
             if (!bo.authetic()) {
-                StringBuilder message = new StringBuilder().append("listProxies: ").append(ResponseCode.RESOURCE_FALSIFY.getMessage()).append(" id = ")
+                StringBuilder message = new StringBuilder().append("listProxies: ").append(ReturnNo.RESOURCE_FALSIFY.getMessage()).append(" id = ")
                         .append(bo.getId());
                 logger.error(message.toString());
-                return new ReturnObject<>(ResponseCode.RESOURCE_FALSIFY);
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
         }
         return new ReturnObject<>(results);
@@ -178,7 +178,7 @@ public class UserProxyDao {
     public ReturnObject removeAllProxies(Long id,Long did) {
         if(!Objects.equals(did, 0L) && did!=userProxyPoMapper.selectByPrimaryKey(id).getDepartId())
         {
-            return new ReturnObject(ResponseCode.USERPROXY_DEPART_MANAGER_CONFLICT);
+            return new ReturnObject(ReturnNo.USERPROXY_DEPART_MANAGER_CONFLICT);
         }
         try {
             userProxyPoMapper.deleteByPrimaryKey(id);
@@ -187,12 +187,12 @@ public class UserProxyDao {
         catch (DataAccessException e) {
             // 数据库错误
             logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ResponseCode.INTERNAL_SERVER_ERR,
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }

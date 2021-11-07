@@ -1,8 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.mapper;
 
-import cn.edu.xmu.privilege.model.po.UserRolePo;
-import cn.edu.xmu.privilege.model.po.UserRolePoExample;
-
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserRolePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserRolePoExample;
 import java.util.List;
 
 public interface UserRolePoMapper {

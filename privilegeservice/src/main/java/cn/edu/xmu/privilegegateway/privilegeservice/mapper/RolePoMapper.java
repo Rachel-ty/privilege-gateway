@@ -1,10 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.mapper;
 
-import cn.edu.xmu.privilege.model.po.RolePo;
-import cn.edu.xmu.privilege.model.po.RolePoExample;
-import org.apache.ibatis.annotations.Param;
-
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePoExample;
 import java.util.List;
+import org.apache.ibatis.annotations.Param;
 
 public interface RolePoMapper {
     /**
