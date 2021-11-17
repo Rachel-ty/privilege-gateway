@@ -12,5 +12,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Audit {
-    /** 要执行的具体操作比如：添加用户 **/
+
+    String departName() default "shops";
+
 }
