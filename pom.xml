@@ -12,7 +12,7 @@
 
     <groupId>cn.edu.xmu</groupId>
     <artifactId>privilegegateway</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.1.1-SNAPSHOT</version>
 
     <name>privilegegateway</name>
     <description>the privilege gateway based on Spring Cloud Gateway</description>
@@ -41,12 +41,6 @@
             <dependency>
                 <groupId>cn.edu.xmu.privilegegateway</groupId>
                 <artifactId>annotation</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-
-            <dependency>
-                <groupId>cn.edu.xmu.oomall</groupId>
-                <artifactId>core</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
@@ -222,12 +216,6 @@
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-gateway</artifactId>
                 <version>2.2.6.RELEASE</version>
-            </dependency>
-
-            <dependency>
-                <groupId>com.alibaba</groupId>
-                <artifactId>fastjson</artifactId>
-                <version>1.2.70</version>
             </dependency>
 
             <dependency>
