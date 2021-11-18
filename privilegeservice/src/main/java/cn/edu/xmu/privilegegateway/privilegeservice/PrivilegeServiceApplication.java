@@ -15,7 +15,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 /**
  * @author Ming Qiu
  **/
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway"})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.privilegeservice","cn.edu.xmu.privilegegateway.annotation"})
 @MapperScan(basePackages = "cn.edu.xmu.privilegegateway.privilegeservice.mapper")
 @EnableDiscoveryClient
 public class PrivilegeServiceApplication implements ApplicationRunner {

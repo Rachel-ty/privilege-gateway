@@ -211,7 +211,7 @@
                 <version>3.0.4</version>
             </dependency>
 
-<!--            add dependencies-->
+            <!--            add dependencies-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-gateway</artifactId>
@@ -225,7 +225,7 @@
             </dependency>
 
             <dependency>
-            <groupId>org.springframework</groupId>
+                <groupId>org.springframework</groupId>
                 <artifactId>spring-messaging</artifactId>
                 <version>5.3.9</version>
             </dependency>
