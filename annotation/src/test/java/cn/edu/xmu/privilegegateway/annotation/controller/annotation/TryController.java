@@ -19,33 +19,36 @@ import javax.servlet.http.HttpServletResponse;
  * @date 2021/11/18
  */
 @RestController
-@RequestMapping(value = "/privilege",produces = "application/json;charset=UTF-8")
+@RequestMapping(value = "/privilege", produces = "application/json;charset=UTF-8")
 public class TryController {
     @Autowired
     private HttpServletResponse httpServletResponse;
+
     //没有common 我先引进来了
     @GetMapping("/shops/{id}")
     @Audit(departName = "shops")
-    public String test1(@PathVariable("id") Long id,@LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName){
-        System.out.println(userId.toString()+' '+departId.toString()+' '+userName);
-        return "{ \"data\":"+userId.toString()+' '+departId.toString()+' '+userName+"}";
+    public String test1(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName) {
+
+        return "{ \"data\":" + userId.toString() + ' ' + departId.toString() + ' ' + userName + "}";
 
 
     }
+
     @GetMapping("/try/{id}")
     @Audit(departName = "try")
-    public Object test2(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName){
+    public Object test2(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName) {
 
-        return "{ \"data\":"+userId.toString()+' '+departId.toString()+' '+userName+"}";
+        return "{ \"data\":" + userId.toString() + ' ' + departId.toString() + ' ' + userName + "}";
 
 
     }
+
     @GetMapping("/try1/{id}")
     @Audit(departName = "try")
-    public Object test3(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName){
+    public Object test3(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName) {
 
-        System.out.println(userId.toString()+' '+departId.toString()+' '+userName);
-        return "{ \"data\":"+userId.toString()+' '+departId.toString()+' '+userName+"}";
+
+        return "{ \"data\":" + userId.toString() + ' ' + departId.toString() + ' ' + userName + "}";
 
 
     }
