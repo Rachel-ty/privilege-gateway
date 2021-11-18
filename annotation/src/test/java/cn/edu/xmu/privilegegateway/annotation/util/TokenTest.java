@@ -16,7 +16,6 @@ public class TokenTest {
     public void testVerifyTokenAndGetClaims() throws Exception{
         JwtHelper jwtHelper=new JwtHelper();
         String token= jwtHelper.createToken(1L,"yujie",1L,9600);
-        Date now=new Date();
         JwtHelper.UserAndDepart uad=jwtHelper.verifyTokenAndGetClaims(token);
 
         assert uad.getUserId().equals(1L);
