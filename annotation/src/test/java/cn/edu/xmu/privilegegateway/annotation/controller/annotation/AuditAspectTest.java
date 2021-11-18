@@ -24,12 +24,6 @@ public class AuditAspectTest {
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
 
-//    @BeforeAll
-//    private static void login(){
-//        JwtHelper jwtHelper = new JwtHelper();
-//        adminToken =jwtHelper.createToken(1L,0L, 3600);
-////        shopToken =jwtHelper.createToken(59L,1L, 3600);
-//    }
     @Autowired
     private MockMvc mvc;
 

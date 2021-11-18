@@ -35,11 +35,7 @@ public class TryController {
     @GetMapping("/try/{id}")
     @Audit(departName = "try")
     public Object test2(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName){
-//        Object returnObject = processFieldErrors(bindingResult, httpServletResponse);
-//        if (null != returnObject) {
-//            return returnObject;
-//        }
-        System.out.println(userId.toString()+' '+departId.toString()+' '+userName);
+
         return "{ \"data\":"+userId.toString()+' '+departId.toString()+' '+userName+"}";
 
 
@@ -47,10 +43,7 @@ public class TryController {
     @GetMapping("/try1/{id}")
     @Audit(departName = "try")
     public Object test3(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName){
-//        Object returnObject = processFieldErrors(bindingResult, httpServletResponse);
-//        if (null != returnObject) {
-//            return returnObject;
-//        }
+
         System.out.println(userId.toString()+' '+departId.toString()+' '+userName);
         return "{ \"data\":"+userId.toString()+' '+departId.toString()+' '+userName+"}";
 

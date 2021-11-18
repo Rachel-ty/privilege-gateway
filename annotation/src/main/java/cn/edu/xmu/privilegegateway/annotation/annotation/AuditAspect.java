@@ -82,11 +82,13 @@ public class AuditAspect {
         if(AuditAnnotation!=null){
             departName = ((Audit) AuditAnnotation).departName();
         }
-        String paths[]=pathInfo.split("/");
+
         boolean flag=false;
 
 
         if(null!=pathInfo) {
+            logger.debug("getPathInfo = "+ pathInfo);
+            String paths[]=pathInfo.split("/");
             for(int i=0;i<paths.length;i++){
                 //如果departId为0,可以操作所有的depart
                 if(departId==0){
