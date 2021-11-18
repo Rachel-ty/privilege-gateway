@@ -1,7 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.*;

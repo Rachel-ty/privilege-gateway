@@ -1,7 +1,12 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
-import cn.edu.xmu.privilegegateway.util.*;
-import cn.edu.xmu.privilegegateway.annotation.*;
+import cn.edu.xmu.privilegegateway.annotation.annotation.Audit;
+import cn.edu.xmu.privilegegateway.annotation.annotation.Depart;
+import cn.edu.xmu.privilegegateway.annotation.annotation.LoginUser;
+import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;

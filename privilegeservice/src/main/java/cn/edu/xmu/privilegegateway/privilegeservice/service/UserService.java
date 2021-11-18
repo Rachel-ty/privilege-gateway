@@ -1,8 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
+import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.ImgHelper;
-import cn.edu.xmu.privilegegateway.util.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
@@ -288,7 +290,7 @@ public class UserService {
 
         //创建新的token
         JwtHelper jwtHelper = new JwtHelper();
-        String jwt = jwtHelper.createToken(user.getId(),user.getDepartId(), jwtExpireTime);
+        String jwt = jwtHelper.createToken(user.getId(),user.getUserName(),user.getDepartId(), jwtExpireTime);
         userDao.loadUserPriv(user.getId(), jwt);
         logger.debug("login: newJwt = "+ jwt);
         userDao.setLoginIPAndPosition(user.getId(),ipAddr, LocalDateTime.now());
