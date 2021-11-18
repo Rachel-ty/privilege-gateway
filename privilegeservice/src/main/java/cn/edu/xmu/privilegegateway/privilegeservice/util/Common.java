@@ -1,6 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.util;
 
-import cn.edu.xmu.privilegegateway.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -36,7 +38,7 @@ public class Common {
                 msg.append(";");
             }
             logger.debug("processFieldErrors: msg = "+ msg.toString());
-            retObj = cn.edu.xmu.privilegegateway.util.ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, msg.toString());
+            retObj = ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, msg.toString());
             response.setStatus(HttpStatus.BAD_REQUEST.value());
         }
         return retObj;
@@ -50,7 +52,7 @@ public class Common {
     public static Object getRetObject(ReturnObject<VoObject> returnObject) {
         ReturnNo code = returnObject.getCode();
         switch (code){
-            case ReturnNo.OK:
+            case OK:
                 VoObject data = returnObject.getData();
                 if (data != null){
                     Object voObj = data.createVo();
@@ -71,7 +73,7 @@ public class Common {
     public static Object getListRetObject(ReturnObject<List> returnObject) {
         ReturnNo code = returnObject.getCode();
         switch (code){
-            case ReturnNo.OK:
+            case OK:
                 List objs = returnObject.getData();
                 if (objs != null){
                     List<Object> ret = new ArrayList<>(objs.size());
@@ -98,7 +100,7 @@ public class Common {
     public static Object getPageRetObject(ReturnObject<PageInfo<VoObject>> returnObject) {
         ReturnNo code = returnObject.getCode();
         switch (code){
-            case ReturnNo.OK:
+            case OK:
 
                 PageInfo<VoObject> objs = returnObject.getData();
                 if (objs != null){
@@ -130,7 +132,7 @@ public class Common {
     public static Object getNullRetObj(ReturnObject<Object> returnObject, HttpServletResponse httpServletResponse) {
         ReturnNo code = returnObject.getCode();
         switch (code) {
-            case ReturnNo.RESOURCE_ID_NOTEXIST:
+            case RESOURCE_ID_NOTEXIST:
                 httpServletResponse.setStatus(HttpStatus.NOT_FOUND.value());
                 return ResponseUtil.fail(returnObject.getCode());
             default:
@@ -145,17 +147,17 @@ public class Common {
      */
     public static Object decorateReturnObject(ReturnObject returnObject) {
         switch (returnObject.getCode()) {
-            case ReturnNo.RESOURCE_ID_NOTEXIST:
+            case RESOURCE_ID_NOTEXIST:
                 // 404：资源不存在
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.NOT_FOUND);
-            case ReturnNo.INTERNAL_SERVER_ERR:
+            case INTERNAL_SERVER_ERR:
                 // 500：数据库或其他严重错误
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.INTERNAL_SERVER_ERROR);
-            case ReturnNo.OK:
+            case OK:
                 // 200: 无错误
                 Object data = returnObject.getData();
                 if (data != null){

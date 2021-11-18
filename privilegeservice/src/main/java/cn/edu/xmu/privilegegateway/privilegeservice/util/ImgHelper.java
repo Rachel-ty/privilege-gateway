@@ -1,7 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.util;
 
-import cn.edu.xmu.privilegegateway.util.*;
-
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class ImgHelper {
      * @return
      */
     public static ReturnObject remoteSaveImg(MultipartFile multipartFile,
-            int size, String username,String password,String baseUrl) throws IOException {
+                                             int size, String username, String password, String baseUrl) throws IOException {
 
         //判断是否是图片
         if(!isImg(multipartFile))

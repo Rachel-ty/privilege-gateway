@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.BloomFilterHelper;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.RedisBloomFilter;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
