@@ -13,6 +13,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Audit {
 
-    String departName() default "shops";
+    String departName() default "";
 
 }

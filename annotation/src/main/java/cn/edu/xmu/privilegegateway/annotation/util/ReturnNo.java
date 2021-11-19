@@ -22,9 +22,12 @@ public enum ReturnNo {
     //--------------------------------------------
     //状态码 400
     FIELD_NOTVALID(503,"字段不合法"),
-    RESOURCE_FALSIFY(507, "信息签名不正确"),
+    RESOURCE_FALSIFY(511, "信息签名不正确"),
     IMG_FORMAT_ERROR(508,"图片格式不正确"),
     IMG_SIZE_EXCEED(509,"图片大小超限"),
+    PARAMETER_MISSED(510, "缺少必要参数"),
+    LATE_BEGINTIME(947, "开始时间不能晚于结束时间"),
+
 
     //所有路径带id的API都可能返回此错误
     //状态码 404
@@ -33,6 +36,9 @@ public enum ReturnNo {
     //状态码 403
     RESOURCE_ID_OUTSCOPE(505,"操作的资源id不是自己的对象"),
     FILE_NO_WRITE_PERMISSION(506,"目录文件夹没有写入的权限"),
+
+    //状态码 200
+    STATENOTALLOW(507,"当前状态禁止此操作"),
 
     /***************************************************
      *    权限模块错误码
