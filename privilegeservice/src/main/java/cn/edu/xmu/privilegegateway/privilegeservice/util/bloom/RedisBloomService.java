@@ -6,6 +6,11 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @author xu cang bai
+ * @date 2021/11/20
+ * @param <T>
+ */
 public class RedisBloomService<T> {
     private RedisTemplate redisTemplate;
 
