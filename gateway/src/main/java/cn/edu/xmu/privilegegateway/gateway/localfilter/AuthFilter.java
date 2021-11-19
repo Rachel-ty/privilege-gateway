@@ -95,6 +95,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             Long departId = userAndDepart.getDepartId();
             String userName=userAndDepart.getUserName();
             Date expireTime = userAndDepart.getExpTime();
+            Integer userLevel =userAndDepart.getUserLevel();
             // 检验api中传入token是否和departId一致
             if (url != null) {
                 // 获取路径中的shopId
@@ -122,7 +123,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 // 若快要过期了则重新换发token
                 // 创建新的token
                 JwtHelper jwtHelper = new JwtHelper();
-                jwt = jwtHelper.createToken(userId, userName,departId, GatewayUtil.getJwtExpireTime());
+                jwt = jwtHelper.createToken(userId, userName,departId,userLevel ,GatewayUtil.getJwtExpireTime());
                 logger.debug("重新换发token:" + jwt);
             }
             // 判断redis中是否存在该用户的token，若不存在则重新load用户的权限
