@@ -2,7 +2,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.BloomFilterHelper;
+
 import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.RedisBloomFilter;
 import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
@@ -42,7 +42,7 @@ public class NewUserDao implements InitializingBean {
     UserPoMapper userPoMapper;
     @Autowired
     RedisTemplate redisTemplate;
-
+    @Autowired
     RedisBloomFilter bloomFilter;
 
     String[] fieldName;
@@ -61,9 +61,7 @@ public class NewUserDao implements InitializingBean {
      */
     @Override
     public void afterPropertiesSet() throws Exception {
-        BloomFilterHelper bloomFilterHelper=new BloomFilterHelper<>(Funnels.stringFunnel(Charsets.UTF_8),1000,0.02);
         fieldName=new String[]{"email","mobile","userName"};
-        bloomFilter=new RedisBloomFilter(redisTemplate,bloomFilterHelper);
         if(reinitialize){
             for(int i=0;i<fieldName.length;i++){
                 redisTemplate.delete(fieldName[i]+suffixName);
@@ -79,13 +77,13 @@ public class NewUserDao implements InitializingBean {
      * createdBy: LiangJi3229 2020-11-10 18:41
      */
     public ReturnObject checkBloomFilter(NewUserPo po){
-        if(bloomFilter.includeByBloomFilter("email"+suffixName,po.getEmail())){
+        if(bloomFilter.bloomFilterExists("email"+suffixName,po.getEmail())){
             return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
         }
-        if(bloomFilter.includeByBloomFilter("mobile"+suffixName,po.getMobile())){
+        if(bloomFilter.bloomFilterExists("mobile"+suffixName,po.getMobile())){
             return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
         }
-        if(bloomFilter.includeByBloomFilter("userName"+suffixName,po.getUserName())){
+        if(bloomFilter.bloomFilterExists("userName"+suffixName,po.getUserName())){
             return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
         }
         return null;
@@ -103,7 +101,7 @@ public class NewUserDao implements InitializingBean {
             Field field = NewUserPo.class.getDeclaredField(name);
             Method method=po.getClass().getMethod("get"+name.substring(0,1).toUpperCase()+name.substring(1));
             logger.debug("add value "+method.invoke(po)+" to "+field.getName()+suffixName);
-            bloomFilter.addByBloomFilter(field.getName()+suffixName,method.invoke(po));
+            bloomFilter.bloomFilterAdd(field.getName()+suffixName,method.invoke(po).toString());
         }
         catch (Exception ex){
             logger.error("Exception happened:"+ex.getMessage());
