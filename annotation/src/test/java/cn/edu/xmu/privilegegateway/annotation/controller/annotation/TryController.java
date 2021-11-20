@@ -12,12 +12,18 @@ import javax.servlet.http.HttpServletResponse;
  * @author zihan zhou
  * @date 2021/11/18
  */
+@PageDefault
 @RestController
 @RequestMapping(value = "/privilege", produces = "application/json;charset=UTF-8")
 public class TryController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
+    @GetMapping("/shops")
+    public String test1(@Page Integer page,
+                        @PageSize Integer pageSize) {
+        return  "{ \"data\":" + page.toString()+pageSize.toString() + "}";
+    }
     //没有common 我先引进来了
     @GetMapping("/shops/{id}")
     @Audit(departName = "shops")
