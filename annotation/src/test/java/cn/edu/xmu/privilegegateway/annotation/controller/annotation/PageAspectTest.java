@@ -28,8 +28,8 @@ public class PageAspectTest {
     @Test
     public void onlineAdvancesale1() throws Exception {            //上架成功（重新上架
         String responseString = this.mvc.perform(MockMvcRequestBuilders.get("/privilege/shops").
-                        param("page","1").
-                        param("pageSize","10")
+                        param("page","").
+                        param("pageSize","")
                         .contentType("application/json;charset=UTF-8")).
                 andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
         System.out.println(responseString);
