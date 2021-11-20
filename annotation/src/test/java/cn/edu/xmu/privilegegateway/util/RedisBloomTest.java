@@ -1,14 +1,13 @@
-package cn.edu.xmu.privlegegateway.privilegeservice.util;
+package cn.edu.xmu.privilegegateway.util;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.controller.PrivilegeController;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.*;
+import cn.edu.xmu.privilegegateway.util.bloom.RedisBloomFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@SpringBootTest(classes = PrivilegeController.class)
+@SpringBootTest
 public class RedisBloomTest {
     @Autowired
     private RedisBloomFilter redisBloomFilter;
