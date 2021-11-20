@@ -38,15 +38,16 @@ public class PageAspect {
         MethodSignature ms = (MethodSignature) joinPoint.getSignature();
         Method method = ms.getMethod();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
-        HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
-        String pageString= request.getParameter("page");
-        String pageSizeString= request.getParameter("pageSize");
         Integer page=1,pageSize=10;
-        if (pageString!=null&&(!pageString.isEmpty())&&pageString.matches("\\d+")) {
-            page=Integer.valueOf(pageString);
-        }
-        if (pageSizeString!=null&&pageSizeString.matches("\\d+")) {
-            pageSize=Integer.valueOf(pageSizeString);
+        if(request!=null){
+            String pageString= request.getParameter("page");
+            String pageSizeString= request.getParameter("pageSize");
+            if (pageString!=null&&(!pageString.isEmpty())&&pageString.matches("\\d+")) {
+                page=Integer.valueOf(pageString);
+            }
+            if (pageSizeString!=null&&pageSizeString.matches("\\d+")) {
+                pageSize=Integer.valueOf(pageSizeString);
+            }
         }
         String[] paramNames = ms.getParameterNames();
         Object[] args = joinPoint.getArgs();
@@ -58,7 +59,6 @@ public class PageAspect {
                 args[i] = pageSize;
             }
         }
-
         Object obj = null;
         try {
             obj = ((ProceedingJoinPoint) joinPoint).proceed(args);
