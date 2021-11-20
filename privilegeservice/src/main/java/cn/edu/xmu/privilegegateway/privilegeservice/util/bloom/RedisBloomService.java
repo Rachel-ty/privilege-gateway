@@ -20,6 +20,15 @@ public class RedisBloomService<T> {
         this.redisTemplate = redisTemplate;
     }
 
+    /**
+     * @param bloomFilterName 这里的bloomFilterName 需要为 name + "BloomFilter"
+     * @return
+     */
+    public boolean bloomFilterDelete(String bloomFilterName)
+    {
+        return redisTemplate.delete(bloomFilterName);
+    }
+
     public Boolean bloomFilterAdd(String bloomFilterName,T value){
         DefaultRedisScript<Boolean> bloomAdd = new DefaultRedisScript<>();
         bloomAdd.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterAdd.lua")));
