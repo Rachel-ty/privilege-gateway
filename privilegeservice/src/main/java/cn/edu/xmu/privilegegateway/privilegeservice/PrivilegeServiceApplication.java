@@ -10,13 +10,12 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 
 /**
  * @author Ming Qiu
  **/
-@SpringBootApplication(exclude = {DataSourceAutoConfiguration.class},scanBasePackages = {"cn.edu.xmu.privilegegateway.privilegeservice","cn.edu.xmu.privilegegateway.annotation"})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.privilegeservice","cn.edu.xmu.privilegegateway.annotation"})
 @MapperScan(basePackages = "cn.edu.xmu.privilegegateway.privilegeservice.mapper")
 @EnableDiscoveryClient
 public class PrivilegeServiceApplication implements ApplicationRunner {
