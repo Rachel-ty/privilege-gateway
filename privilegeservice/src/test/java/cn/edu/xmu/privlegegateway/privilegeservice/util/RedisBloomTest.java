@@ -15,7 +15,9 @@ public class RedisBloomTest {
 
     @Test
     void test(){
-        boolean test0 =redisBloomFilter.bloomFilterDelete("test", 0.05, 10000);
+        redisBloomFilter.bloomFilterDelete("test");
+
+        boolean test0=redisBloomFilter.bloomFilterReserve("test",0.005,1000);
         assertEquals(true,test0);
 
         boolean test1 = redisBloomFilter.bloomFilterExists("test","test");
@@ -27,7 +29,7 @@ public class RedisBloomTest {
         boolean test3 = redisBloomFilter.bloomFilterExists("test","test");
         assertEquals(true,test3);
 
-        boolean test4 =redisBloomFilter.bloomFilterDelete("test", 0.05, 10000);
-        assertEquals(true,test4);
+        redisBloomFilter.bloomFilterDelete("test");
+
     }
 }

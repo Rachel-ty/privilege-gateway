@@ -60,9 +60,11 @@ public class RedisBloomFilter {
 		return result;
 	}
 
-	public Boolean bloomFilterDelete(String key, Double errorRate,Integer capacity) {
+	public void bloomFilterDelete(String key) {
 		redisTemplate.delete("bloom" + key);
+	}
 
+	public Boolean bloomFilterReserve(String key, Double errorRate,Integer capacity){
 		DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
 		bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterReserve.lua")));
 		bloomExists.setResultType(Boolean.class);

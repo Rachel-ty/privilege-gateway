@@ -16,6 +16,11 @@
     <dependencies>
         <dependency>
             <groupId>cn.edu.xmu.privilegegateway</groupId>
+            <artifactId>privilegeservice</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>cn.edu.xmu.privilegegateway</groupId>
             <artifactId>annotation</artifactId>
         </dependency>
 
@@ -137,6 +142,11 @@
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>cn.edu.xmu.privilegegateway</groupId>
+            <artifactId>privilegeservice</artifactId>
+            <version>0.1.1-SNAPSHOT</version>
         </dependency>
 
     </dependencies>
