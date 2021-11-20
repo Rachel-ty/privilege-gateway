@@ -49,4 +49,14 @@ public class TryController {
 
 
     }
+    @GetMapping("/try2/{id}")
+    @Audit()
+    public Object test4(@PathVariable("id") Long id, @LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName,@UserLevel Integer userLevel) {
+
+        if(departId==null)
+        return "{ \"data\": departId==null }";
+        else return "{ \"data\": departId!=null }";
+
+
+    }
 }
