@@ -1,18 +1,16 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util;
+package cn.edu.xmu.privilegegateway.util.bloom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
-import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-@Component
 public class BloomFilter<T> {
     private static final String ADD_VALUE_PATH = "bloom/addValueToFilter.lua";
     private static final String CHECK_VALUE_PATH = "bloom/checkValueInFilter.lua";
