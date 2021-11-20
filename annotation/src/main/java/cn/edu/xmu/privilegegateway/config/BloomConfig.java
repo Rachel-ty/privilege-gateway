@@ -9,12 +9,12 @@ public class BloomConfig {
 
     @Bean
     public BloomFilter<String> stringBloomFilter() {
-        return new BloomFilter<String>();
+        return new BloomFilter<>();
     }
 
     @Bean
     public BloomFilter<Long> longBloomFilter() {
-        return new BloomFilter<Long>();
+        return new BloomFilter<>();
     }
 
 }
