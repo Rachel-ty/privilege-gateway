@@ -86,38 +86,41 @@ public class AuditAspect {
         }
 
         boolean flag=false;
-
-
         if(null!=pathInfo) {
-            logger.debug("getPathInfo = "+ pathInfo);
-            String paths[]=pathInfo.split("/");
-            for(int i=0;i<paths.length;i++){
-                //如果departId为0,可以操作所有的depart
-                if(departId==0){
-                    flag=true;
-                    break;
-                }
-                if(paths[i].equals(departName)){
-                    if(i+1<paths.length){
-                        //找到路径上对应id 将其与string类型的departId比较
-                        String pathId=paths[i+1];
-                        logger.debug("did ="+pathId);
-                        if(!pathId.equals(departId.toString())){
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
-                        }
-                        else {
-                            flag=true;
-                        }
-                        logger.debug("success match Id!");
+            if(!"".equals(departName))
+            {
+                logger.debug("getPathInfo = " + pathInfo);
+                String paths[] = pathInfo.split("/");
+                for (int i = 0; i < paths.length; i++) {
+                    //如果departId为0,可以操作所有的depart
+                    if (departId == 0) {
+                        flag = true;
+                        break;
                     }
-                    break;
+                    if (paths[i].equals(departName)) {
+                        if (i + 1 < paths.length) {
+                            //找到路径上对应id 将其与string类型的departId比较
+                            String pathId = paths[i + 1];
+                            logger.debug("did =" + pathId);
+                            if (!pathId.equals(departId.toString())) {
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+                            } else {
+                                flag = true;
+                                logger.debug("success match Id!");
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (flag == false) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+
                 }
             }
-            if(flag==false){
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
-
+            else {
+                departId=null;
             }
         }
         else{
