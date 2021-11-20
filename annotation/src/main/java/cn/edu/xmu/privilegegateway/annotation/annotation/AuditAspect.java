@@ -107,8 +107,8 @@ public class AuditAspect {
                                 return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
                             } else {
                                 flag = true;
+                                logger.debug("success match Id!");
                             }
-                            logger.debug("success match Id!");
                         }
                         break;
                     }
