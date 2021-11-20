@@ -64,7 +64,7 @@ public class NewUserDao implements InitializingBean {
         fieldName=new String[]{"email","mobile","userName"};
         if(reinitialize){
             for(int i=0;i<fieldName.length;i++){
-                redisTemplate.delete(fieldName[i]+suffixName);
+                bloomFilter.bloomFilterDelete(fieldName[i]+suffixName,0.05,10000);
             }
         }
 
