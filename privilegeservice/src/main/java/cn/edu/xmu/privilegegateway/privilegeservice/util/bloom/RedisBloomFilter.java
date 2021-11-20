@@ -22,58 +22,59 @@ import java.util.Set;
 
 @Component
 public class RedisBloomFilter {
-	@Autowired
-	private RedisTemplate redisTemplate;
+    private String pre = "Bloom";
+    @Autowired
+    private RedisTemplate redisTemplate;
 
-	private static double size = Math.pow(2, 32);
+    private static double size = Math.pow(2, 32);
 
-	/**
-	 * 有序集合获取排名
-	 *
-	 * @param key
-	 */
-	public Set<ZSetOperations.TypedTuple<Object>> reverseZRankWithRank(String key, long start, long end) {
-		ZSetOperations<String, Object> zset = redisTemplate.opsForZSet();
-		Set<ZSetOperations.TypedTuple<Object>> ret = zset.reverseRangeWithScores(key, start, end);
-		return ret;
-	}
+    /**
+     * 有序集合获取排名
+     *
+     * @param key
+     */
+    public Set<ZSetOperations.TypedTuple<Object>> reverseZRankWithRank(String key, long start, long end) {
+        ZSetOperations<String, Object> zset = redisTemplate.opsForZSet();
+        Set<ZSetOperations.TypedTuple<Object>> ret = zset.reverseRangeWithScores(key, start, end);
+        return ret;
+    }
 
-	public Boolean bloomFilterAdd(String bloomFilterName, String value) {
-		DefaultRedisScript<Boolean> bloomAdd = new DefaultRedisScript<>();
-		bloomAdd.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterAdd.lua")));
-		bloomAdd.setResultType(Boolean.class);
-		List<Object> keyList = new ArrayList<>();
-		keyList.add("bloom" + bloomFilterName);
-		keyList.add(value);
-		Boolean result = (Boolean) redisTemplate.execute(bloomAdd, keyList);
-		return result;
-	}
+    public Boolean bloomFilterAdd(String bloomFilterName, String value) {
+        DefaultRedisScript<Boolean> bloomAdd = new DefaultRedisScript<>();
+        bloomAdd.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterAdd.lua")));
+        bloomAdd.setResultType(Boolean.class);
+        List<Object> keyList = new ArrayList<>();
+        keyList.add(pre + bloomFilterName);
+        keyList.add(value);
+        Boolean result = (Boolean) redisTemplate.execute(bloomAdd, keyList);
+        return result;
+    }
 
-	public Boolean bloomFilterExists(String bloomFilterName, String value) {
-		DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
-		bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterExist.lua")));
-		bloomExists.setResultType(Boolean.class);
-		List<Object> keyList = new ArrayList<>();
-		keyList.add("bloom" + bloomFilterName);
-		keyList.add(value);
-		Boolean result = (Boolean) redisTemplate.execute(bloomExists, keyList);
-		return result;
-	}
+    public Boolean bloomFilterExists(String bloomFilterName, String value) {
+        DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
+        bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterExist.lua")));
+        bloomExists.setResultType(Boolean.class);
+        List<Object> keyList = new ArrayList<>();
+        keyList.add(pre + bloomFilterName);
+        keyList.add(value);
+        Boolean result = (Boolean) redisTemplate.execute(bloomExists, keyList);
+        return result;
+    }
 
-	public void bloomFilterDelete(String key) {
-		redisTemplate.delete("bloom" + key);
-	}
+    public void bloomFilterDelete(String key) {
+        redisTemplate.delete(pre + key);
+    }
 
-	public Boolean bloomFilterReserve(String key, Double errorRate,Integer capacity){
-		DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
-		bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterReserve.lua")));
-		bloomExists.setResultType(Boolean.class);
-		List<Object> keyList = new ArrayList<>();
-		keyList.add("bloom" + key);
-		keyList.add(errorRate+"");
-		keyList.add(capacity+"");
-		Boolean result = (Boolean) redisTemplate.execute(bloomExists, keyList);
+    public Boolean bloomFilterReserve(String key, Double errorRate, Integer capacity) {
+        DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
+        bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterReserve.lua")));
+        bloomExists.setResultType(Boolean.class);
+        List<Object> keyList = new ArrayList<>();
+        keyList.add(pre + key);
+        keyList.add(errorRate + "");
+        keyList.add(capacity + "");
+        Boolean result = (Boolean) redisTemplate.execute(bloomExists, keyList);
 
-		return result;
-	}
+        return result;
+    }
 }
