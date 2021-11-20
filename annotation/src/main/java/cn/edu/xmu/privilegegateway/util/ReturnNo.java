@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 /**
  * 返回的错误码
@@ -22,9 +22,12 @@ public enum ReturnNo {
     //--------------------------------------------
     //状态码 400
     FIELD_NOTVALID(503,"字段不合法"),
-    RESOURCE_FALSIFY(507, "信息签名不正确"),
+    RESOURCE_FALSIFY(511, "信息签名不正确"),
     IMG_FORMAT_ERROR(508,"图片格式不正确"),
     IMG_SIZE_EXCEED(509,"图片大小超限"),
+    PARAMETER_MISSED(510, "缺少必要参数"),
+    LATE_BEGINTIME(947, "开始时间不能晚于结束时间"),
+
 
     //所有路径带id的API都可能返回此错误
     //状态码 404
@@ -33,6 +36,9 @@ public enum ReturnNo {
     //状态码 403
     RESOURCE_ID_OUTSCOPE(505,"操作的资源id不是自己的对象"),
     FILE_NO_WRITE_PERMISSION(506,"目录文件夹没有写入的权限"),
+
+    //状态码 200
+    STATENOTALLOW(507,"当前状态禁止此操作"),
 
     /***************************************************
      *    权限模块错误码
@@ -50,12 +56,13 @@ public enum ReturnNo {
     USER_NAME_REGISTERED( 731,"用户名已被注册"),
     EMAIL_REGISTERED(732, "邮箱已被注册"),
     MOBILE_REGISTERED(733,"电话已被注册"),
-    ROLE_REGISTERED(736, "角色名已存在"),
-    USER_ROLE_REGISTERED(737, "用户已拥有该角色"),
+    GROUP_EXIST(735, "组名在部门内已存在"),
+    ROLE_EXIST(736, "角色名在部门内已存在"),
+
     PASSWORD_SAME(741,"不能与旧密码相同"),
     URL_SAME(742,"权限url与RequestType重复"),
     PRIVILEGE_SAME(743,"权限名称重复"),
-    PRIVILEGE_BIT_SAME(744,"权限位重复"),
+
     EMAIL_WRONG(745,"与系统预留的邮箱不一致"),
     MOBILE_WRONG(746,"与系统预留的电话不一致"),
     USERPROXY_CONFLICT(747,"同一时间段有冲突的代理关系"),

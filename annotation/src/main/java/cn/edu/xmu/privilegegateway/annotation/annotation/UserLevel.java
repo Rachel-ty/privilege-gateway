@@ -6,13 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @auther mingqiu
- * @date 2020/6/26 下午2:04
+ * @author zihan zhou
+ * @date 2021/11/19
  */
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Audit {
-
-    String departName() default "";
-
+public @interface UserLevel {
 }
+

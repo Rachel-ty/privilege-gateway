@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util.encript;
+package cn.edu.xmu.privilegegateway.util.encript;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

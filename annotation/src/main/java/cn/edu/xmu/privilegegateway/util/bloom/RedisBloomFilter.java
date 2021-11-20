@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util.bloom;
+package cn.edu.xmu.privilegegateway.util.bloom;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;

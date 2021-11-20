@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
  * @date 2021/11/18
  */
 
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.*"},exclude= {DataSourceAutoConfiguration.class})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.annotation.*"},exclude= {DataSourceAutoConfiguration.class})
 @EnableConfigurationProperties
 public class AnnotationTestApplication {
 

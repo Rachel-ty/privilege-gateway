@@ -1,9 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.Common;
+import cn.edu.xmu.privilegegateway.util.encript.AES;
+import cn.edu.xmu.privilegegateway.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserSimpleRetVo;
@@ -82,6 +82,8 @@ public class User implements VoObject {
     private String name;
 
     private String avatar;
+
+    private Integer level;
 
     private LocalDateTime lastLoginTime;
 

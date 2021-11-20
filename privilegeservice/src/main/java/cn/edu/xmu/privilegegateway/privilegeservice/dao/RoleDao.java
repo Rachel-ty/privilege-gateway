@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.Common;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -221,7 +221,7 @@ public class RoleDao {
             if (Objects.requireNonNull(e.getMessage()).contains("auth_role.auth_role_name_uindex")) {
                 //若有重复的角色名则新增失败
                 logger.debug("updateRole: have same role name = " + rolePo.getName());
-                retObj = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
+                retObj = new ReturnObject<>(ReturnNo.ROLE_EXIST, String.format("角色名重复：" + rolePo.getName()));
             } else {
                 // 其他数据库错误
                 logger.debug("other sql exception : " + e.getMessage());
@@ -341,7 +341,7 @@ public class RoleDao {
             if (Objects.requireNonNull(e.getMessage()).contains("auth_role.auth_role_name_uindex")) {
                 //若有重复的角色名则修改失败
                 logger.debug("updateRole: have same role name = " + rolePo.getName());
-                retObj = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("角色名重复：" + rolePo.getName()));
+                retObj = new ReturnObject<>(ReturnNo.ROLE_EXIST, String.format("角色名重复：" + rolePo.getName()));
             } else {
                 // 其他数据库错误
                 logger.debug("other sql exception : " + e.getMessage());

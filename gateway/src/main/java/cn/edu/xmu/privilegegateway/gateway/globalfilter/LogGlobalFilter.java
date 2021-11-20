@@ -1,9 +1,9 @@
 package cn.edu.xmu.privilegegateway.gateway.globalfilter;
 
 
-import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
+import cn.edu.xmu.privilegegateway.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.gateway.model.Log;
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
