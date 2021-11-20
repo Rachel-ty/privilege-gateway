@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserProxyDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;

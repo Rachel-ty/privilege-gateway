@@ -1,7 +1,5 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util;
+package cn.edu.xmu.privilegegateway.util;
 
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import com.github.sardine.Sardine;
 import com.github.sardine.SardineFactory;
 import org.slf4j.Logger;

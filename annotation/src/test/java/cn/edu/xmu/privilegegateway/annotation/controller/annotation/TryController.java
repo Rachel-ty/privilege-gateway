@@ -1,12 +1,9 @@
 package cn.edu.xmu.privilegegateway.annotation.controller.annotation;
 
 import cn.edu.xmu.privilegegateway.annotation.annotation.*;
-import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;

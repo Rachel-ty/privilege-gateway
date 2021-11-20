@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.BloomFilterHelper;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.RedisBloomFilter;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.util.bloom.BloomFilterHelper;
+import cn.edu.xmu.privilegegateway.util.bloom.RedisBloomFilter;
+import cn.edu.xmu.privilegegateway.util.encript.AES;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;

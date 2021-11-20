@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util.bloom;
+package cn.edu.xmu.privilegegateway.util.bloom;
 
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Funnel;
