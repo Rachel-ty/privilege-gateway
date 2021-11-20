@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -39,12 +39,14 @@ public class JwtHelper {
         private String userName;
         private Long departId;
         private Date expireTime;
+        private Integer userLevel;
 
-        public UserAndDepart(long userId, String userName,long departId,Date expireTime){
+        public UserAndDepart(long userId, String userName,long departId,Integer userLevel,Date expireTime){
             this.userId = userId;
             this.userName=userName;
             this.departId = departId;
             this.expireTime=expireTime;
+            this.userLevel = userLevel;
         }
 
         public Long getUserId() {
@@ -62,6 +64,10 @@ public class JwtHelper {
         public Date getExpTime(){
             return expireTime;
         }
+
+        public Integer getUserLevel(){
+            return userLevel;
+        }
     }
 
 
@@ -71,7 +77,7 @@ public class JwtHelper {
      * @param departId 部门id
      * @return token
      */
-    public String createToken(Long userId, String userName,Long departId, int expireTime) {
+    public String createToken(Long userId, String userName,Long departId,Integer userLevel, int expireTime) {
         logger.debug("createToken:");
         try {
             Algorithm algorithm = Algorithm.HMAC256(SECRET);
@@ -80,7 +86,7 @@ public class JwtHelper {
             Date expireDate = getAfterDate(nowDate, 0, 0, 0, 0, 0, expireTime);
             map.put("alg", "HS256");
             map.put("typ", "JWT");
-            String tokenId = Tools.genSeqNum();
+            String tokenId = Common.genSeqNum();
             StringBuilder message = new StringBuilder().append("createToken: ").append("userId = ")
                     .append(userId).append(" userName=").append(userName).append(" departId=").append(departId).append(" tokenId:").append(tokenId);
             logger.debug(message.toString());
@@ -92,6 +98,7 @@ public class JwtHelper {
                     .withClaim("departId", departId)
                     .withClaim("tokenId",tokenId)
                     .withClaim("userName",userName)
+                    .withClaim("userLevel",userLevel)
                     .withIssuer(ISSUSER)
                     .withSubject(SUBJECT)
                     .withAudience(AUDIENCE)
@@ -128,8 +135,9 @@ public class JwtHelper {
             Claim claimUserId = claims.get("userId");
             Claim claimDepartId = claims.get("departId");
             Claim claimUserName = claims.get("userName");
+            Claim claimUserLevel = claims.get("userLevel");
             Claim expireTime=claims.get("exp");
-            return new UserAndDepart(claimUserId.asLong(),claimUserName.asString() ,claimDepartId.asLong(),expireTime.asDate());
+            return new UserAndDepart(claimUserId.asLong(),claimUserName.asString() ,claimDepartId.asLong(),claimUserLevel.asInt(),expireTime.asDate());
         } catch (JWTVerificationException exception) {
             return null;
         }

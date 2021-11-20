@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.annotation.annotation;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ResponseUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -67,11 +67,13 @@ public class AuditAspect {
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
         Long userId = null;
         Long departId = null;
-        String usrName=null;
+        String userName=null;
+        Integer userLevel=null;
         if (null != userAndDepart){
             userId = userAndDepart.getUserId();
             departId = userAndDepart.getDepartId();
-            usrName=userAndDepart.getUserName();
+            userName=userAndDepart.getUserName();
+            userLevel=userAndDepart.getUserLevel();
         }
 
 
@@ -84,38 +86,41 @@ public class AuditAspect {
         }
 
         boolean flag=false;
-
-
         if(null!=pathInfo) {
-            logger.debug("getPathInfo = "+ pathInfo);
-            String paths[]=pathInfo.split("/");
-            for(int i=0;i<paths.length;i++){
-                //如果departId为0,可以操作所有的depart
-                if(departId==0){
-                    flag=true;
-                    break;
-                }
-                if(paths[i].equals(departName)){
-                    if(i+1<paths.length){
-                        //找到路径上对应id 将其与string类型的departId比较
-                        String pathId=paths[i+1];
-                        logger.debug("did ="+pathId);
-                        if(!pathId.equals(departId.toString())){
-                            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                            return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
-                        }
-                        else {
-                            flag=true;
-                        }
-                        logger.debug("success match Id!");
+            if(!"".equals(departName))
+            {
+                logger.debug("getPathInfo = " + pathInfo);
+                String paths[] = pathInfo.split("/");
+                for (int i = 0; i < paths.length; i++) {
+                    //如果departId为0,可以操作所有的depart
+                    if (departId == 0) {
+                        flag = true;
+                        break;
                     }
-                    break;
+                    if (paths[i].equals(departName)) {
+                        if (i + 1 < paths.length) {
+                            //找到路径上对应id 将其与string类型的departId比较
+                            String pathId = paths[i + 1];
+                            logger.debug("did =" + pathId);
+                            if (!pathId.equals(departId.toString())) {
+                                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+                            } else {
+                                flag = true;
+                                logger.debug("success match Id!");
+                            }
+                        }
+                        break;
+                    }
+                }
+                if (flag == false) {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+
                 }
             }
-            if(flag==false){
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
-
+            else {
+                departId=null;
             }
         }
         else{
@@ -150,7 +155,11 @@ public class AuditAspect {
                 }
                 if (annotation.annotationType().equals(LoginName.class)) {
                     //校验该参数，验证一次退出该注解
-                    args[i] = usrName;
+                    args[i] = userName;
+                }
+                if (annotation.annotationType().equals(UserLevel.class)) {
+                    //校验该参数，验证一次退出该注解
+                    args[i] = userLevel;
                 }
             }
         }

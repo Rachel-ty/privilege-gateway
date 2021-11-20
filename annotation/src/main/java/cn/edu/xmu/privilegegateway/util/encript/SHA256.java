@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util.encript;
+package cn.edu.xmu.privilegegateway.util.encript;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;

@@ -1,8 +1,6 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import org.junit.jupiter.api.Test;
-
-import java.util.Date;
 
 /**
  * @author YuJie 22920192204242
@@ -11,16 +9,15 @@ import java.util.Date;
 public class TokenTest {
 
 
-
     @Test
     public void testVerifyTokenAndGetClaims() throws Exception{
         JwtHelper jwtHelper=new JwtHelper();
-        String token= jwtHelper.createToken(1L,"yujie",1L,9600);
+        String token= jwtHelper.createToken(1L,"yujie",1L,1,9600);
         JwtHelper.UserAndDepart uad=jwtHelper.verifyTokenAndGetClaims(token);
 
         assert uad.getUserId().equals(1L);
         assert uad.getUserName().equals("yujie");
         assert uad.getDepartId().equals(1L);
-
+        assert uad.getUserLevel().equals(1);
     }
 }

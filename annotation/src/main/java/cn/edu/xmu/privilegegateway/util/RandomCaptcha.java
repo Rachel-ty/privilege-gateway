@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import java.util.Random;
 
