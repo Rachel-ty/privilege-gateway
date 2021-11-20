@@ -8,24 +8,24 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * @auther Zhiliang Li
- * @date 2021/11/20
- *
+ * @author Zhiliang Li
+ * @date 2021/11/21
  */
 @Component
 public class CuckooFilter<T> {
     private static final String ADD_VALUE_PATH = "cuckoo/addValueToFilter.lua";
     private static final String CHECK_VALUE_PATH = "cuckoo/checkValueInFilter.lua";
     private static final String DELETE_FILTER_PATH = "cuckoo/deleteFilter.lua";
+    private static final String DELETE_VALUE_PATH = "cuckoo/deleteValueFromFilter.lua";
     private static final String CHECK_FILTER_PATH = "cuckoo/checkFilter.lua";
     private static final String NEW_FILTER_PATH = "cuckoo/newFilter.lua";
 
-    private static final String DEFAULT_ERROR_RATE = "0.001";
     private static final String DEFAULT_CAPACITY = "100";
 
     private static final String SUFFIX = "CF_Filter";
@@ -66,6 +66,17 @@ public class CuckooFilter<T> {
         return redis.execute(script, argList);
     }
 
+    public Boolean deleteValue(String filterFor, T value) {
+        DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
+
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETE_VALUE_PATH)));
+        script.setResultType(Boolean.class);
+
+        List<String> argList = Stream.of(filterFor + SUFFIX, value.toString()).collect(Collectors.toList());
+
+        return redis.execute(script, argList);
+    }
+
     public Boolean checkFilter(String filterFor) {
         DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
 
@@ -77,35 +88,51 @@ public class CuckooFilter<T> {
         return redis.execute(script, argList);
     }
 
-    public Boolean newFilter(String filterFor, Double errorRate, Integer capacity) {
-        String errorRateStr = DEFAULT_ERROR_RATE;
+    public Boolean newFilter(String filterFor, Integer capacity, Integer bucketSize, Integer maxIterations, Integer expansion) {
+        List<String> argList = new ArrayList<>();
+        argList.add(filterFor + SUFFIX);
+
         String capacityStr = DEFAULT_CAPACITY;
-
-        if(errorRate != null) {
-            if(errorRate <= 0 || errorRate >= 1) {
-                return false;
-            }
-
-            errorRateStr = errorRate.toString();
-        }
-
-        if(capacity != null) {
-            if(capacity <= 0) {
-                return false;
-            }
-
-            capacityStr = capacity.toString();
-        }
 
         DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
 
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(NEW_FILTER_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX, errorRateStr, capacityStr).collect(Collectors.toList());
+        if (capacity != null) {
+            if (capacity <= 0) {
+                return false;
+            }
+
+            capacityStr = capacity.toString();
+        }
+        argList.add(capacityStr);
+
+
+        if (bucketSize != null) {
+            if (bucketSize <= 0) {
+                return false;
+            }
+            argList.add("bucketsize");
+            argList.add(bucketSize.toString());
+        }
+
+        if (maxIterations != null) {
+            if (maxIterations <= 0) {
+                return false;
+            }
+            argList.add("maxiterations");
+            argList.add(maxIterations.toString());
+        }
+
+        if (expansion != null) {
+            if (expansion <= 0) {
+                return false;
+            }
+            argList.add("expansion");
+            argList.add(expansion.toString());
+        }
 
         return redis.execute(script, argList);
     }
-
-
 }
