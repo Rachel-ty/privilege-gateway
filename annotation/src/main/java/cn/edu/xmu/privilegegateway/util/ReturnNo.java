@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 /**
  * 返回的错误码
@@ -56,12 +56,13 @@ public enum ReturnNo {
     USER_NAME_REGISTERED( 731,"用户名已被注册"),
     EMAIL_REGISTERED(732, "邮箱已被注册"),
     MOBILE_REGISTERED(733,"电话已被注册"),
-    ROLE_REGISTERED(736, "角色名已存在"),
-    USER_ROLE_REGISTERED(737, "用户已拥有该角色"),
+    GROUP_EXIST(735, "组名在部门内已存在"),
+    ROLE_EXIST(736, "角色名在部门内已存在"),
+
     PASSWORD_SAME(741,"不能与旧密码相同"),
     URL_SAME(742,"权限url与RequestType重复"),
     PRIVILEGE_SAME(743,"权限名称重复"),
-    PRIVILEGE_BIT_SAME(744,"权限位重复"),
+
     EMAIL_WRONG(745,"与系统预留的邮箱不一致"),
     MOBILE_WRONG(746,"与系统预留的电话不一致"),
     USERPROXY_CONFLICT(747,"同一时间段有冲突的代理关系"),

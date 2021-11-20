@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import org.junit.jupiter.api.Test;
 

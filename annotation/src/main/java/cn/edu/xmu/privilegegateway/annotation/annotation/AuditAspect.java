@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.annotation.annotation;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ResponseUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -67,11 +67,13 @@ public class AuditAspect {
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
         Long userId = null;
         Long departId = null;
-        String usrName=null;
+        String userName=null;
+        Integer userLevel=null;
         if (null != userAndDepart){
             userId = userAndDepart.getUserId();
             departId = userAndDepart.getDepartId();
-            usrName=userAndDepart.getUserName();
+            userName=userAndDepart.getUserName();
+            userLevel=userAndDepart.getUserLevel();
         }
 
 
@@ -150,7 +152,11 @@ public class AuditAspect {
                 }
                 if (annotation.annotationType().equals(LoginName.class)) {
                     //校验该参数，验证一次退出该注解
-                    args[i] = usrName;
+                    args[i] = userName;
+                }
+                if (annotation.annotationType().equals(UserLevel.class)) {
+                    //校验该参数，验证一次退出该注解
+                    args[i] = userLevel;
                 }
             }
         }

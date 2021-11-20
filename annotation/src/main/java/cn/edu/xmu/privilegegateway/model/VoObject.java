@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.model;
+package cn.edu.xmu.privilegegateway.model;
 
 /**
  * @author Ming Qiu

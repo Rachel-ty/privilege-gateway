@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
@@ -86,7 +86,7 @@ public class JwtHelper {
             Date expireDate = getAfterDate(nowDate, 0, 0, 0, 0, 0, expireTime);
             map.put("alg", "HS256");
             map.put("typ", "JWT");
-            String tokenId = Tools.genSeqNum();
+            String tokenId = Common.genSeqNum();
             StringBuilder message = new StringBuilder().append("createToken: ").append("userId = ")
                     .append(userId).append(" userName=").append(userName).append(" departId=").append(departId).append(" tokenId:").append(tokenId);
             logger.debug(message.toString());
