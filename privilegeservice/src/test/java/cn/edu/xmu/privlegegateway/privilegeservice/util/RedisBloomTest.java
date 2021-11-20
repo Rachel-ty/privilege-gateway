@@ -1,7 +1,7 @@
 package cn.edu.xmu.privlegegateway.privilegeservice.util;
 
 import cn.edu.xmu.privilegegateway.privilegeservice.controller.PrivilegeController;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.RedisBloomFilter;
+import cn.edu.xmu.privilegegateway.privilegeservice.util.bloom.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
