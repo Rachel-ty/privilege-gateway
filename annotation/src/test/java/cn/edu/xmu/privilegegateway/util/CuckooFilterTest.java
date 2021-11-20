@@ -1,8 +1,10 @@
 package cn.edu.xmu.privilegegateway.util;
 
+import cn.edu.xmu.privilegegateway.annotation.AnnotationApplication;
 import cn.edu.xmu.privilegegateway.util.cuckoo.CuckooFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -11,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * @author Zhiliang Li
  * @date 2021/11/21
  */
+@SpringBootTest(classes = AnnotationApplication.class)
 public class CuckooFilterTest {
     @Autowired
     private CuckooFilter<String> stringFilter;
