@@ -230,7 +230,7 @@ public class UserDao{
                 userRolePoMapper.insert(userRolePo);
             } else {
                 logger.warn("assignRole: 该用户已拥有该角色 userid=" + userid + "roleid=" + roleid);
-                return new ReturnObject<>(ReturnNo.USER_ROLE_REGISTERED);
+                return new ReturnObject<>(ReturnNo.OK);
             }
         } catch (DataAccessException e) {
             // 数据库错误

@@ -290,7 +290,7 @@ public class UserService {
 
         //创建新的token
         JwtHelper jwtHelper = new JwtHelper();
-        String jwt = jwtHelper.createToken(user.getId(),user.getUserName(),user.getDepartId(), jwtExpireTime);
+        String jwt = jwtHelper.createToken(user.getId(),user.getUserName(),user.getDepartId(), user.getLevel(),jwtExpireTime);
         userDao.loadUserPriv(user.getId(), jwt);
         logger.debug("login: newJwt = "+ jwt);
         userDao.setLoginIPAndPosition(user.getId(),ipAddr, LocalDateTime.now());
