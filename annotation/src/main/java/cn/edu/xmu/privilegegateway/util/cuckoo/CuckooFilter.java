@@ -110,7 +110,7 @@ public class CuckooFilter<T> {
 
 
         if (bucketSize != null) {
-            if (bucketSize <= 0) {
+            if (bucketSize <= 0 || Integer.valueOf(capacityStr) < 2 * bucketSize) {
                 return false;
             }
             argList.add("bucketsize");

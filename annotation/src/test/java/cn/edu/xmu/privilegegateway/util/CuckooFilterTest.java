@@ -27,6 +27,7 @@ public class CuckooFilterTest {
         assertFalse(stringFilter.newFilter(filterFor, 100, -1, null, null));
         assertFalse(stringFilter.newFilter(filterFor, 100, 3, -1, null));
         assertFalse(stringFilter.newFilter(filterFor, 100, 3, 20, -1));
+        assertFalse(stringFilter.newFilter(filterFor, 10, 10, 20, null));
 
         assertTrue(stringFilter.newFilter(filterFor, 100, null, null, null));
         assertTrue(stringFilter.checkFilter(filterFor));
