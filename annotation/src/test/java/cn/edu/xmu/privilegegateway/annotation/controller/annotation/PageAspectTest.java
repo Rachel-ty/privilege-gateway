@@ -28,12 +28,12 @@ public class PageAspectTest {
     @Test
     public void onlineAdvancesale1() throws Exception {
         String responseString = this.mvc.perform(MockMvcRequestBuilders.get("/privilege/shops").
-                        param("page","").
+                        param("XX","5").
                         param("pageSize","")
                         .contentType("application/json;charset=UTF-8")).
                 andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
         System.out.println(responseString);
-        String expectedResponse="{ \"data\":110}";
+        String expectedResponse="{ \"data\":510}";
         JSONAssert.assertEquals(expectedResponse,responseString,true);
     }
     @Test

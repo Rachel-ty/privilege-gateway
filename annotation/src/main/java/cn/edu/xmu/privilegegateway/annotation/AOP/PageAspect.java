@@ -52,10 +52,10 @@ public class PageAspect {
         String[] paramNames = ms.getParameterNames();
         Object[] args = joinPoint.getArgs();
         for (int i = 0; i < paramNames.length; i++) {
-            if (paramNames[i].equals("page") ) {
+            if (paramNames[i].equals("page")&& (args[i] == null)) {
                 args[i] = page;
             }
-            if (paramNames[i].equals("pageSize")) {
+            if (paramNames[i].equals("pageSize")&&(args[i] == null)) {
                 args[i] = pageSize;
             }
         }
