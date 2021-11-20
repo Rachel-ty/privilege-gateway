@@ -81,7 +81,7 @@ privilegeservice:
   #分布式锁失效时间（秒）
   lockerExpireTime: 30
   #dav信息配置
-  dav:
+  dev:
     username: other
     password: 123456
     baseUrl: http://106.52.203.83/webdav/
