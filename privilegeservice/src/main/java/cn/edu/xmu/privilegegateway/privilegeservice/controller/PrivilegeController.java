@@ -231,7 +231,7 @@ public class PrivilegeController {
             return o;
         }
         if (departId !=0){
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 
         ReturnObject<VoObject> returnObject = userService.changePriv(id, vo);
@@ -311,18 +311,12 @@ public class PrivilegeController {
     @GetMapping(value = "/departs/{did}/adminusers/{id}",produces = "application/json;charset=UTF-8")
     public Object getUserById(@PathVariable("id") Long id, @PathVariable("did") Long did) {
 
-        Object returnObject = null;
+        ReturnObject returnObject = null;
 
         ReturnObject<VoObject> user = userService.findUserByIdAndDid(id, did);
         logger.debug("findUserByIdAndDid: user = " + user.getData() + " code = " + user.getCode());
 
-        if (!user.getCode().equals(ReturnNo.RESOURCE_ID_NOTEXIST)) {
-            returnObject = Common.getRetObject(user);
-        } else {
-            returnObject = Common.getNullRetObj(new ReturnObject<>(user.getCode(), user.getErrmsg()), httpServletResponse);
-        }
-
-        return returnObject;
+        return Common.decorateReturnObject(user);
     }
 
     /**
@@ -350,17 +344,14 @@ public class PrivilegeController {
             @RequestParam(required = false, defaultValue = "10")  Integer pagesize,
             @PathVariable("did") Long did) {
 
-        Object object = null;
+        ReturnObject object = null;
 
-        if(page <= 0 || pagesize <= 0) {
-            object = Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID), httpServletResponse);
-        } else {
             ReturnObject<PageInfo<VoObject>> returnObject = userService.findAllUsers(userName, mobile, page, pagesize, did);
             logger.debug("findUserById: getUsers = " + returnObject);
             object = Common.getPageRetObject(returnObject);
-        }
 
-        return object;
+
+        return Common.decorateReturnObject(object);
     }
 
 
@@ -484,7 +475,7 @@ public class PrivilegeController {
             return Common.decorateReturnObject(returnObject);
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配：" + did)));
         }
     }
 
@@ -533,11 +524,11 @@ public class PrivilegeController {
             if (retObject.getData() != null) {
                 return Common.getRetObject(retObject);
             } else {
-                return Common.getNullRetObj(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()), httpServletResponse);
+                return Common.decorateReturnObject(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()));
             }
         }
         else{
-            return Common.getNullRetObj(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)), httpServletResponse);
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)));
         }
     }
     //endregion
@@ -733,7 +724,7 @@ public class PrivilegeController {
     public Object uploadImg(@RequestParam("img") MultipartFile multipartFile, @LoginUser @ApiIgnore Long userId){
         logger.debug("uploadImg: id = "+ userId +" img :" + multipartFile.getOriginalFilename());
         ReturnObject returnObject = userService.uploadImg(userId,multipartFile);
-        return Common.getNullRetObj(returnObject, httpServletResponse);
+        return Common.decorateReturnObject(returnObject);
     }
 
 

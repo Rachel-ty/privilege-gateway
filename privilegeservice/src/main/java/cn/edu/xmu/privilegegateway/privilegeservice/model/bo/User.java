@@ -83,6 +83,8 @@ public class User implements VoObject {
 
     private String avatar;
 
+    private Integer level;
+
     private LocalDateTime lastLoginTime;
 
     private String lastLoginIp;

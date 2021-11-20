@@ -311,17 +311,6 @@ public class Common {
         return newVo;
     }
 
-
-    public static ReturnObject getNullRetObj(ReturnObject<Object> returnObject) {
-        ReturnNo code = returnObject.getCode();
-        switch (code) {
-            case RESOURCE_ID_NOTEXIST:
-                return new ReturnObject(returnObject.getCode());
-            default:
-                return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
-        }
-    }
-
     /**
      * 根据 errCode 修饰 API 返回对象的 HTTP Status
      * @param returnObject 原返回 Object
