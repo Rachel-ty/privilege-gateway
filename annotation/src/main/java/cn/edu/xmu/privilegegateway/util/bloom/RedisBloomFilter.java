@@ -66,14 +66,14 @@ public class RedisBloomFilter {
     }
 
     public Boolean bloomFilterReserve(String key, Double errorRate, Integer capacity) {
-        DefaultRedisScript<Boolean> bloomExists = new DefaultRedisScript<>();
-        bloomExists.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterReserve.lua")));
-        bloomExists.setResultType(Boolean.class);
+        DefaultRedisScript<Boolean> bloomReserve = new DefaultRedisScript<>();
+        bloomReserve.setScriptSource(new ResourceScriptSource(new ClassPathResource("bloomFilterReserve.lua")));
+        bloomReserve.setResultType(Boolean.class);
         List<Object> keyList = new ArrayList<>();
         keyList.add(pre + key);
         keyList.add(errorRate + "");
         keyList.add(capacity + "");
-        Boolean result = (Boolean) redisTemplate.execute(bloomExists, keyList);
+        Boolean result = (Boolean) redisTemplate.execute(bloomReserve, keyList);
 
         return result;
     }
