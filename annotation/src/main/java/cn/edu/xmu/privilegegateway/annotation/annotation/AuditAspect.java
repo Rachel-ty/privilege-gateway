@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.annotation.annotation;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ResponseUtil;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;

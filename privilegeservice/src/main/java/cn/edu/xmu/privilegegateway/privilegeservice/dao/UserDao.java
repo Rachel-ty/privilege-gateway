@@ -1,10 +1,11 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.*;
+import cn.edu.xmu.privilegegateway.util.Common;
+import cn.edu.xmu.privilegegateway.util.RandomCaptcha;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.encript.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
@@ -1007,7 +1008,7 @@ public class UserDao{
             if (Objects.requireNonNull(e.getMessage()).contains("auth_user.user_name_uindex")) {
                 //若有重复名则修改失败
                 logger.debug("insertUser: have same user name = " + userPo.getName());
-                returnObject = new ReturnObject<>(ReturnNo.ROLE_REGISTERED, String.format("用户名重复：" + userPo.getName()));
+                returnObject = new ReturnObject<>(ReturnNo.ROLE_EXIST, String.format("用户名重复：" + userPo.getName()));
             } else {
                 logger.debug("sql exception : " + e.getMessage());
                 returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));

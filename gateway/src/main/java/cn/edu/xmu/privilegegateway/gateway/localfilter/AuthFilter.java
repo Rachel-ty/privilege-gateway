@@ -1,14 +1,13 @@
 package cn.edu.xmu.privilegegateway.gateway.localfilter;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.gateway.microservice.IGatewayService;
 import cn.edu.xmu.privilegegateway.gateway.util.GatewayUtil;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;

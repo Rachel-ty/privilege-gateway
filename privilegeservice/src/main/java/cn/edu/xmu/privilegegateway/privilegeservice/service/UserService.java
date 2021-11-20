@@ -1,11 +1,11 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.ImgHelper;
-import cn.edu.xmu.privilegegateway.privilegeservice.util.encript.AES;
+import cn.edu.xmu.privilegegateway.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.model.VoObject;
+import cn.edu.xmu.privilegegateway.util.ImgHelper;
+import cn.edu.xmu.privilegegateway.util.encript.AES;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;

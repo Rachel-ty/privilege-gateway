@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.util;
+package cn.edu.xmu.privilegegateway.util;
 
 import java.util.HashMap;
 import java.util.Map;
