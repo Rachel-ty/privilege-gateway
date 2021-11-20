@@ -91,4 +91,17 @@ public class AuditAspectTest {
 
 
     }
+    @Test
+    public void  auditTest6() throws Exception{
+        adminToken =jwtHelper.createToken(1L,"admin",1L,1, 3600);
+        String responseString = this.mvc.perform(get(
+                        "/privilege/try2/1").header("authorization", adminToken).contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectedResponse="{ \"data\": departId==null }";
+        assert  expectedResponse.equals(responseString);
+
+
+    }
 }
