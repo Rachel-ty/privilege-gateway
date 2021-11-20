@@ -26,10 +26,19 @@ public class PageAspectTest {
     final Charset charset=Charset.forName("UTF-8");
 
     @Test
-    public void onlineAdvancesale1() throws Exception {            //上架成功（重新上架
+    public void onlineAdvancesale1() throws Exception {
         String responseString = this.mvc.perform(MockMvcRequestBuilders.get("/privilege/shops").
                         param("page","").
                         param("pageSize","")
+                        .contentType("application/json;charset=UTF-8")).
+                andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
+        System.out.println(responseString);
+        String expectedResponse="{ \"data\":110}";
+        JSONAssert.assertEquals(expectedResponse,responseString,true);
+    }
+    @Test
+    public void onlineAdvancesale2() throws Exception {
+        String responseString = this.mvc.perform(MockMvcRequestBuilders.get("/privilege/shops")
                         .contentType("application/json;charset=UTF-8")).
                 andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
         System.out.println(responseString);

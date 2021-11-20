@@ -1,8 +1,6 @@
 package cn.edu.xmu.privilegegateway.annotation.controller.annotation;
 
 import cn.edu.xmu.privilegegateway.annotation.annotation.*;
-import cn.edu.xmu.privilegegateway.util.ResponseUtil;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
  * @author zihan zhou
  * @date 2021/11/18
  */
-@PageDefault
 @RestController
 @RequestMapping(value = "/privilege", produces = "application/json;charset=UTF-8")
 public class TryController {
@@ -20,8 +17,8 @@ public class TryController {
     private HttpServletResponse httpServletResponse;
 
     @GetMapping("/shops")
-    public String test1(@Page Integer page,
-                        @PageSize Integer pageSize) {
+    public String test1(Integer page,
+                        Integer pageSize) {
         return  "{ \"data\":" + page.toString()+pageSize.toString() + "}";
     }
     //没有common 我先引进来了
