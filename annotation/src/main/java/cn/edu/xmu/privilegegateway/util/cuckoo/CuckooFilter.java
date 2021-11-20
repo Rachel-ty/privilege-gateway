@@ -28,7 +28,6 @@ public class CuckooFilter<T> {
 
     private static final String DEFAULT_CAPACITY = "100";
 
-    private static final String SUFFIX = "CF_Filter";
 
     @Autowired
     private RedisTemplate<String, Serializable> redis;
@@ -39,7 +38,7 @@ public class CuckooFilter<T> {
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(ADD_VALUE_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX, value.toString()).collect(Collectors.toList());
+        List<String> argList = Stream.of(filterFor, value.toString()).collect(Collectors.toList());
 
         return redis.execute(script, argList);
     }
@@ -50,7 +49,7 @@ public class CuckooFilter<T> {
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(CHECK_VALUE_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX, value.toString()).collect(Collectors.toList());
+        List<String> argList = Stream.of(filterFor, value.toString()).collect(Collectors.toList());
 
         return redis.execute(script, argList);
     }
@@ -61,7 +60,7 @@ public class CuckooFilter<T> {
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETE_FILTER_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX).collect(Collectors.toList());
+        List<String> argList = Stream.of(filterFor).collect(Collectors.toList());
 
         return redis.execute(script, argList);
     }
@@ -72,7 +71,7 @@ public class CuckooFilter<T> {
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETE_VALUE_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX, value.toString()).collect(Collectors.toList());
+        List<String> argList = Stream.of(filterFor, value.toString()).collect(Collectors.toList());
 
         return redis.execute(script, argList);
     }
@@ -83,14 +82,14 @@ public class CuckooFilter<T> {
         script.setScriptSource(new ResourceScriptSource(new ClassPathResource(CHECK_FILTER_PATH)));
         script.setResultType(Boolean.class);
 
-        List<String> argList = Stream.of(filterFor + SUFFIX).collect(Collectors.toList());
+        List<String> argList = Stream.of(filterFor).collect(Collectors.toList());
 
         return redis.execute(script, argList);
     }
 
     public Boolean newFilter(String filterFor, Integer capacity, Integer bucketSize, Integer maxIterations, Integer expansion) {
         List<String> argList = new ArrayList<>();
-        argList.add(filterFor + SUFFIX);
+        argList.add(filterFor);
 
         String capacityStr = DEFAULT_CAPACITY;
 
