@@ -284,12 +284,12 @@ public class RoleDao {
                     //查询当前所有有效的代理具有删除角色用户的代理用户
                     UserProxyPoExample example = new UserProxyPoExample();
                     UserProxyPoExample.Criteria criteria = example.createCriteria();
-                    criteria.andUserBIdEqualTo(userRolePo.getUserId());
+                    criteria.andProxyUserIdEqualTo(userRolePo.getUserId());
                     List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
                     for(UserProxyPo userProxyPo : userProxyPos){
                         //删除缓存中代理了具有删除角色的用户的代理用户
-                        redisTemplate.delete("u_" + userProxyPo.getUserAId());
-                        redisTemplate.delete("up_" + userProxyPo.getUserAId());
+                        redisTemplate.delete("u_" + userProxyPo.getUserId());
+                        redisTemplate.delete("up_" + userProxyPo.getUserId());
                     }
                 }
                 retObj = new ReturnObject<>();

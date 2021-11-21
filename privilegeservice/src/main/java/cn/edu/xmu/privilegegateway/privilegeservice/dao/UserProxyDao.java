@@ -51,14 +51,14 @@ public class UserProxyDao {
             return new ReturnObject(ReturnNo.USERPROXY_DEPART_CONFLICT);
         }
         UserProxyPo userProxyPo = new UserProxyPo();
-        userProxyPo.setUserAId(aid);
-        userProxyPo.setUserBId(id);
+        userProxyPo.setUserId(aid);
+        userProxyPo.setProxyUserId(id);
         userProxyPo.setDepartId(departid);
         userProxyPo.setValid((byte) 0);
         userProxyPo.setBeginDate(bo.getBegin_time());
         userProxyPo.setEndDate(bo.getEnd_time());
         userProxyPo.setGmtCreate(LocalDateTime.now());
-        StringBuilder signature = Common.concatString("-", userProxyPo.getUserAId().toString(), userProxyPo.getUserBId().toString(),userProxyPo.getBeginDate().toString(),userProxyPo.getEndDate().toString(),userProxyPo.getValid().toString());
+        StringBuilder signature = Common.concatString("-", userProxyPo.getUserId().toString(), userProxyPo.getProxyUserId().toString(),userProxyPo.getBeginDate().toString(),userProxyPo.getEndDate().toString(),userProxyPo.getValid().toString());
         userProxyPo.setSignature(SHA256.getSHA256(signature.toString()));
         try {
             userProxyPoMapper.insert(userProxyPo);
@@ -100,14 +100,14 @@ public class UserProxyDao {
         }
 
         UserProxyPo userProxyPo = new UserProxyPo();
-        userProxyPo.setUserAId(aid);
-        userProxyPo.setUserBId(bid);
+        userProxyPo.setUserId(aid);
+        userProxyPo.setProxyUserId(bid);
         userProxyPo.setDepartId(userPoMapper.selectByPrimaryKey(aid).getDepartId());
         userProxyPo.setValid((byte) 0);
         userProxyPo.setBeginDate(bo.getBegin_time());
         userProxyPo.setEndDate(bo.getEnd_time());
         userProxyPo.setGmtCreate(LocalDateTime.now());
-        StringBuilder signature = Common.concatString("-", userProxyPo.getUserAId().toString(), userProxyPo.getUserBId().toString(),userProxyPo.getBeginDate().toString(),userProxyPo.getEndDate().toString(),userProxyPo.getValid().toString());
+        StringBuilder signature = Common.concatString("-", userProxyPo.getUserId().toString(), userProxyPo.getProxyUserId().toString(),userProxyPo.getBeginDate().toString(),userProxyPo.getEndDate().toString(),userProxyPo.getValid().toString());
         userProxyPo.setSignature(SHA256.getSHA256(signature.toString()));
         try {
             userProxyPoMapper.insert(userProxyPo);
@@ -128,7 +128,7 @@ public class UserProxyDao {
 
     public ReturnObject removeUserProxy(Long id, Long aid) {
         UserProxyPo userProxyPo = userProxyPoMapper.selectByPrimaryKey(id);
-        if (aid.compareTo(userProxyPo.getUserAId()) == 0) {
+        if (aid.compareTo(userProxyPo.getUserId()) == 0) {
             try {
                 userProxyPoMapper.deleteByPrimaryKey(id);
                 return new ReturnObject();
@@ -153,10 +153,10 @@ public class UserProxyDao {
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
         if (aId != null) {
-            criteria.andUserAIdEqualTo(aId);
+            criteria.andUserIdEqualTo(aId);
         }
         if (bId != null) {
-            criteria.andUserBIdEqualTo(bId);
+            criteria.andProxyUserIdEqualTo(bId);
         }
         if(!Objects.equals(did, 0L))
         {
@@ -215,8 +215,8 @@ public class UserProxyDao {
         boolean isExist = false;
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserAIdEqualTo(aId);
-        criteria.andUserBIdEqualTo(bId);
+        criteria.andUserIdEqualTo(aId);
+        criteria.andProxyUserIdEqualTo(bId);
         List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
         if (results != null && results.size() > 0) {
             LocalDateTime nowBeginDate = bo.getBegin_time();
