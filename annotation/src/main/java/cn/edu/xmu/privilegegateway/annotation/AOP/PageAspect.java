@@ -36,7 +36,6 @@ public class PageAspect {
     @Around("pageAspect()")
     public Object around(JoinPoint joinPoint){
         MethodSignature ms = (MethodSignature) joinPoint.getSignature();
-        Method method = ms.getMethod();
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         Integer page=1,pageSize=10;
         if(request!=null){
