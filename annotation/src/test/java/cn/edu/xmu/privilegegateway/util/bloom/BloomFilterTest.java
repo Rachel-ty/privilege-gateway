@@ -32,6 +32,9 @@ public class BloomFilterTest {
         assertTrue(filter.deleteFilter(filterFor));
         assertFalse(filter.checkFilter(filterFor));
         assertFalse(filter.deleteFilter(filterFor));
+
+        assertTrue(filter.newFilter(filterFor, null, null));
+        filter.deleteFilter(filterFor);
     }
 
     @Test
