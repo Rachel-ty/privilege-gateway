@@ -8,6 +8,7 @@ import org.springframework.util.CollectionUtils;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 
@@ -84,5 +85,64 @@ public class RedisUtil {
         }else {
             return 0;
         }
+    }
+
+    /**
+     * 判断redis中是否存在键值
+     * @param key   键
+     * @return
+     */
+    public boolean hasKey(String key) {
+        return redisTemplate.hasKey(key);
+    }
+
+    /**
+     * 设置key的过期时间
+     * @param key
+     * @param timeout
+     * @param unit
+     * @return
+     */
+    public Boolean expire(String key, long timeout, TimeUnit unit){
+        return redisTemplate.expire(key,timeout,unit);
+    }
+
+    /**
+     * 获得redis中set集合
+     * @param key   键
+     * @return
+     */
+    public Set<Serializable > getSet(String key) {
+        return  redisTemplate.opsForSet().members(key);
+    }
+
+    /**
+     * 将Redis中key对应的值和集合otherKeys中的所有键对应的值并在destKey所对应的集合中
+     * @param key
+     * @param otherKeys
+     * @param destKey
+     * @return
+     */
+    public Long unionAndStoreSet(String key, Collection<String> otherKeys, String destKey){
+        return redisTemplate.opsForSet().unionAndStore(key, otherKeys, destKey);
+    }
+
+    /**
+     * 将keys的值并起来存在destKey中
+     * @param keys
+     * @param destKey
+     * @return
+     */
+    public Long unionAndStoreSet(Collection<String> keys, String destKey){
+        return redisTemplate.opsForSet().unionAndStore(keys, destKey);
+    }
+    /**
+     * 将values加入key的集合中
+     * @param key
+     * @param values
+     * @return
+     */
+    public Long addSet(String key, Serializable... values) {
+        return redisTemplate.opsForSet().add(key, values);
     }
 }

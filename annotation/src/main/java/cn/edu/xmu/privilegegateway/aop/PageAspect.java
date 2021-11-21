@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.AOP;
+package cn.edu.xmu.privilegegateway.aop;
 
 import cn.edu.xmu.privilegegateway.util.JwtHelper;
 import org.aspectj.lang.JoinPoint;

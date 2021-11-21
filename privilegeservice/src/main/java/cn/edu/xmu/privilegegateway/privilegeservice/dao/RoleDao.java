@@ -65,6 +65,8 @@ public class RoleDao {
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
+    public final static String ROLEKEY = "r_%d";
+
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -97,7 +99,7 @@ public class RoleDao {
      */
     public void loadRolePriv(Long id) {
         List<Long> privIds = this.getPrivIdsByRoleId(id);
-        String key = "r_" + id;
+        String key = String.format(ROLEKEY, id);
         for (Long pId : privIds) {
             redisTemplate.opsForSet().add(key, pId);
         }
@@ -269,7 +271,7 @@ public class RoleDao {
                     rolePrivilegePoMapper.deleteByPrimaryKey(rolePrivilegePo.getId());
                 }
                 //删除缓存中角色权限信息
-                redisTemplate.delete("r_" + id);
+                redisTemplate.delete(String.format(ROLEKEY, id));
                 //删除用户角色表
                 UserRolePoExample exampleUR = new UserRolePoExample();
                 UserRolePoExample.Criteria criteriaUR = exampleUR.createCriteria();
@@ -404,7 +406,7 @@ public class RoleDao {
                 } else {
                     //插入成功
                     //清除角色权限
-                    String key = "r_" + roleid;
+                    String key = String.format(ROLEKEY, roleid);
                     if(redisTemplate.hasKey(key)){
                         redisTemplate.delete(key);
                     }
@@ -448,7 +450,7 @@ public class RoleDao {
             retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }else{
             Long roleid = rolePrivilegePo.getRoleId();
-            String key = "r_" + roleid;
+            String key = String.format(ROLEKEY, roleid);
             //清除缓存被删除的的角色,重新load
             if(redisTemplate.hasKey(key)){
                 redisTemplate.delete(key);
@@ -468,12 +470,10 @@ public class RoleDao {
      */
 
     public ReturnObject<List> getRolePrivByRoleId(Long id){
-        String key = "r_" + id;
+        String key = String.format(ROLEKEY, id);
         List<RolePrivilege> rolepribilegere = new ArrayList<>();
         RolePrivilegePoExample example = new RolePrivilegePoExample();
         RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-
-
 
         //查看是否有此角色
         RolePo rolePo = roleMapper.selectByPrimaryKey(id);
@@ -508,4 +508,32 @@ public class RoleDao {
         return new ReturnObject<>(rolepribilegere);
     }
 
+    /**
+     * 获得用户的角色id
+     *
+     * @param id 用户id
+     * @return 角色id列表
+     * createdBy: Ming Qiu 2020/11/3 13:55
+     */
+    public List<Long> getRoleIdByUserId(Long id) {
+        UserRolePoExample example = new UserRolePoExample();
+        UserRolePoExample.Criteria criteria = example.createCriteria();
+        criteria.andUserIdEqualTo(id);
+        List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
+        logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
+        List<Long> retIds = new ArrayList<>(userRolePoList.size());
+        for (UserRolePo po : userRolePoList) {
+            StringBuilder signature = Common.concatString("-",
+                    po.getUserId().toString(), po.getRoleId().toString());
+            String newSignature = SHA256.getSHA256(signature.toString());
+
+            if (newSignature.equals(po.getSignature())) {
+                retIds.add(po.getRoleId());
+                logger.debug("getRoleIdByUserId: userId = " + po.getUserId() + " roleId = " + po.getRoleId());
+            } else {
+                logger.error("getRoleIdByUserId: 签名错误(auth_user_role): id =" + po.getId());
+            }
+        }
+        return retIds;
+    }
 }
