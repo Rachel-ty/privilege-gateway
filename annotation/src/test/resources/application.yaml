@@ -12,7 +12,7 @@ server:
 
 spring:
   application:
-    name: annotation-service
+    name: annotation-service-test
 
   redis:
     # Redis数据库索引（默认为0）

@@ -17,6 +17,9 @@ public class BloomFilterTest {
     @Autowired
     private BloomFilter<String> filter;
 
+    @Autowired
+    private BloomFilter<Long> filterInt;
+
     @Test
     public void filterTest() {
         String filterFor = "test";
@@ -53,4 +56,19 @@ public class BloomFilterTest {
         filter.deleteFilter(filterFor);
     }
 
+    @Test
+    public void valueTestInteger() {
+        String filterFor = "testI";
+
+        if(!filterInt.checkFilter(filterFor)) {
+            filterInt.newFilter(filterFor, 0.001, 100);
+        }
+
+        assertFalse(filterInt.checkValue(filterFor, 1L));
+        assertTrue(filterInt.addValue(filterFor, 1L));
+        assertTrue(filterInt.checkValue(filterFor, 1L));
+        assertFalse(filterInt.addValue(filterFor, 1L));
+
+        filterInt.deleteFilter(filterFor);
+    }
 }
