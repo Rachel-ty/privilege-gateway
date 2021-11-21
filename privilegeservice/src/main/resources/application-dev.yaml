@@ -82,8 +82,11 @@ privilegeservice:
   lockerExpireTime: 30
   #dav信息配置
   dav:
+    #dav服务器用户名
     username: other
+    #dav服务器密码
     password: 123456
+    #dav服务器路径
     baseUrl: http://106.52.203.83/webdav/
   user:
     # user的权限字在Redis中失效秒数
@@ -96,6 +99,29 @@ privilegeservice:
     multiply: false
     #jwt过期的时间(秒)
     jwtExpire: 3600
+  #Bloom过滤器参数
+  bloomfilter:
+    #新注册用户的Email Bloom过滤器
+    new-user-email:
+      #错误率
+      error-rate: 0.001
+      #容量
+      capacity: 1000
+    #新注册用户的电话 Bloom过滤器
+    new-user-mobile:
+      #错误率
+      error-rate: 0.001
+      #容量
+      capacity: 1000
+    #新注册用户的用户名 Bloom过滤器
+    new-user-name:
+      #错误率
+      error-rate: 0.001
+      #容量
+      capacity: 1000
+
+
+
 
 
 #pagehelper分页插件配置
