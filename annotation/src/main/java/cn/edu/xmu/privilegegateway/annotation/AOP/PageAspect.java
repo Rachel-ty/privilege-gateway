@@ -39,9 +39,11 @@ public class PageAspect {
             String pageSizeString= request.getParameter("pageSize");
             if (pageString!=null&&(!pageString.isEmpty())&&pageString.matches("\\d+")) {
                 page=Integer.valueOf(pageString);
+                if(page<=0) {page=1;}
             }
             if (pageSizeString!=null&&pageSizeString.matches("\\d+")) {
                 pageSize=Integer.valueOf(pageSizeString);
+                if(pageSize<=0||pageSize>500) {pageSize=10;}
             }
         }
         String[] paramNames = ms.getParameterNames();
