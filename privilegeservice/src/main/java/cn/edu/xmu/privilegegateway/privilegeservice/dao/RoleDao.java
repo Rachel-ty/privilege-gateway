@@ -2,9 +2,10 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.model.VoObject;
 import cn.edu.xmu.privilegegateway.util.Common;
+import cn.edu.xmu.privilegegateway.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.util.encript.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -65,6 +66,9 @@ public class RoleDao {
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     public final static String ROLEKEY = "r_%d";
 
     /**
@@ -101,11 +105,11 @@ public class RoleDao {
         List<Long> privIds = this.getPrivIdsByRoleId(id);
         String key = String.format(ROLEKEY, id);
         for (Long pId : privIds) {
-            redisTemplate.opsForSet().add(key, pId);
+            redisUtil.addSet(key, pId);
         }
-        redisTemplate.opsForSet().add(key,0);
+        redisUtil.addSet(key,0);
         long randTimeout = Common.addRandomTime(this.timeout);
-        redisTemplate.expire(key, randTimeout, TimeUnit.SECONDS);
+        redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
     }
 
     /**
@@ -123,7 +127,7 @@ public class RoleDao {
         List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
         for (RolePrivilegePo po : rolePrivilegePos) {
             StringBuilder signature = Common.concatString("-", po.getRoleId().toString(),
-                    po.getPrivilegeId().toString(), po.getCreatorId().toString());
+                    po.getPrivilegeId().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
 
             if (newSignature.equals(po.getSignature())) {
@@ -144,7 +148,7 @@ public class RoleDao {
         List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
         for (RolePrivilegePo po : rolePrivilegePos) {
             StringBuilder signature = Common.concatString("-", po.getRoleId().toString(),
-                    po.getPrivilegeId().toString(), po.getCreatorId().toString());
+                    po.getPrivilegeId().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             RolePrivilegePo newPo = new RolePrivilegePo();
             newPo.setId(po.getId());
