@@ -261,30 +261,30 @@ public class UserDao{
 
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserBIdEqualTo(userid);
+        criteria.andProxyUserIdEqualTo(userid);
         List<UserProxyPo> userProxyPoList = userProxyPoMapper.selectByExample(example);
 
         LocalDateTime now = LocalDateTime.now();
 
         for (UserProxyPo po:
              userProxyPoList) {
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             UserProxyPo newPo = null;
 
             if (newSignature.equals(po.getSignature())) {
                 if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
                     //在有效期内
-                    String proxyKey = "up_" + po.getUserAId();
+                    String proxyKey = "up_" + po.getUserId();
                     redisTemplate.delete(proxyKey);
-                    logger.debug("clearUserPrivCache: userAId = " + po.getUserAId() + " userBId = " + po.getUserBId());
+                    logger.debug("clearUserPrivCache: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
                 } else {
                     //代理过期了，但标志位依然是有效
                     newPo = newPo == null ? new UserProxyPo() : newPo;
                     newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserAId().toString(),
-                            po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
+                    signature = Common.concatString("-", po.getUserId().toString(),
+                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
                     newSignature = SHA256.getSHA256(signature.toString());
                     newPo.setSignature(newSignature);
                 }
@@ -494,28 +494,28 @@ public class UserDao{
         UserProxyPoExample example = new UserProxyPoExample();
         //查询当前所有有效的被代理用户
         UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserAIdEqualTo(id);
+        criteria.andUserIdEqualTo(id);
         criteria.andValidEqualTo((byte) 1);
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
         List<Long> retIds = new ArrayList<>(userProxyPos.size());
         LocalDateTime now = LocalDateTime.now();
         for (UserProxyPo po : userProxyPos) {
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             UserProxyPo newPo = null;
 
             if (newSignature.equals(po.getSignature())) {
                 if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
                     //在有效期内
-                    retIds.add(po.getUserBId());
-                    logger.debug("getProxyIdsByUserId: userAId = " + po.getUserAId() + " userBId = " + po.getUserBId());
+                    retIds.add(po.getProxyUserId());
+                    logger.debug("getProxyIdsByUserId: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
                 } else {
                     //代理过期了，但标志位依然是有效
                     newPo = newPo == null ? new UserProxyPo() : newPo;
                     newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserAId().toString(),
-                            po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
+                    signature = Common.concatString("-", po.getUserId().toString(),
+                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
                     newSignature = SHA256.getSHA256(signature.toString());
                     newPo.setSignature(newSignature);
                 }
@@ -564,8 +564,8 @@ public class UserDao{
         for (UserProxyPo po : userProxyPos) {
             UserProxyPo newPo = new UserProxyPo();
             newPo.setId(po.getId());
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             newPo.setSignature(newSignature);
             userProxyPoMapper.updateByPrimaryKeySelective(newPo);

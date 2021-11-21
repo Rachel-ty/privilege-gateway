@@ -43,13 +43,13 @@ public class UserProxy{
      */
     public UserProxy(UserProxyPo po) {
         this.id = po.getId();
-        this.a_id = po.getUserAId();
-        this.b_id = po.getUserBId();
+        this.a_id = po.getUserId();
+        this.b_id = po.getProxyUserId();
         this.begin_time = po.getBeginDate();
         this.end_time = po.getEndDate();
         this.gmtCreate = po.getGmtCreate();
         this.signature = po.getSignature();
-        StringBuilder signature = Common.concatString("-", po.getUserAId().toString(), po.getUserBId().toString(),po.getBeginDate().toString(),po.getEndDate().toString(),po.getValid().toString());
+        StringBuilder signature = Common.concatString("-", po.getUserId().toString(), po.getProxyUserId().toString(),po.getBeginDate().toString(),po.getEndDate().toString(),po.getValid().toString());
         this.cacuSignature = SHA256.getSHA256(signature.toString());
     }
 
