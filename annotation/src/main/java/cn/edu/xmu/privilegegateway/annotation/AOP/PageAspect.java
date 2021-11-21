@@ -8,20 +8,16 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
 import org.aspectj.lang.annotation.Pointcut;
 import org.aspectj.lang.reflect.MethodSignature;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.lang.annotation.Annotation;
-import java.lang.reflect.Method;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
+/**
+ * @author GXC
+ * @SN 22920192204194
+ */
 @Aspect
 @Component
 public class PageAspect {
