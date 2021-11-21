@@ -1,12 +1,18 @@
-package cn.edu.xmu.privilegegateway.privilegeservice.util;
+package cn.edu.xmu.privilegegateway.util.bloom;
 
+import cn.edu.xmu.privilegegateway.TestApplication;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@SpringBootTest
+/**
+ * @author Jianjian Chan
+ * @date 2021-11-20
+ * @sn 22920192204170
+ */
+@SpringBootTest(classes = {TestApplication.class})
 public class BloomFilterTest {
     @Autowired
     private BloomFilter<String> filter;
