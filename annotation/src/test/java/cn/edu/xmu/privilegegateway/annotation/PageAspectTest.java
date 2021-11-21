@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.controller.annotation;
+package cn.edu.xmu.privilegegateway.annotation;
 
 import cn.edu.xmu.privilegegateway.annotation.AnnotationTestApplication;
 import org.junit.jupiter.api.Test;
@@ -43,6 +43,17 @@ public class PageAspectTest {
                 andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
         System.out.println(responseString);
         String expectedResponse="{ \"data\":110}";
+        JSONAssert.assertEquals(expectedResponse,responseString,true);
+    }
+    @Test
+    public void onlineAdvancesale3() throws Exception {
+        String responseString = this.mvc.perform(MockMvcRequestBuilders.get("/privilege/shops").
+                        param("page","5").
+                        param("pageSize","20")
+                        .contentType("application/json;charset=UTF-8")).
+                andExpect(MockMvcResultMatchers.status().isOk()).andDo(print()).andReturn().getResponse().getContentAsString(charset);
+        System.out.println(responseString);
+        String expectedResponse="{ \"data\":520}";
         JSONAssert.assertEquals(expectedResponse,responseString,true);
     }
 }
