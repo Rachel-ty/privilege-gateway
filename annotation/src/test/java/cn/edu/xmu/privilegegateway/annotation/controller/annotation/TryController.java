@@ -17,7 +17,7 @@ public class TryController {
     private HttpServletResponse httpServletResponse;
 
     @GetMapping("/shops")
-    public String test1(@RequestParam(value = "XX") Integer page,
+    public String test1(@RequestParam(value = "XX",required = false) Integer page,
                         Integer pageSize) {
         return  "{ \"data\":" + page.toString()+pageSize.toString() + "}";
     }
