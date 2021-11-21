@@ -4,7 +4,7 @@ local capacity = KEYS[3]
 
 local result = redis.call("BF.RESERVE", filterName, errorRate, capacity)
 if result == "OK" then
-    return 1
+    return "1"
 else
-    return 0
+    return "0"
 end
