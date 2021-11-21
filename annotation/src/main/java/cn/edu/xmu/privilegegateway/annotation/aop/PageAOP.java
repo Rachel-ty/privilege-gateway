@@ -17,8 +17,9 @@ public class PageAOP {
     /**
      * 定义有一个切入点，范围为web包下的类
      */
+    @Pointcut("@annotation(org.springframework.web.bind.annotation.RestController)||@within(org.springframework.web.bind.annotation.RestController)")
 
-    @Pointcut("execution(* cn.edu.xmu..*.*Controller.*(..)))")
+
     public void pageAspect() {
     }
 
