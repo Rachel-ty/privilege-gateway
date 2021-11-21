@@ -1,8 +1,6 @@
 package cn.edu.xmu.privilegegateway.annotation.controller.annotation;
 
 import cn.edu.xmu.privilegegateway.annotation.annotation.*;
-import cn.edu.xmu.privilegegateway.util.ResponseUtil;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +16,11 @@ public class TryController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
+    @GetMapping("/shops")
+    public String test1(@RequestParam(value = "XX",required = false) Integer page,
+                        Integer pageSize) {
+        return  "{ \"data\":" + page.toString()+pageSize.toString() + "}";
+    }
     //没有common 我先引进来了
     @GetMapping("/shops/{id}")
     @Audit(departName = "shops")
