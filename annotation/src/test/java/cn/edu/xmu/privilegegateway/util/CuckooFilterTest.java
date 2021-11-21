@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.util;
 
-import cn.edu.xmu.privilegegateway.annotation.AnnotationApplication;
+import cn.edu.xmu.privilegegateway.AnnotationApplication;
 import cn.edu.xmu.privilegegateway.util.cuckoo.CuckooFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,7 +12,7 @@ server:
 
 spring:
   application:
-    name: privilege-service
+    name: annotation-service
 
   redis:
     # Redis数据库索引（默认为0）
