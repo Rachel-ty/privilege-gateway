@@ -404,6 +404,18 @@ public class Common {
         return ret;
     }
 
+    public static StringBuilder concatString(String sep, List<String> fields){
+        StringBuilder ret = new StringBuilder();
+
+        for (int i = 0; i< fields.size(); i++){
+            if (i > 0){
+                ret.append(sep);
+            }
+            ret.append(fields.get(i));
+        }
+        return ret;
+    }
+
     /**
      * 增加20%以内的随机时间
      * 如果timeout <0 则会返回60s+随机时间
