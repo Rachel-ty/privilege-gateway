@@ -294,6 +294,7 @@ CREATE TABLE `auth_user_role` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `baserole` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_user_role_user_id_role_id_uindex` (`user_id`,`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=214 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -308,4 +309,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-20 15:46:10
+-- Dump completed on 2021-11-22 18:44:38
