@@ -10,17 +10,26 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * @author wang zhongyu
+ * @date 2021-11-22
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public abstract class Sign {
+public abstract class BaseSign {
     protected List<String> fieldNameList;
 
-    public Sign(String... fieldNames) {
+    public BaseSign(String... fieldNames) {
         fieldNameList = new ArrayList<>();
         fieldNameList.addAll(Arrays.asList(fieldNames));
     }
 
+    /**
+     * 具体的加密算法
+     * @param content
+     * @return
+     */
     public abstract String encrypt(String content);
 
     public boolean check(Object obj) {
@@ -46,8 +55,19 @@ public abstract class Sign {
             try {
                 Field field = obj.getClass().getDeclaredField(fieldName);
                 field.setAccessible(true);
-                String originValue = field.get(obj).toString();
-                fieldDataList.add(originValue);
+                Object originValue = field.get(obj);
+
+                if (originValue == null) {
+                    fieldDataList.add(null);
+                }
+                else {
+                    // 枚举型转化为对应的整数
+                    if (field.getType().isEnum()) {
+                        originValue = ((Enum)originValue).ordinal();
+                    }
+
+                    fieldDataList.add(originValue.toString());
+                }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 continue;
             }
