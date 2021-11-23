@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.annotation.controller.annotation;
 
-import cn.edu.xmu.privilegegateway.annotation.AnnotationTestApplication;
+import cn.edu.xmu.privilegegateway.AnnotationApplication;
 import cn.edu.xmu.privilegegateway.util.JwtHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = AnnotationTestApplication.class)   //标识本类是一个SpringBootTest
+@SpringBootTest(classes = AnnotationApplication.class)   //标识本类是一个SpringBootTest
 public class AuditAspectTest {
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();

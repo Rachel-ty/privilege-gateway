@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.util;
 
-import cn.edu.xmu.privilegegateway.annotation.AnnotationApplication;
+import cn.edu.xmu.privilegegateway.AnnotationApplication;
 import cn.edu.xmu.privilegegateway.util.cuckoo.CuckooFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,18 +25,29 @@ public class CuckooFilterTest {
         String filterFor = "testString";
 
         stringFilter.deleteFilter(filterFor);
-
+        // Capacity must be at least (BucketSize * 2)，即不能为负数
         assertFalse(stringFilter.newFilter(filterFor, -1, null, null, null));
+        // Couldn't create Cuckoo Filter
         assertFalse(stringFilter.newFilter(filterFor, 100, -1, null, null));
-        assertFalse(stringFilter.newFilter(filterFor, 100, 3, -1, null));
-        assertFalse(stringFilter.newFilter(filterFor, 100, 3, 20, -1));
+        // maxIterations可以小于0
+        assertTrue(stringFilter.newFilter(filterFor, 100, 3, -1, null));
+        assertTrue(stringFilter.deleteFilter(filterFor));
+        // expansion可以小于0
+        assertTrue(stringFilter.newFilter(filterFor, 100, 3, 20, -1));
+        assertTrue(stringFilter.deleteFilter(filterFor));
+        // Capacity must be at least (BucketSize * 2)
         assertFalse(stringFilter.newFilter(filterFor, 10, 10, 20, null));
+
 
         assertTrue(stringFilter.newFilter(filterFor, 100, null, null, null));
         assertTrue(stringFilter.checkFilter(filterFor));
         assertTrue(stringFilter.deleteFilter(filterFor));
         assertFalse(stringFilter.checkFilter(filterFor));
         assertFalse(stringFilter.deleteFilter(filterFor));
+
+        // 有默认值的情况
+        assertTrue(stringFilter.newFilter(filterFor, null, null, null, null));
+        assertTrue(stringFilter.deleteFilter(filterFor));
 
         filterFor = "testInteger";
         intFilter.deleteFilter(filterFor);

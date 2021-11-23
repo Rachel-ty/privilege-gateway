@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.annotation;
 
-import cn.edu.xmu.privilegegateway.annotation.AnnotationTestApplication;
+import cn.edu.xmu.privilegegateway.AnnotationApplication;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
@@ -19,7 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @AutoConfigureMockMvc
-@SpringBootTest(classes = AnnotationTestApplication.class)   //标识本类是一个SpringBootTest
+@SpringBootTest(classes = AnnotationApplication.class)   //标识本类是一个SpringBootTest
 public class PageAspectTest {
     @Autowired
     private MockMvc mvc;

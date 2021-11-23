@@ -5,12 +5,20 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+
+/**
+ * @author Jianjian Chan
+ * @date 2021-11-20
+ * @sn 22920192204170
+ */
+@Component
 public class BloomFilter<T> {
     private static final String ADD_VALUE_PATH = "bloom/addValueToFilter.lua";
     private static final String CHECK_VALUE_PATH = "bloom/checkValueInFilter.lua";

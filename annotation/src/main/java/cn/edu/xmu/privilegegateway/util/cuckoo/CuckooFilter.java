@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 
 /**
  * @author Zhiliang Li
- * @date 2021/11/21
+ * @date 2021/11/22
  */
 @Component
 public class CuckooFilter<T> {
@@ -99,37 +99,21 @@ public class CuckooFilter<T> {
         script.setResultType(Boolean.class);
 
         if (capacity != null) {
-            if (capacity <= 0) {
-                return false;
-            }
-
             capacityStr = capacity.toString();
         }
         argList.add(capacityStr);
 
+        /**
+         * 添加可选参数bucketsize、maxiterations、expansion
+         */
+        String[] argsName = {"bucketsize", "maxiterations", "expansion"};
+        Integer[] args = {bucketSize, maxIterations, expansion};
 
-        if (bucketSize != null) {
-            if (bucketSize <= 0 || Integer.valueOf(capacityStr) < 2 * bucketSize) {
-                return false;
+        for (int i = 0; i < 3; i++) {
+            if (args[i] != null) {
+                argList.add(argsName[i]);
+                argList.add(args[i].toString());
             }
-            argList.add("bucketsize");
-            argList.add(bucketSize.toString());
-        }
-
-        if (maxIterations != null) {
-            if (maxIterations <= 0) {
-                return false;
-            }
-            argList.add("maxiterations");
-            argList.add(maxIterations.toString());
-        }
-
-        if (expansion != null) {
-            if (expansion <= 0) {
-                return false;
-            }
-            argList.add("expansion");
-            argList.add(expansion.toString());
         }
 
         return redis.execute(script, argList);
