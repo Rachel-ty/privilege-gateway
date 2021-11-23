@@ -4,6 +4,8 @@ import cn.edu.xmu.privilegegateway.util.Common;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -18,7 +20,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public abstract class BaseCoder {
+    private Logger logger = LoggerFactory.getLogger(BaseCoder.class);
+
     protected BaseSign sign;
+
     protected List<String> fieldNameList;
 
     public BaseCoder(BaseSign sign, String... fieldNames) {
@@ -32,14 +37,14 @@ public abstract class BaseCoder {
      * @param content
      * @return
      */
-    public abstract String encrypt(String content);
+    protected abstract String encrypt(String content);
 
     /**
      * 具体的解密算法
      * @param content
-     * @return
+     * @return 签名生成失败会返回null
      */
-    public abstract String decrypt(String content);
+    protected abstract String decrypt(String content);
 
     public Object code(Object originObj, Class poClass) {
         String signature = sign.getSignature(originObj);
@@ -55,17 +60,19 @@ public abstract class BaseCoder {
                 String encryptValue = encrypt(originValue);
                 field.set(po, encryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error("给定的加密字段不存在，已跳过该字段");
                 continue;
             }
         }
 
         // 生成签名
         try {
-            Field signatureField = po.getClass().getDeclaredField("signature");
+            Field signatureField = po.getClass().getDeclaredField(sign.getSignatureFieldName());
             signatureField.setAccessible(true);
             signatureField.set(po, signature);
         } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+            logger.error("指定的签名字段不存在，存放签名失败:", e.getMessage());
+            return null;
         }
 
         return po;
@@ -88,27 +95,15 @@ public abstract class BaseCoder {
                 String decryptValue = decrypt(originValue);
                 field.set(bo, decryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error("给定的解密字段不存在，已跳过该字段");
                 continue;
             }
         }
 
         // 校验签名
         if (!sign.check(bo)) {
+            logger.error("用户签名校验失败，信息被篡改:", originObj);
             return null;
-        }
-
-
-        // 将签名写入cacuSignature字段
-        try {
-            Field signatureField = bo.getClass().getDeclaredField("signature");
-            signatureField.setAccessible(true);
-            Object signature = signatureField.get(bo);
-
-            Field cacuSignatureField = bo.getClass().getDeclaredField("cacuSignature");
-            cacuSignatureField.setAccessible(true);
-            cacuSignatureField.set(bo, signature);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
         }
 
         return bo;

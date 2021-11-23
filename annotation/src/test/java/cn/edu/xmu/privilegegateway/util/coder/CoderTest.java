@@ -27,8 +27,8 @@ public class CoderTest {
         user.setState(User.State.NORM);
         user.setDepartId(123L);
         user.setCreatorId(1L);
-        BaseSign sha256Sign = new SHA256Sign("userName", "password", "mobile", "email", "openId", "state", "departId", "creatorId");
-        BaseCoder aesCoder = new AESCoder(sha256Sign, "name", "mobile", "email");
+        BaseSign sha256Sign = new SHA256Sign("signature","userName", "password", "mobile", "email", "openId", "state", "departId", "creatorId", "test");
+        BaseCoder aesCoder = new AESCoder(sha256Sign, "name", "mobile", "email", "test");
 
         StringBuilder signatureBuilder = Common.concatString("-",
                 user.getUserName(),
@@ -50,6 +50,13 @@ public class CoderTest {
         Assertions.assertTrue(userPo.getMobile().equals(encryptMobile));
         Assertions.assertTrue(userPo.getEmail().equals(encryptEmail));
         Assertions.assertTrue(userPo.getSignature().equals(signature));
+
+        // 验证签名生成失败时，返回null
+        BaseSign sha256Sign1 = new SHA256Sign("signatureA","userName", "password", "mobile", "email", "openId", "state", "departId", "creatorId");
+        BaseCoder aesCoder1 = new AESCoder(sha256Sign1, "name", "mobile", "email");
+        UserPo userPo1 = (UserPo) aesCoder1.code(user, UserPo.class);
+
+        Assertions.assertNull(userPo1);
     }
 
     @Test
@@ -66,8 +73,8 @@ public class CoderTest {
         user.setOpenId("12345");
         user.setDepartId(123L);
         user.setCreatorId(1L);
-        BaseSign sha256Sign = new SHA256Sign("userName", "password", "mobile", "email", "openId", "level", "departId", "creatorId");
-        BaseCoder aesCoder = new AESCoder(sha256Sign, "name", "mobile", "email");
+        BaseSign sha256Sign = new SHA256Sign("signature", "userName", "password", "mobile", "email", "openId", "level", "departId", "creatorId");
+        BaseCoder aesCoder = new AESCoder(sha256Sign, "name", "mobile", "email", "test");
 
         UserPo userPo = (UserPo) aesCoder.code(user, UserPo.class);
 
@@ -81,9 +88,15 @@ public class CoderTest {
         Assertions.assertTrue(decodeUser.getMobile().equals(decryptMobile));
         Assertions.assertTrue(decodeUser.getEmail().equals(decryptEmail));
 
+        // 测试给定错误的签名字段，解密返回null
+        BaseSign sha256Sign1 = new SHA256Sign("signatureA", "userName", "password", "mobile", "email", "openId", "level", "departId", "creatorId");
+        BaseCoder aesCoder1 = new AESCoder(sha256Sign1, "name", "mobile", "email");
+        User decodeUser1 = (User) aesCoder1.decode(userPo, User.class);
+        Assertions.assertNull(decodeUser1);
+
         // 测试Po对象被篡改后的结果
         userPo.setMobile("03A31E01B015CA97F0F7147CC5A01AB4");
-        User decodeUser1 = (User) aesCoder.decode(userPo, User.class);
-        Assertions.assertNull(decodeUser1);
+        User decodeUser2 = (User) aesCoder.decode(userPo, User.class);
+        Assertions.assertNull(decodeUser2);
     }
 }

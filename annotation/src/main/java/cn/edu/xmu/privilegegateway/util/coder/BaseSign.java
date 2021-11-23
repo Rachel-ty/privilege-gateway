@@ -4,6 +4,8 @@ import cn.edu.xmu.privilegegateway.util.Common;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -18,9 +20,14 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public abstract class BaseSign {
+    private Logger logger = LoggerFactory.getLogger(BaseSign.class);
+
+    protected String signatureFieldName;
+
     protected List<String> fieldNameList;
 
-    public BaseSign(String... fieldNames) {
+    public BaseSign(String signatureFieldName, String... fieldNames) {
+        this.signatureFieldName = signatureFieldName;
         fieldNameList = new ArrayList<>();
         fieldNameList.addAll(Arrays.asList(fieldNames));
     }
@@ -30,12 +37,13 @@ public abstract class BaseSign {
      * @param content
      * @return
      */
-    public abstract String encrypt(String content);
+    protected abstract String encrypt(String content);
 
     public boolean check(Object obj) {
         String cacuSignature = getSignature(obj);
+
         try {
-            Field signatureField = obj.getClass().getDeclaredField("signature");
+            Field signatureField = obj.getClass().getDeclaredField(signatureFieldName);
             signatureField.setAccessible(true);
             String signature = (String) signatureField.get(obj);
 
@@ -43,6 +51,7 @@ public abstract class BaseSign {
                 return false;
             }
         } catch (NoSuchFieldException | IllegalAccessException e) {
+            logger.warn("给定的签名字段不存在，签名校验失败");
             return false;
         }
 
@@ -69,6 +78,7 @@ public abstract class BaseSign {
                     fieldDataList.add(originValue.toString());
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error("给定的用于生成签名的字段不存在，已跳过该字段");
                 continue;
             }
         }
