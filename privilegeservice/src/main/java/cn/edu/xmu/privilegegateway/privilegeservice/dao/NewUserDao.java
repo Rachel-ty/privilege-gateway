@@ -1,14 +1,14 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.util.bloom.BloomFilter;
-import cn.edu.xmu.privilegegateway.util.encript.AES;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.bloom.BloomFilter;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;

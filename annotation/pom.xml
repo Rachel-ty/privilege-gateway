@@ -103,6 +103,10 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
+                    <excludes>
+                        <exclude>**/BloomFilterTest.java</exclude>
+                        <exclude>**/CuckooFilterTest.java</exclude>
+                    </excludes>
                     <skip>false</skip>
                 </configuration>
             </plugin>

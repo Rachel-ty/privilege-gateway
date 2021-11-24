@@ -32,6 +32,8 @@ CREATE TABLE `auth_group` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -52,6 +54,8 @@ CREATE TABLE `auth_group_relation` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_group_relation_group_s_id_group_p_id_uindex` (`group_s_id`,`group_p_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -73,6 +77,8 @@ CREATE TABLE `auth_group_role` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_group_role_group_id_role_id_uindex` (`group_id`,`role_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -102,6 +108,8 @@ CREATE TABLE `auth_new_user` (
   `id_number` varchar(128) DEFAULT NULL,
   `passport_number` varchar(128) DEFAULT NULL,
   `signature` varchar(256) DEFAULT NULL,
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_new_user_email_uindex` (`email`),
   UNIQUE KEY `auth_new_user_mobile_uindex` (`mobile`),
@@ -126,6 +134,8 @@ CREATE TABLE `auth_privilege` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_privilege_name_url_request_type_uindex` (`name`,`url`,`request_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=125 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -148,6 +158,8 @@ CREATE TABLE `auth_role` (
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
   `state` tinyint DEFAULT NULL,
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -168,6 +180,8 @@ CREATE TABLE `auth_role_inherited` (
   `modifier_id` bigint DEFAULT NULL,
   `gmt_create` datetime DEFAULT NULL,
   `gmt_modified` datetime DEFAULT NULL,
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_role_inherited_role_id_role_c_id_uindex` (`role_id`,`role_c_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -189,6 +203,8 @@ CREATE TABLE `auth_role_privilege` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_role_privilege_role_id_privilege_id_uindex` (`role_id`,`privilege_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -224,6 +240,8 @@ CREATE TABLE `auth_user` (
   `id_number` varchar(128) DEFAULT NULL,
   `passport_number` varchar(128) DEFAULT NULL,
   `level` int DEFAULT NULL,
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_user_user_name_uindex` (`user_name`),
   UNIQUE KEY `auth_user_email_uindex` (`email`),
@@ -248,6 +266,8 @@ CREATE TABLE `auth_user_group` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_user_group_user_id_group_id_uindex` (`user_id`,`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -273,6 +293,8 @@ CREATE TABLE `auth_user_proxy` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   KEY `auth_user_proxy_user_a_id_valid_index` (`user_id`,`begin_date`,`end_date`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -295,6 +317,8 @@ CREATE TABLE `auth_user_role` (
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
   `baserole` tinyint DEFAULT '0',
+  `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
+  `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_user_role_user_id_role_id_uindex` (`user_id`,`role_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=214 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -309,4 +333,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-22 18:44:38
+-- Dump completed on 2021-11-24 18:13:14

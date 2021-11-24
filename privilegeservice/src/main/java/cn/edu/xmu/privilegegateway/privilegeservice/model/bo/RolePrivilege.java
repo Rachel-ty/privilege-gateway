@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;

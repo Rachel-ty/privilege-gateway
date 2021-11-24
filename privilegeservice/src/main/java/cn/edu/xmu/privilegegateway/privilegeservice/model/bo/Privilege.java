@@ -1,12 +1,12 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.Common;
-import cn.edu.xmu.privilegegateway.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeSimpleRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -18,7 +18,7 @@ import java.util.Map;
  * @date Created in 2020/11/3 11:48
  **/
 @Data
-public class Privilege implements VoObject{
+public class Privilege implements VoObject {
 
 
 

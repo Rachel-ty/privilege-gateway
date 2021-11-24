@@ -16,15 +16,19 @@
 
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
-import cn.edu.xmu.privilegegateway.annotation.annotation.Audit;
-import cn.edu.xmu.privilegegateway.annotation.annotation.Depart;
-import cn.edu.xmu.privilegegateway.annotation.annotation.LoginUser;
-import cn.edu.xmu.privilegegateway.util.*;
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.annotation.aop.Audit;
+import cn.edu.xmu.privilegegateway.annotation.aop.Depart;
+import cn.edu.xmu.privilegegateway.annotation.aop.LoginUser;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
-import cn.edu.xmu.privilegegateway.util.IpUtil;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.NewUserService;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.RoleService;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.UserProxyService;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.UserService;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
@@ -221,8 +225,8 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs")
     @PutMapping("/departs/did/privileges/{id}")
-    public Object changePriv(@PathVariable Long id, @Validated @RequestBody PrivilegeVo vo,BindingResult bindingResult, @LoginUser Long userId, @Depart Long departId,
-                              HttpServletResponse httpServletResponse){
+    public Object changePriv(@PathVariable Long id, @Validated @RequestBody PrivilegeVo vo, BindingResult bindingResult, @LoginUser Long userId, @Depart Long departId,
+                             HttpServletResponse httpServletResponse){
         logger.debug("changePriv: id = "+ id +" vo" + vo);
         logger.debug("getAllPrivs: userId = " + userId +" departId = "+departId);
         /* 处理参数校验错误 */
@@ -664,7 +668,7 @@ public class PrivilegeController {
     @ApiOperation(value = "登录")
     @PostMapping("adminusers/login")
     public Object login(@Validated @RequestBody LoginVo loginVo, BindingResult bindingResult
-            , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest){
+            , HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest){
         /* 处理参数校验错误 */
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
@@ -746,7 +750,7 @@ public class PrivilegeController {
     })
     @Audit
     @PostMapping("users/{id}/proxy")
-    public Object usersProxy(@LoginUser @ApiIgnore  Long userId,@Depart @ApiIgnore Long departid, @PathVariable Long id, @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
+    public Object usersProxy(@LoginUser @ApiIgnore  Long userId, @Depart @ApiIgnore Long departid, @PathVariable Long id, @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
         logger.debug("usersProxy: id = " + id + " vo" + vo);
         Object returnObject = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != returnObject) {

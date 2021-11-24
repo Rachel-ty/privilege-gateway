@@ -1,14 +1,14 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.Common;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPoExample;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +36,7 @@ public class UserProxyDao {
     @Autowired
     private UserPoMapper userPoMapper;
 
-    public ReturnObject usersProxy(Long aid, Long id, UserProxy bo,Long departid) {
+    public ReturnObject usersProxy(Long aid, Long id, UserProxy bo, Long departid) {
         if(Objects.equals(aid,id)){
             return new ReturnObject(ReturnNo.USERPROXY_SELF);
         }

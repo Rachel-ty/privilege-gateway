@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPoExample;
-import cn.edu.xmu.privilegegateway.util.Common;
-import cn.edu.xmu.privilegegateway.util.encript.*;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

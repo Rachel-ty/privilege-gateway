@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ public class NewUser implements VoObject {
     private String openId;
     private LocalDateTime gmtCreated;
     public NewUser(NewUserVo vo){
-        this.email=AES.encrypt(vo.getEmail(),User.AESPASS);
+        this.email= AES.encrypt(vo.getEmail(),User.AESPASS);
         this.mobile=AES.encrypt(vo.getMobile(),User.AESPASS);
         this.userName=vo.getUserName();
         this.password=AES.encrypt(vo.getPassword(),User.AESPASS);

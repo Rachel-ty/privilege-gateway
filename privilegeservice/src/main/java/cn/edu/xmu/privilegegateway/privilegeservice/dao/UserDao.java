@@ -1,12 +1,18 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.*;
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.encript.*;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
