@@ -781,6 +781,9 @@ public class PrivilegeController {
                                        @PathVariable("aid") Long userId,
                                        @PathVariable("bid") Long proxyUserId,
                                        @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
+        if(departId!=0){
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_NO_RIGHT));
+        }
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
             return obj;
@@ -801,7 +804,7 @@ public class PrivilegeController {
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
     @Audit(departName = "departs")
-    @DeleteMapping("proxie/{id}")
+    @DeleteMapping("proxies/{id}")
     public Object removeUserProxy(@PathVariable("id") Long id, @LoginUser Long userId) {
         ReturnObject returnObject = userProxyService.removeUserProxy(id, userId);
         return Common.decorateReturnObject(returnObject);
@@ -839,7 +842,7 @@ public class PrivilegeController {
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
     @Audit(departName = "departs")
-    @DeleteMapping("departs/{did}/allproxie/{id}")
+    @DeleteMapping("departs/{did}/proxies/{id}")
     public Object removeAllProxies(@PathVariable("did") Long departId, @PathVariable("id") Long id) {
         ReturnObject returnObject = userProxyService.removeAllProxies(id, departId);
         return Common.decorateReturnObject(returnObject);

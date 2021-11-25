@@ -22,19 +22,19 @@ public class UserProxy{
     private Long id;
     private Long userId;
     private Long proxyUserId;
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime beginDate;
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime endDate;
     private String signature;
     private Byte valid;
     private Long departId;
     private Long creatorId;
     private String creatorName;
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime gmtCreate;
     private Long modifierId;
     private String modifierName;
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime gmtModified;
 }

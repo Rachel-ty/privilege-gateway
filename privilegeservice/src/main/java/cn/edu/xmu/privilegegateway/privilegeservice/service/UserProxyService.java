@@ -64,7 +64,7 @@ public class UserProxyService {
         return userProxyDao.removeUserProxy(id, userId);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true,rollbackFor = Exception.class)
     public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, Integer page, Integer pageSize) {
         ReturnObject proxies = userProxyDao.getProxies(userId, proxyUserId, departId, page, pageSize);
         if (proxies.getData() == null) {

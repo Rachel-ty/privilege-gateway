@@ -22,11 +22,11 @@ import java.time.LocalDateTime;
 public class UserProxyVo {
 
     @ApiModelProperty(name = "代理开始时间", value = "beginDate", required = true)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime beginDate;
 
     @ApiModelProperty(name = "代理过期时间", value = "beginDate", required = true)
-    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime endDate;
 
 

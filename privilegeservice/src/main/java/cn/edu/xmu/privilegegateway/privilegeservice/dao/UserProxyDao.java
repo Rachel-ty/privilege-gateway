@@ -56,7 +56,7 @@ public class UserProxyDao {
             if (user == null || proxyUser == null) {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
-            if (!(user.getDepartId().equals(bo.getDepartId()) || (proxyUser.getDepartId().equals(bo.getDepartId())))) {
+            if (!(user.getDepartId().equals(proxyUser.getDepartId()))){
                 return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
             }
             UserProxyPo userProxyPo = (UserProxyPo) Common.cloneVo(bo, UserProxyPo.class);
@@ -106,8 +106,7 @@ public class UserProxyDao {
             for (UserProxyPo po : results) {
                 StringBuilder signature = Common.concatString("-", po.getUserId().toString(), po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
                 if (!(SHA256.getSHA256(signature.toString()).equals(po.getSignature()))) {
-                    StringBuilder message = new StringBuilder().append("listProxies: ").append(ReturnNo.RESOURCE_FALSIFY.getMessage()).append(" id = ")
-                            .append(po.getId());
+                    StringBuilder message = new StringBuilder().append("listProxies: ").append(ReturnNo.RESOURCE_FALSIFY.getMessage()).append(" id = ").append(po.getId());
                     logger.error(message.toString());
                     return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
                 }
@@ -137,7 +136,7 @@ public class UserProxyDao {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true,rollbackFor = Exception.class)
     public boolean isExistProxy(UserProxy bo) {
         boolean isExist = false;
         UserProxyPoExample example = new UserProxyPoExample();
@@ -152,11 +151,7 @@ public class UserProxyDao {
                 LocalDateTime beginDate = po.getBeginDate();
                 LocalDateTime endDate = po.getEndDate();
                 //判断开始时间和失效时间是不是不在同一个区间里面
-                if (nowBeginDate.equals(beginDate) || nowBeginDate.equals(endDate) || (nowBeginDate.isAfter(beginDate) && nowBeginDate.isBefore(endDate))) {
-                    isExist = true;
-                    break;
-                }
-                if (nowEndDate.equals(beginDate) || nowEndDate.equals(endDate) || (nowEndDate.isAfter(beginDate) && nowEndDate.isBefore(endDate))) {
+                if ((nowBeginDate.isAfter(beginDate)&&nowBeginDate.isBefore(endDate))||(nowEndDate.isAfter(beginDate)&&nowEndDate.isBefore(endDate))) {
                     isExist = true;
                     break;
                 }
