@@ -59,4 +59,12 @@ public class TryController {
 
 
     }
+    @GetMapping("/try4")
+    @Audit(departName = "try4")
+    public Object test6(@LoginUser Long userId, @Depart @RequestParam(required = false) Long departId, @LoginName String userName,@UserLevel Integer userLevel) {
+
+        return "{ \"data\":" + userId.toString() + ' ' + departId.toString() + ' ' + userName + ' ' + userLevel +"}";
+
+
+    }
 }

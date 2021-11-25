@@ -110,7 +110,10 @@ public class AuditAspect {
                                 logger.debug("success match Id!");
                             }
                         }
-                        break;
+                        else {
+                            flag = true;//这是没有departId的情况
+                            break;
+                        }
                     }
                 }
                 if (flag == false) {
