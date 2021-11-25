@@ -1,8 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;

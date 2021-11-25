@@ -1,15 +1,18 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
-import cn.edu.xmu.privilegegateway.util.Common;
-import cn.edu.xmu.privilegegateway.util.RandomCaptcha;
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.encript.*;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +50,9 @@ public class UserDao{
     private UserRolePoMapper userRolePoMapper;
 
     @Autowired
+    private UserGroupPoMapper userGroupPoMapper;
+
+    @Autowired
     private UserProxyPoMapper userProxyPoMapper;
 
     @Autowired
@@ -59,10 +65,25 @@ public class UserDao{
     private RedisTemplate<String, Serializable> redisTemplate;
 
     @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
     private RoleDao roleDao;
 
     @Autowired
     private JavaMailSender mailSender;
+
+    /**
+     * 用户的redis key： u_id
+     *
+     */
+    private final static String USERKEY = "u_%d";
+
+    /**
+     * 最终用户的redis key: up_id
+     */
+    private final static String USERPROXYKEY = "up_%d";
+
     /**
      * @author yue hao
      * @param id 用户ID
@@ -81,7 +102,7 @@ public class UserDao{
             logger.error("findPrivsByUserId: 店铺id不匹配 userid=" + id);
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
-        List<Long> roleIds = this.getRoleIdByUserId(id);
+        List<Long> roleIds = roleDao.getRoleIdByUserId(id);
         List<Privilege> privileges = new ArrayList<>();
         for(Long roleId: roleIds) {
             List<Privilege> rolePriv = roleDao.findPrivsByRoleId(roleId);
@@ -256,35 +277,35 @@ public class UserDao{
      * @author Xianwei Wang
      */
     private void clearUserPrivCache(Long userid){
-        String key = "u_" + userid;
+        String key = String.format(USERKEY , userid);
         redisTemplate.delete(key);
 
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserBIdEqualTo(userid);
+        criteria.andProxyUserIdEqualTo(userid);
         List<UserProxyPo> userProxyPoList = userProxyPoMapper.selectByExample(example);
 
         LocalDateTime now = LocalDateTime.now();
 
         for (UserProxyPo po:
              userProxyPoList) {
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             UserProxyPo newPo = null;
 
             if (newSignature.equals(po.getSignature())) {
                 if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
                     //在有效期内
-                    String proxyKey = "up_" + po.getUserAId();
+                    String proxyKey = String.format(USERPROXYKEY, po.getUserId());
                     redisTemplate.delete(proxyKey);
-                    logger.debug("clearUserPrivCache: userAId = " + po.getUserAId() + " userBId = " + po.getUserBId());
+                    logger.debug("clearUserPrivCache: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
                 } else {
                     //代理过期了，但标志位依然是有效
                     newPo = newPo == null ? new UserProxyPo() : newPo;
                     newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserAId().toString(),
-                            po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
+                    signature = Common.concatString("-", po.getUserId().toString(),
+                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
                     newSignature = SHA256.getSHA256(signature.toString());
                     newPo.setSignature(newSignature);
                 }
@@ -401,55 +422,30 @@ public class UserDao{
      * createdBy: Ming Qiu 2020-11-02 11:44
      * modifiedBy: Ming Qiu 2020-11-03 12:31
      * 将获取用户Roleid的代码独立, 增加redis过期时间
-     * Ming Qiu 2020-11-07 8:00
+     * modifiedBy Ming Qiu 2020-11-07 8:00
      * 集合里强制加“0”
+     * modified by Ming Qiu 2021-11-21 19:34
+     *   将redisTemplate 替换成redisUtil
      */
     private void loadSingleUserPriv(Long id) {
-        List<Long> roleIds = this.getRoleIdByUserId(id);
-        String key = "u_" + id;
+        List<Long> roleIds = roleDao.getRoleIdByUserId(id);
+        String key = String.format(USERKEY, id);
         Set<String> roleKeys = new HashSet<>(roleIds.size());
         for (Long roleId : roleIds) {
-            String roleKey = "r_" + roleId;
+            String roleKey = String.format(RoleDao.ROLEKEY, roleId);
             roleKeys.add(roleKey);
-            if (!redisTemplate.hasKey(roleKey)) {
+            if (!redisUtil.hasKey(roleKey)) {
                 roleDao.loadRolePriv(roleId);
             }
-            redisTemplate.opsForSet().unionAndStore(roleKeys, key);
+            redisUtil.unionAndStoreSet(roleKeys, key);
         }
-        redisTemplate.opsForSet().add(key, 0);
+        redisUtil.addSet(key, 0);
         long randTimeout = Common.addRandomTime(timeout);
-        redisTemplate.expire(key, randTimeout, TimeUnit.SECONDS);
+        redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
     }
 
-    /**
-     * 获得用户的角色id
-     *
-     * @param id 用户id
-     * @return 角色id列表
-     * createdBy: Ming Qiu 2020/11/3 13:55
-     */
-    private List<Long> getRoleIdByUserId(Long id) {
-        UserRolePoExample example = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserIdEqualTo(id);
-        List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
-        logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
-        List<Long> retIds = new ArrayList<>(userRolePoList.size());
-        for (UserRolePo po : userRolePoList) {
-            StringBuilder signature = Common.concatString("-",
-                    po.getUserId().toString(), po.getRoleId().toString(), po.getCreatorId().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
 
 
-            if (newSignature.equals(po.getSignature())) {
-                retIds.add(po.getRoleId());
-                logger.debug("getRoleIdByUserId: userId = " + po.getUserId() + " roleId = " + po.getRoleId());
-            } else {
-                logger.error("getRoleIdByUserId: 签名错误(auth_role_privilege): id =" + po.getId());
-            }
-        }
-        return retIds;
-    }
 
     /**
      * 计算User的权限（包括代理用户的权限，只计算直接代理用户），load到Redis
@@ -458,29 +454,31 @@ public class UserDao{
      * @return void
      * createdBy Ming Qiu 2020/11/1 11:48
      * modifiedBy Ming Qiu 2020/11/3 14:37
+     * modified by Ming Qiu 2021-11-21 19:34
+     *   将redisTemplate 替换成redisUtil
      */
     public void loadUserPriv(Long id, String jwt) {
 
-        String key = "u_" + id;
-        String aKey = "up_" + id;
+        String key = String.format(USERKEY, id);
+        String aKey = String.format(USERPROXYKEY,  id);
 
         List<Long> proxyIds = this.getProxyIdsByUserId(id);
         List<String> proxyUserKey = new ArrayList<>(proxyIds.size());
         for (Long proxyId : proxyIds) {
-            if (!redisTemplate.hasKey("u_" + proxyId)) {
+            if (!redisUtil.hasKey(String.format(USERKEY, proxyId))) {
                 logger.debug("loadUserPriv: loading proxy user. proxId = " + proxyId);
                 loadSingleUserPriv(proxyId);
             }
-            proxyUserKey.add("u_" + proxyId);
+            proxyUserKey.add(String.format(USERKEY, proxyId));
         }
-        if (!redisTemplate.hasKey(key)) {
+        if (!redisUtil.hasKey(key)) {
             logger.debug("loadUserPriv: loading user. id = " + id);
             loadSingleUserPriv(id);
         }
-        redisTemplate.opsForSet().unionAndStore(key, proxyUserKey, aKey);
-        redisTemplate.opsForSet().add(aKey, jwt);
+        redisUtil.unionAndStoreSet(key, proxyUserKey, aKey);
+        redisUtil.addSet(aKey, jwt);
         long randTimeout = Common.addRandomTime(timeout);
-        redisTemplate.expire(aKey, randTimeout, TimeUnit.SECONDS);
+        redisUtil.expire(aKey, randTimeout, TimeUnit.SECONDS);
     }
 
     /**
@@ -494,28 +492,28 @@ public class UserDao{
         UserProxyPoExample example = new UserProxyPoExample();
         //查询当前所有有效的被代理用户
         UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserAIdEqualTo(id);
+        criteria.andUserIdEqualTo(id);
         criteria.andValidEqualTo((byte) 1);
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
         List<Long> retIds = new ArrayList<>(userProxyPos.size());
         LocalDateTime now = LocalDateTime.now();
         for (UserProxyPo po : userProxyPos) {
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             UserProxyPo newPo = null;
 
             if (newSignature.equals(po.getSignature())) {
                 if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
                     //在有效期内
-                    retIds.add(po.getUserBId());
-                    logger.debug("getProxyIdsByUserId: userAId = " + po.getUserAId() + " userBId = " + po.getUserBId());
+                    retIds.add(po.getProxyUserId());
+                    logger.debug("getProxyIdsByUserId: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
                 } else {
                     //代理过期了，但标志位依然是有效
                     newPo = newPo == null ? new UserProxyPo() : newPo;
                     newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserAId().toString(),
-                            po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
+                    signature = Common.concatString("-", po.getUserId().toString(),
+                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
                     newSignature = SHA256.getSHA256(signature.toString());
                     newPo.setSignature(newSignature);
                 }
@@ -564,8 +562,8 @@ public class UserDao{
         for (UserProxyPo po : userProxyPos) {
             UserProxyPo newPo = new UserProxyPo();
             newPo.setId(po.getId());
-            StringBuilder signature = Common.concatString("-", po.getUserAId().toString(),
-                    po.getUserBId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
+            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
+                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
             String newSignature = SHA256.getSHA256(signature.toString());
             newPo.setSignature(newSignature);
             userProxyPoMapper.updateByPrimaryKeySelective(newPo);

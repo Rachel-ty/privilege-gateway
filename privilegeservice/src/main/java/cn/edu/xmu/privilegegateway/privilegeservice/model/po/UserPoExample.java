@@ -1624,6 +1624,146 @@ public class UserPoExample {
             addCriterion("`level` not between", value1, value2, "level");
             return (Criteria) this;
         }
+
+        public Criteria andCreatorNameIsNull() {
+            addCriterion("`creator_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameIsNotNull() {
+            addCriterion("`creator_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameEqualTo(String value) {
+            addCriterion("`creator_name` =", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameNotEqualTo(String value) {
+            addCriterion("`creator_name` <>", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameGreaterThan(String value) {
+            addCriterion("`creator_name` >", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`creator_name` >=", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameLessThan(String value) {
+            addCriterion("`creator_name` <", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameLessThanOrEqualTo(String value) {
+            addCriterion("`creator_name` <=", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameLike(String value) {
+            addCriterion("`creator_name` like", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameNotLike(String value) {
+            addCriterion("`creator_name` not like", value, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameIn(List<String> values) {
+            addCriterion("`creator_name` in", values, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameNotIn(List<String> values) {
+            addCriterion("`creator_name` not in", values, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameBetween(String value1, String value2) {
+            addCriterion("`creator_name` between", value1, value2, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andCreatorNameNotBetween(String value1, String value2) {
+            addCriterion("`creator_name` not between", value1, value2, "creatorName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameIsNull() {
+            addCriterion("`modifier_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameIsNotNull() {
+            addCriterion("`modifier_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameEqualTo(String value) {
+            addCriterion("`modifier_name` =", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameNotEqualTo(String value) {
+            addCriterion("`modifier_name` <>", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameGreaterThan(String value) {
+            addCriterion("`modifier_name` >", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`modifier_name` >=", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameLessThan(String value) {
+            addCriterion("`modifier_name` <", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameLessThanOrEqualTo(String value) {
+            addCriterion("`modifier_name` <=", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameLike(String value) {
+            addCriterion("`modifier_name` like", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameNotLike(String value) {
+            addCriterion("`modifier_name` not like", value, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameIn(List<String> values) {
+            addCriterion("`modifier_name` in", values, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameNotIn(List<String> values) {
+            addCriterion("`modifier_name` not in", values, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameBetween(String value1, String value2) {
+            addCriterion("`modifier_name` between", value1, value2, "modifierName");
+            return (Criteria) this;
+        }
+
+        public Criteria andModifierNameNotBetween(String value1, String value2) {
+            addCriterion("`modifier_name` not between", value1, value2, "modifierName");
+            return (Criteria) this;
+        }
     }
 
     /**

@@ -103,7 +103,11 @@
                     <includes>
                         <include>**/*PageAOPTest.java</include>
                     </includes>
-                    <skip>true</skip>
+                    <excludes>
+                        <exclude>**/BloomFilterTest.java</exclude>
+                        <exclude>**/CuckooFilterTest.java</exclude>
+                    </excludes>
+                    <skip>false</skip>
                 </configuration>
             </plugin>
         </plugins>

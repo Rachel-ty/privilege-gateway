@@ -1,9 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.util.Common;
-import cn.edu.xmu.privilegegateway.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import lombok.Data;
 
 import java.time.LocalDateTime;
@@ -43,13 +43,13 @@ public class UserProxy{
      */
     public UserProxy(UserProxyPo po) {
         this.id = po.getId();
-        this.a_id = po.getUserAId();
-        this.b_id = po.getUserBId();
+        this.a_id = po.getUserId();
+        this.b_id = po.getProxyUserId();
         this.begin_time = po.getBeginDate();
         this.end_time = po.getEndDate();
         this.gmtCreate = po.getGmtCreate();
         this.signature = po.getSignature();
-        StringBuilder signature = Common.concatString("-", po.getUserAId().toString(), po.getUserBId().toString(),po.getBeginDate().toString(),po.getEndDate().toString(),po.getValid().toString());
+        StringBuilder signature = Common.concatString("-", po.getUserId().toString(), po.getProxyUserId().toString(),po.getBeginDate().toString(),po.getEndDate().toString(),po.getValid().toString());
         this.cacuSignature = SHA256.getSHA256(signature.toString());
     }
 

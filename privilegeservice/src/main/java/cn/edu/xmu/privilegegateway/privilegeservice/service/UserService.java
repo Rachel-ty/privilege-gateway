@@ -1,15 +1,16 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-import cn.edu.xmu.privilegegateway.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.model.VoObject;
-import cn.edu.xmu.privilegegateway.util.ImgHelper;
-import cn.edu.xmu.privilegegateway.util.encript.AES;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
+import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -60,6 +61,9 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private RedisUtil redisUtil;
     /**
      * @author yue hao
      * 根据用户Id查询用户所有权限
@@ -235,7 +239,16 @@ public class UserService {
         return privilegeDao.changePriv(id, vo);
     }
 
-    @Transactional
+    /**
+     * 登录
+     * @param userName: 用户名
+     * @param password: 密码
+     * @param ipAddr: ip地址
+     * @return
+     * modified by Ming Qiu 2021-11-21 19:34
+     *   将redisTemplate 替换成redisUtil
+     */
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject login(String userName, String password, String ipAddr)
     {
         ReturnObject retObj = userDao.getUserByName(userName);
@@ -260,7 +273,7 @@ public class UserService {
             return new ReturnObject<>(ReturnNo.MOBILE_NOTVERIFIED);
         }
         if (!user.authetic()){
-            retObj = new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN, "信息被篡改");
+            retObj = new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY, "用户信息被篡改");
             StringBuilder message = new StringBuilder().append("Login: userid = ").append(user.getId()).
                     append(", username =").append(user.getUserName()).append(" 信息被篡改");
             logger.error(message.toString());
@@ -269,11 +282,11 @@ public class UserService {
 
         String key = "up_" + user.getId();
         logger.debug("login: key = "+ key);
-        if(redisTemplate.hasKey(key) && !canMultiplyLogin){
+        if(redisUtil.hasKey(key) && !canMultiplyLogin){
             logger.debug("login: multiply  login key ="+key);
             // 用户重复登录处理
-            Set<Serializable > set = redisTemplate.opsForSet().members(key);
-            redisTemplate.delete(key);
+            Set<Serializable > set = redisUtil.getSet(key);
+            redisUtil.del(key);
 
             /* 将旧JWT加入需要踢出的集合 */
             String jwt = null;
