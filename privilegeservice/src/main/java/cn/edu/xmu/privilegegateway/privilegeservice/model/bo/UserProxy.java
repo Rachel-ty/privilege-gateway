@@ -1,59 +1,40 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
-
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * 用户代理Bo类
  *
  * @author 24320182203221 李狄翰
  * createdBy 李狄翰2020/11/09 12:00
+ * modifiedBy 郎秀晨 22920192204222 2021/11/23
  **/
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class UserProxy{
     private Long id;
-    private Long a_id;
-    private Long b_id;
-    private LocalDateTime begin_time;
-    private LocalDateTime end_time;
-    private LocalDateTime gmtCreate;
+    private Long userId;
+    private Long proxyUserId;
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    private LocalDateTime beginDate;
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    private LocalDateTime endDate;
     private String signature;
-    private String cacuSignature;
-
-    public UserProxy() {
-    }
-
-    public UserProxy(UserProxyVo vo) {
-        DateTimeFormatter df = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.begin_time = LocalDateTime.parse(vo.getBeginDate(), df);
-        this.end_time = LocalDateTime.parse(vo.getEndDate(), df);
-
-    }
-
-    /**
-     * 构造函数
-     *
-
-     */
-    public UserProxy(UserProxyPo po) {
-        this.id = po.getId();
-        this.a_id = po.getUserId();
-        this.b_id = po.getProxyUserId();
-        this.begin_time = po.getBeginDate();
-        this.end_time = po.getEndDate();
-        this.gmtCreate = po.getGmtCreate();
-        this.signature = po.getSignature();
-        StringBuilder signature = Common.concatString("-", po.getUserId().toString(), po.getProxyUserId().toString(),po.getBeginDate().toString(),po.getEndDate().toString(),po.getValid().toString());
-        this.cacuSignature = SHA256.getSHA256(signature.toString());
-    }
-
-    public Boolean authetic() {
-        return this.cacuSignature.equals(this.signature);
-    }
+    private Byte valid;
+    private Long departId;
+    private Long creatorId;
+    private String creatorName;
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    private LocalDateTime gmtCreate;
+    private Long modifierId;
+    private String modifierName;
+    @DateTimeFormat(pattern="yyyy-MM-dd HH:mm:ss.SSS")
+    private LocalDateTime gmtModified;
 }
