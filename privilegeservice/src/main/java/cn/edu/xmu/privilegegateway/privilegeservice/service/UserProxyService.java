@@ -45,7 +45,6 @@ public class UserProxyService {
         bo.setUserId(userId);
         bo.setProxyUserId(proxyUserId);
         bo.setDepartId(departId);
-        //TODO 转po到bo
         ReturnObject returnObject = userProxyDao.setUsersProxy(bo);
         if (returnObject.getData() == null) {
             return returnObject;

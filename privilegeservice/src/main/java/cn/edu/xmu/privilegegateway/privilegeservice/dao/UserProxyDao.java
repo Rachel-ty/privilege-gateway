@@ -43,9 +43,6 @@ public class UserProxyDao {
     private UserPoMapper userPoMapper;
 
     public ReturnObject setUsersProxy(UserProxy bo) {
-        if (bo.getUserId().equals(bo.getProxyUserId())) {
-            return new ReturnObject<>(ReturnNo.USERPROXY_SELF);
-        }
         try {
             if (isExistProxy(bo)) {
                 return new ReturnObject<>(ReturnNo.USERPROXY_CONFLICT);
@@ -56,7 +53,7 @@ public class UserProxyDao {
             if (user == null || proxyUser == null) {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
-            if (!(user.getDepartId().equals(proxyUser.getDepartId()))){
+            if (!(user.getDepartId().equals(proxyUser.getDepartId()))) {
                 return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
             }
             UserProxyPo userProxyPo = (UserProxyPo) Common.cloneVo(bo, UserProxyPo.class);
@@ -73,20 +70,19 @@ public class UserProxyDao {
     }
 
     public ReturnObject removeUserProxy(Long id, Long userId) {
-        UserProxyPo userProxyPo = userProxyPoMapper.selectByPrimaryKey(id);
-        if (userProxyPo == null) {
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        if (userId.compareTo(userProxyPo.getProxyUserId()) == 0) {
-            try {
-                userProxyPoMapper.deleteByPrimaryKey(id);
+        UserProxyPoExample userProxyPoExample = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = userProxyPoExample.createCriteria();
+        criteria.andIdEqualTo(id);
+        criteria.andProxyUserIdEqualTo(userId);
+        try {
+            int ret = userProxyPoMapper.deleteByExample(userProxyPoExample);
+            if (ret == 1) {
                 return new ReturnObject<>();
-            } catch (Exception e) {
-                logger.error(e.getMessage());
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
             }
-        } else {
-            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
 
@@ -127,16 +123,17 @@ public class UserProxyDao {
         criteria.andIdEqualTo(id);
         try {
             int ret = userProxyPoMapper.deleteByExample(userProxyPoExample);
-            if (ret == 0) {
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            if (ret == 1) {
+                return new ReturnObject();
             }
-            return new ReturnObject();
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
-    @Transactional(readOnly = true,rollbackFor = Exception.class)
+
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public boolean isExistProxy(UserProxy bo) {
         boolean isExist = false;
         UserProxyPoExample example = new UserProxyPoExample();
@@ -144,14 +141,13 @@ public class UserProxyDao {
         criteria.andUserIdEqualTo(bo.getUserId());
         criteria.andProxyUserIdEqualTo(bo.getProxyUserId());
         List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
-        if (results != null && results.size() > 0) {
+        if (!results.isEmpty()) {
             LocalDateTime nowBeginDate = bo.getBeginDate();
             LocalDateTime nowEndDate = bo.getEndDate();
             for (UserProxyPo po : results) {
                 LocalDateTime beginDate = po.getBeginDate();
                 LocalDateTime endDate = po.getEndDate();
-                //判断开始时间和失效时间是不是不在同一个区间里面
-                if ((nowBeginDate.isAfter(beginDate)&&nowBeginDate.isBefore(endDate))||(nowEndDate.isAfter(beginDate)&&nowEndDate.isBefore(endDate))) {
+                if ((nowBeginDate.isAfter(beginDate) && nowBeginDate.isBefore(endDate)) || (nowEndDate.isAfter(beginDate) && nowEndDate.isBefore(endDate))) {
                     isExist = true;
                     break;
                 }

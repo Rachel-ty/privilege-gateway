@@ -756,6 +756,9 @@ public class PrivilegeController {
         if (null != obj) {
             return obj;
         }
+        if(userId.equals(proxyUserId)){
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.USERPROXY_SELF));
+        }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.USERPROXY_BIGGER));
         }
@@ -787,6 +790,9 @@ public class PrivilegeController {
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
             return obj;
+        }
+        if(userId.equals(proxyUserId)){
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.USERPROXY_SELF));
         }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.USERPROXY_BIGGER));

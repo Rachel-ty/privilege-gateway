@@ -129,6 +129,16 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString3 = "{\"errno\":0,\"data\":{\"user\":{\"id\":49,\"name\":\"阿卡前\"},\"proxyUser\":{\"id\":46,\"name\":\"个\"},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":46,\"name\":\"lxc\"},\"modifier\":{\"id\":46,\"name\":\"lxc\"}},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString3, responseString3, false);
+        //代理被代理为同一个人
+        String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString4 = mvc.perform(post("/departs/0/users/46/proxyusers/46").header("authorization", token)
+                        .contentType("application/json;charset=UTF-8").content(contentJson4))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString4 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
+        JSONAssert.assertEquals(expectString4, responseString4, false);
+
     }
 
     /**
@@ -144,14 +154,7 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
-        //操作的资源id不是自己的对象
-        String responseString1 = mvc.perform(delete("/proxies/1").header("authorization", token)
-                        .contentType("application/json;charset=UTF-8"))
-                .andExpect(status().isForbidden())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
-        JSONAssert.assertEquals(expectString1, responseString1, true);
+
         //正常删除
         String responseString2 = mvc.perform(delete("/proxies/2").header("authorization", token)
                         .contentType("application/json;charset=UTF-8"))
