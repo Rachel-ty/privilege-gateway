@@ -754,7 +754,7 @@ public class PrivilegeController {
                                 @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
-            return Common.decorateReturnObject(new ReturnObject(obj));
+            return obj;
         }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.USERPROXY_BIGGER));
@@ -783,7 +783,7 @@ public class PrivilegeController {
                                        @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
-            return Common.decorateReturnObject(new ReturnObject(obj));
+            return obj;
         }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.USERPROXY_BIGGER));
