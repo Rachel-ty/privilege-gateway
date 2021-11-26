@@ -56,6 +56,8 @@ CREATE TABLE `auth_group_relation` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
+  `group_p_name` varchar(128) DEFAULT NULL,
+  `group_s_name` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_group_relation_group_s_id_group_p_id_uindex` (`group_s_id`,`group_p_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
@@ -296,6 +298,8 @@ CREATE TABLE `auth_user_proxy` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
+  `user_name` varchar(128) DEFAULT NULL,
+  `proxy_user_name` varchar(128) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `auth_user_proxy_user_a_id_valid_index` (`user_id`,`begin_date`,`end_date`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -334,4 +338,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-26  9:16:51
+-- Dump completed on 2021-11-26 10:03:36
