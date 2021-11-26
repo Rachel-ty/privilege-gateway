@@ -136,6 +136,7 @@ CREATE TABLE `auth_privilege` (
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
+  `state` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
   UNIQUE KEY `auth_privilege_name_url_request_type_uindex` (`name`,`url`,`request_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=125 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -333,4 +334,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-24 18:13:14
+-- Dump completed on 2021-11-26  9:16:51
