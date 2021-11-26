@@ -23,7 +23,7 @@ import java.lang.*;
  */
 @AutoConfigureMockMvc
 @Transactional
-@SpringBootTest(classes = PrivilegeServiceApplication.class)   //标识本类是一个SpringBootTest
+@SpringBootTest(classes = PrivilegeServiceApplication.class)
 public class PrivilegeControllerTest {
     private static String token;
     private static JwtHelper jwtHelper = new JwtHelper();

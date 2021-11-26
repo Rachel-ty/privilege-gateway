@@ -1,5 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
@@ -8,21 +10,17 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPoExample;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Di Han Li
@@ -41,6 +39,16 @@ public class UserProxyDao {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private UserPoMapper userPoMapper;
+    @Autowired
+    private BaseCoder baseCoder;
+    protected BaseSign baseSign= new BaseSign() {
+        @Override
+        protected String encrypt(String content) {
+            return null;
+        }
+    };
+    final static List<String> signFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
+    final static Collection<String> codeFields = new ArrayList<>();
 
     public ReturnObject setUsersProxy(UserProxy bo) {
         try {
@@ -56,10 +64,8 @@ public class UserProxyDao {
             if (!(user.getDepartId().equals(proxyUser.getDepartId()))) {
                 return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
             }
-            UserProxyPo userProxyPo = (UserProxyPo) Common.cloneVo(bo, UserProxyPo.class);
-            userProxyPo.setValid((byte) 0);
-            StringBuilder signature = Common.concatString("-", userProxyPo.getUserId().toString(), userProxyPo.getProxyUserId().toString(), userProxyPo.getBeginDate().toString(), userProxyPo.getEndDate().toString(), userProxyPo.getValid().toString());
-            userProxyPo.setSignature(SHA256.getSHA256(signature.toString()));
+            bo.setValid((byte) 0);
+            UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, codeFields, signFields, "signature");
             userProxyPoMapper.insert(userProxyPo);
             UserProxy userProxy = (UserProxy) Common.cloneVo(userProxyPo, UserProxy.class);
             return new ReturnObject<>(userProxy);
@@ -100,10 +106,7 @@ public class UserProxyDao {
         try {
             List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
             for (UserProxyPo po : results) {
-                StringBuilder signature = Common.concatString("-", po.getUserId().toString(), po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
-                if (!(SHA256.getSHA256(signature.toString()).equals(po.getSignature()))) {
-                    StringBuilder message = new StringBuilder().append("listProxies: ").append(ReturnNo.RESOURCE_FALSIFY.getMessage()).append(" id = ").append(po.getId());
-                    logger.error(message.toString());
+                if (baseSign.check(po, signFields, po.getSignature())) {
                     return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
                 }
             }
