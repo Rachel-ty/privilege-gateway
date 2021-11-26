@@ -116,7 +116,7 @@
     <distributionManagement>
         <site>
             <id>siteserver</id>
-            <url>dav:http://172.16.4.192/webdav/privilegegateway/annotation</url>
+            <url>dav:http://172.16.4.1/webdav/oomall/privilege-annotation</url>
         </site>
     </distributionManagement>
 
