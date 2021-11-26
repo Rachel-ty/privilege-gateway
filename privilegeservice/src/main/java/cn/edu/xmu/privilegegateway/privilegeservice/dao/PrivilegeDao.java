@@ -1,15 +1,20 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.apache.ibatis.annotations.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,6 +39,8 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private PrivilegePoMapper poMapper;
+    @Autowired
+    private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
@@ -111,6 +118,16 @@ public class PrivilegeDao implements InitializingBean {
             return null;
         }
     }
+    public PrivilegePo findPrivByid(Long id)
+    {
+        try{
+            PrivilegePo po = poMapper.selectByPrimaryKey(id);
+            return po;
+        }catch (Exception e)
+        {
+            return null;
+        }
+    }
     /**
      * 查询所有权限
      * @param page: 页码
@@ -158,6 +175,8 @@ public class PrivilegeDao implements InitializingBean {
     public ReturnObject changePriv(Long id, PrivilegeVo vo){
         PrivilegePo po = this.poMapper.selectByPrimaryKey(id);
         logger.debug("changePriv: vo = "+ vo  + " po = "+ po);
+        if(po==null)
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         /* 验证权限是否被篡改 */
         Privilege privilege = new Privilege(po);
         if(!privilege.getCacuSignature().equals(privilege.getSignature())){
@@ -180,7 +199,160 @@ public class PrivilegeDao implements InitializingBean {
         }
 
         this.poMapper.updateByPrimaryKeySelective(newPo);
-        return new ReturnObject();
+        return new ReturnObject(ReturnNo.OK);
     }
+    /*新增权限*/
+    public ReturnObject<Object> insertPriv(Privilege bo,String name,Long id)
+    {
+        try
+        {
+            //这里vo转po
+            PrivilegePoExample example=new PrivilegePoExample();
+            PrivilegePoExample.Criteria criteria=example.createCriteria();
+            //criteria.andUrlEqualTo(bo.getUrl());
+            //criteria.andRequestTypeEqualTo(bo.getRequestType());
+            List<PrivilegePo> polist=poMapper.selectByExample(example);
+            if(polist.size()>0)
+            {
+                return new ReturnObject(ReturnNo.URL_SAME);
+            }
+            PrivilegePo po=new PrivilegePo();
 
+            poMapper.insertSelective(po);
+        }catch (Exception e)
+        {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+        return null;
+    }
+    /*新建权限
+
+     */
+
+    /**
+     * author: zhangyu
+     * @param bo
+     * @param creatorid
+     * @return
+     */
+    public ReturnObject<VoObject> addPriv(Privilege bo,Long creatorid)
+    {
+        PrivilegePoExample example=new PrivilegePoExample();
+        PrivilegePoExample.Criteria criteria=example.createCriteria();
+        PrivilegePo po=(PrivilegePo) Common.cloneVo(bo,PrivilegePo.class);
+        if(creatorid==null)
+            return new ReturnObject<>(ReturnNo.AUTH_ID_NOTEXIST);
+        po.setCreatorId(creatorid);
+        criteria.andRequestTypeEqualTo(po.getRequestType());
+        criteria.andUrlEqualTo(po.getUrl());
+        //上面两个判断有没有重复
+        try {
+            List<PrivilegePo> poList = poMapper.selectByExample(example);
+            if (poList.isEmpty()) {
+                int ret=poMapper.insertSelective(po);
+                if(ret==0)
+                    return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+                else
+                    return new ReturnObject((BasePrivilegeRetVo)Common.cloneVo(po, BasePrivilegeRetVo.class));
+            } else {
+                    return new ReturnObject<>(ReturnNo.URL_SAME);
+            }
+        }catch (Exception e)
+        {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("服务器错误",e.getMessage()));
+        }
+
+    }
+    public ReturnObject<PageInfo<BasePrivilegeRetVo>> getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
+    {
+        PrivilegePoExample example=new PrivilegePoExample();
+        PrivilegePoExample.Criteria criteria=example.createCriteria();
+        criteria.andUrlEqualTo(url);
+        criteria.andRequestTypeEqualTo(type);
+        try {
+            List<PrivilegePo> polist = poMapper.selectByExample(example);
+            if(polist.isEmpty())
+            {
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            List<BasePrivilegeRetVo> vo=new ArrayList<>(polist.size());
+            PageHelper.startPage(pagenum, pagesize);
+            for(PrivilegePo po:polist)
+            {
+                BasePrivilegeRetVo basePrivilegeRetVo=(BasePrivilegeRetVo)Common.cloneVo(po,BasePrivilegeRetVo.class);
+                vo.add(basePrivilegeRetVo);
+            }
+            PageInfo pageInfo=new PageInfo(vo);
+            return new ReturnObject<>(pageInfo);
+        }catch (Exception e)
+        {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));
+        }
+    }
+    public ReturnObject delPriv(Long pid)
+    {
+        //先删除pid对应的role-privilege项
+        RolePrivilegePoExample example=new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+        criteria.andPrivilegeIdEqualTo(pid);
+        try
+        {
+           int ret=rolePrivilegePoMapper.deleteByExample(example);
+           //好像没有role-privileg对应表项也行
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("删除功能角色权限失败",e.getMessage()));
+        }
+        try
+        {
+            int ret= poMapper.deleteByPrimaryKey(pid);
+            if(ret==0)
+            {
+                return  new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST,"无该权限");
+            }
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("删除权限失败",e.getMessage()));
+        }
+        return new ReturnObject(ReturnNo.OK);
+    }
+    /*禁用权限*/
+
+    public ReturnObject forbidPriv(Long pid)
+    {
+        try {
+            //判断是否为空
+            PrivilegePo po = poMapper.selectByPrimaryKey(pid);
+            if(po==null)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            po.setState((byte)1);
+           poMapper.updateByPrimaryKey(po);
+            //清除对应的redis缓存
+            String key=po.getUrl()+"-"+po.getRequestType();
+            if(redisTemplate.hasKey(key))
+                 redisTemplate.delete(key);
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
+        }
+        return new ReturnObject(ReturnNo.OK);
+    }
+    public ReturnObject releasePriv(Long pid)
+    {
+        try
+        {
+            //判断是否为空
+            PrivilegePo po = poMapper.selectByPrimaryKey(pid);
+            if(po==null)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            po.setState((byte)0);
+            poMapper.updateByPrimaryKey(po);
+
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
+
+        }
+        return new ReturnObject(ReturnNo.OK);
+    }
 }

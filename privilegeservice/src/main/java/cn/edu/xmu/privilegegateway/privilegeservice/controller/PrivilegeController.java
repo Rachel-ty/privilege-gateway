@@ -20,13 +20,11 @@ import cn.edu.xmu.privilegegateway.annotation.aop.Audit;
 import cn.edu.xmu.privilegegateway.annotation.aop.Depart;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginUser;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.NewUserService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.RoleService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.UserProxyService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.UserService;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
 import com.github.pagehelper.PageInfo;
@@ -46,6 +44,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +77,232 @@ public class PrivilegeController {
 
     @Autowired
     private UserProxyService userProxyService;
+
+    @Autowired
+    private PrivilegeService privilegeService;
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/24 16:28
+     * @version: 1.0
+    */
+    /*获取权限状态*/
+
+    /**
+     *
+     * @return
+     */
+    @ApiOperation(value = "查询权限状态")
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @GetMapping("/privileges/states")
+    public Object GetPrivilegesStates()
+    {
+        ReturnObject<List> ret=privilegeService.getPrivilegeStates();
+        return Common.decorateReturnObject(ret);
+    }
+    /*查询功能角色权限*/
+
+    /**
+     * @author zhangyu
+     * @param did
+     * @param roleid
+     * @param page
+     * @param pagesize
+     * @return
+     */
+    @ApiOperation(value="查询功能角色权限")
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @GetMapping("/departs/{did}/baseroles/{id}/privileges")
+    public Object GetFuncRolePriv(@PathVariable("did") Long did,
+                                  @PathVariable("id") Long roleid,
+                                 @RequestParam(required = true,value = "page") Integer page,
+                                  @RequestParam(required = true,value="pageSize") Integer pagesize)
+    {
+        if(did!=0)
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
+    }
+    /*取消功能角色权限,
+    * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
+    * */
+    @ApiOperation(value="取消功能角色权限")
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @DeleteMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
+    public Object delBaseRolePriv(@PathVariable Long did,
+                                  @PathVariable Long roleid,
+                                  @PathVariable("privilegeid") Long pid)
+    {
+        if(did!=0)
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        else
+        {
+            return Common.decorateReturnObject(roleService.delRolePriv(roleid,pid));
+        }
+    }
+    /*新建权限*/
+
+    /**
+     * @author: zhangyu
+     * @param createid
+     * @param did
+     * @param vo
+     * @param bindingResult
+     * @return
+     */
+    @ApiOperation(value="新建权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "roleid", value = "角色id", required = true, dataType = "Integer", paramType = "path")
+            })
+    @ApiResponses({
+            @ApiResponse(code = 742, message = "权限url/RequestType重复"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @PostMapping("/departs/{did}/privileges")
+    public Object AddPriv(@LoginUser Long createid,
+                        @PathVariable("did") Long did,
+                        @Valid @RequestBody PrivilegeVo vo,
+                          BindingResult bindingResult)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        createid=0L;
+        ReturnObject<VoObject> returnObject=privilegeService.AddPrivileges(vo,createid);
+        return Common.decorateReturnObject(returnObject);
+
+    }
+    /*查询权限*/
+
+    /**
+     * @author zhangyu
+     * @param did
+     * @param url
+     * @param requestType
+     * @return
+     */
+    @ApiOperation(value="查询权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "did", value = "部门id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "url", value = "访问url", required = true, dataType = "String", paramType = "path"),
+            @ApiImplicitParam(name = "requestType", value = "请求类型", required = true, dataType = "Integer", paramType = "path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @GetMapping("/departs/{did}/privileges")
+    public Object getPrivs(@PathVariable Long did,
+                           @RequestParam String url,
+                           @RequestParam Byte requestType,
+                            @RequestParam(required = true,value="page") Integer page,
+                           @RequestParam(required = true,value="pageSize") Integer pageSize)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return privilegeService.GetPriv(url,requestType,page,pageSize);
+    }
+    /*删除权限*/
+
+    /**
+     *
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation(value = "删除权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @DeleteMapping("/departs/{did}/privileges/{id}")
+    public Object DeletePriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return  Common.decorateReturnObject(privilegeService.DelPriv(pid));
+    }
+    /*禁用权限*/
+
+    /**
+     *
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation("禁用权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @PutMapping("/departs/{did}/privileges/{id}/forbid")
+    public Object ForbidPriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return privilegeService.ForbidPriv(pid);
+    }
+    /*解禁权限*/
+
+    /**
+     *
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation("解禁权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @PutMapping("/departs/{did}/privileges/{id}/release")
+    public Object ReleasePriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return Common.decorateReturnObject(privilegeService.ReleasePriv(pid));
+
+    }
 
     /***
      * 取消用户权限
@@ -224,8 +449,8 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit(departName = "departs")
-    @PutMapping("/departs/did/privileges/{id}")
-    public Object changePriv(@PathVariable Long id, @Validated @RequestBody PrivilegeVo vo, BindingResult bindingResult, @LoginUser Long userId, @Depart Long departId,
+    @PutMapping("/departs/{did}/privileges/{id}")
+    public Object changePriv(@PathVariable("id") Long id, @Validated @RequestBody PrivilegeVo vo, BindingResult bindingResult, @LoginUser Long userId, @PathVariable("did") Long departId,
                              HttpServletResponse httpServletResponse){
         logger.debug("changePriv: id = "+ id +" vo" + vo);
         logger.debug("getAllPrivs: userId = " + userId +" departId = "+departId);
@@ -239,12 +464,8 @@ public class PrivilegeController {
         }
 
         ReturnObject<VoObject> returnObject = userService.changePriv(id, vo);
+        return Common.decorateReturnObject(returnObject);
 
-        if (returnObject.getCode() == ReturnNo.OK) {
-            return Common.getRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
     }
 
     /**
@@ -885,7 +1106,9 @@ public class PrivilegeController {
         if(returnObject.getCode()==ReturnNo.OK){
             return ResponseUtil.ok(returnObject.getData());
         }
-        else return ResponseUtil.fail(returnObject.getCode());
+        else {
+            return ResponseUtil.fail(returnObject.getCode());
+        }
     }
 
     /**
@@ -943,7 +1166,7 @@ public class PrivilegeController {
         return Common.decorateReturnObject(returnObj);
     }
 
-    
+
     /**
      * auth002: 用户重置密码
      * @param vo 重置密码对象
@@ -1031,34 +1254,15 @@ public class PrivilegeController {
 
 
     /**
-     * 取消角色权限
+     * 取消功能角色权限
      * @return Object
      * createdBy 王琛 24320182203277
+     * modifiedby 张宇
      */
-    @ApiOperation(value = "取消角色权限")
+    @ApiOperation(value = "取消功能角色权限")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @DeleteMapping("roleprivileges/{id}")
-    public Object delRolePriv(@PathVariable Long id){
-        logger.debug("delRolePriv: id = "+ id);
-        ReturnObject returnObject = roleService.delRolePriv(id);
-        return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
-    }
-
-    /**
-     * 增加角色权限
-     * @return Object
-     * createdBy 王琛 24320182203277
-     */
-    @ApiOperation(value = "新增角色权限")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
             @ApiImplicitParam(name="roleid", required = true, dataType="String", paramType="path"),
             @ApiImplicitParam(name="privilegeid", required = true, dataType="String", paramType="path")
     })
@@ -1066,10 +1270,41 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit
-    @PostMapping("roles/{roleid}/privileges/{privilegeid}")
-    public Object addRolePriv(@PathVariable Long roleid, @PathVariable Long privilegeid, @LoginUser @ApiIgnore @RequestParam(required = false, defaultValue = "0") Long userId){
+    @DeleteMapping("/departs/{did}/baseroles/{id}/privileges")
+    public Object delRolePriv(@PathVariable Long did,
+                              @PathVariable Long roleid,
+                              @PathVariable Long privilegeid){
+        logger.debug("delRolePriv: id = "+ did+roleid+privilegeid);
+        if(did!=0)
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = roleService.delRolePriv(roleid,privilegeid);
+        return Common.decorateReturnObject(returnObject);
+    }
+    /**
+     * 增加功能角色权限
+     * @return Object
+     * createdBy 王琛 24320182203277
+     * modified by 张宇
+     */
+    @ApiOperation(value = "新增功能角色权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="roleid", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="privilegeid", required = true, dataType="String", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @PostMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
+    public Object addRolePriv(@PathVariable("did") Long did,@PathVariable Long roleid, @PathVariable Long privilegeid, @LoginUser @ApiIgnore @RequestParam(required = false, defaultValue = "1") Long userId){
         logger.debug("addRolePriv: id = "+ roleid+" userid: id = "+ userId);
-        ReturnObject<VoObject> returnObject = roleService.addRolePriv(roleid, privilegeid, userId);
+        if(did!=0)
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        logger.info(did.toString()+"roleid"+roleid.toString()+"pid"+privilegeid.toString());
+        ReturnObject returnObject = roleService.addRolePriv(roleid, privilegeid, userId);
 
         if (returnObject.getCode() == ReturnNo.OK) {
             return Common.getRetObject(returnObject);

@@ -6,6 +6,8 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,6 +92,20 @@ public class RoleService {
     }
 
     /**
+     * author:zhangyu
+     * 查询功能角色权限
+     * @param roleid
+     * @param pagenum
+     * @param pagesize
+     * @return
+     */
+    public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
+    {
+        PageHelper.startPage(pagenum,pagesize);
+        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+
+    }
+    /**
      * 查询角色权限
      * @param id 角色id
      * @return 权限列表
@@ -102,31 +118,31 @@ public class RoleService {
 
 
     /**
-     * 取消角色权限
-     * @param id 角色权限id
-     * @return 权限列表
-     * createdBy wc 24320182203277
+     * author:zhangyu
+     * 删除角色对应的权限（功能角色用）
+     * @param rid
+     * @param pid
+     * @return
      */
     @Transactional
-    public ReturnObject<Object> delRolePriv(Long id){
-        ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
-        //删除成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
+    public ReturnObject<Object> delRolePriv(Long rid,Long pid){
+        ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
         return ret;
     }
 
     /**
-     * 增加角色权限
+     * 增加功能角色权限
      * @param roleid 角色id
      * @param privid 权限id
      * @param userid 用户id
      * @return 权限列表
      * createdBy 王琛 24320182203277
+     * modifiedby zhangyu
      */
     @Transactional
-    public ReturnObject<VoObject> addRolePriv(Long roleid, Long privid, Long userid){
+    public ReturnObject<Object> addRolePriv(Long roleid, Long privid, Long userid){
         //新增
-        ReturnObject<VoObject> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
+        ReturnObject<Object> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
         //新增成功，缓存中干掉用户
         if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
         return ret;

@@ -13,11 +13,14 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * @author Ming Qiu
  **/
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway"})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway","cn.edu.xmu.privilegegateway.privilegeservice"})
 @MapperScan(basePackages = "cn.edu.xmu.privilegegateway.privilegeservice.mapper")
 @EnableDiscoveryClient
 public class PrivilegeServiceApplication implements ApplicationRunner {
