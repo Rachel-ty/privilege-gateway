@@ -90,7 +90,7 @@ public class privilegecontrollertest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals(" {\"errno\":0,\"errmsg\":\"成功\"}", responseString);
+        assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString);
     }
     /*查询权限*/
     @Test
@@ -105,8 +105,8 @@ public class privilegecontrollertest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String exstr="{\"errno\":0,\"data\":{\"total\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/departs/{id}/adminusers/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01 09:52:20.000\",\"gmtModified\":\"2020-11-02 21:51:45.000\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}}],\"pageNum\":1,\"pageSize\":1,\"size\":1,\"startRow\":0,\"endRow\":0,\"pages\":1,\"prePage\":0,\"nextPage\":0,\"isFirstPage\":true,\"isLastPage\":true,\"hasPreviousPage\":false,\"hasNextPage\":false,\"navigatePages\":8,\"navigatepageNums\":[1],\"navigateFirstPage\":1,\"navigateLastPage\":1},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(exstr, responseString,true);
+        String exstr="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/departs/{id}/adminusers/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01 09:52:20.000\",\"gmtModified\":\"2020-11-02 21:51:45.000\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(exstr, responseString,false);
     }
     /*查询权限 错误did*/
     @Test
@@ -118,7 +118,7 @@ public class privilegecontrollertest {
                 .contentType("application/json;charset=UTF-8")
                 .param("page","1")
                 .param("pageSize","10"))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
@@ -133,10 +133,10 @@ public class privilegecontrollertest {
                 .contentType("application/json;charset=UTF-8")
                 .param("page","1")
                 .param("pageSize","10"))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,true);
     }
     /*新增权限*/
     @Test
@@ -151,7 +151,7 @@ public class privilegecontrollertest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":0,\"data\":{\"id\":126,\"name\":\"string\",\"url\":\"string\",\"requestType\":0,\"gmtCreate\":null,\"gmtModified\":null,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},\"errmsg\":\"成功\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":0,\"data\":{\"name\":\"string\",\"url\":\"string\",\"requestType\":0,\"gmtCreate\":null,\"gmtModified\":null,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},\"errmsg\":\"成功\"}", responseString,false);
     }
     /*新增权限 错误did*/
     @Test
@@ -159,11 +159,11 @@ public class privilegecontrollertest {
     public void testAddPrivsWithErrorDid() throws  Exception
     {
         String content="{\"name\": \"string\",\"url\": \"string\",\"requestType\": 0}";
-        String responseString = this.mvc.perform(post("/departs/0/privileges")
+        String responseString = this.mvc.perform(post("/departs/1/privileges")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
                 .content(content))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
@@ -204,7 +204,7 @@ public class privilegecontrollertest {
         String responseString = this.mvc.perform(delete("/departs/1/privileges/2")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
@@ -217,7 +217,7 @@ public class privilegecontrollertest {
         String responseString = this.mvc.perform(delete("/departs/0/privileges/0")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"无该权限\"}", responseString,true);
@@ -241,7 +241,7 @@ public class privilegecontrollertest {
         String responseString = this.mvc.perform(put("/departs/1/privileges/21/forbid")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
@@ -253,7 +253,7 @@ public class privilegecontrollertest {
         String responseString = this.mvc.perform(put("/departs/1/privileges/21/release")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
@@ -280,7 +280,7 @@ public class privilegecontrollertest {
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
                 .content(body))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,true);
@@ -310,10 +310,10 @@ public class privilegecontrollertest {
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
                 .content(body))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
     }
 
 }

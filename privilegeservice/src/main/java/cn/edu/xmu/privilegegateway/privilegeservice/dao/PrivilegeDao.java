@@ -9,6 +9,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
@@ -134,7 +135,7 @@ public class PrivilegeDao implements InitializingBean {
      * @param pageSize : 每页数量
      * @return 权限列表
      */
-    public ReturnObject<PageInfo<VoObject>> findAllPrivs(Integer page, Integer pageSize){
+    public ReturnObject findAllPrivs(Integer page, Integer pageSize){
         PrivilegePoExample example = new PrivilegePoExample();
         PrivilegePoExample.Criteria criteria = example.createCriteria();
         PageHelper.startPage(page, pageSize);
@@ -163,7 +164,8 @@ public class PrivilegeDao implements InitializingBean {
         privPage.setPageNum(privPoPage.getPageNum());
         privPage.setPageSize(privPoPage.getPageSize());
         privPage.setTotal(privPoPage.getTotal());
-        return new ReturnObject<>(privPage);
+        ReturnObject returnObject=new ReturnObject(privPage);
+        return Common.getPageRetVo(returnObject, PrivilegeRetVo.class);
     }
 
     /**
@@ -202,7 +204,7 @@ public class PrivilegeDao implements InitializingBean {
         return new ReturnObject(ReturnNo.OK);
     }
     /*新增权限*/
-    public ReturnObject<Object> insertPriv(Privilege bo,String name,Long id)
+    public ReturnObject insertPriv(Privilege bo,String name,Long id)
     {
         try
         {
@@ -235,7 +237,7 @@ public class PrivilegeDao implements InitializingBean {
      * @param creatorid
      * @return
      */
-    public ReturnObject<VoObject> addPriv(Privilege bo,Long creatorid)
+    public ReturnObject addPriv(Privilege bo,Long creatorid)
     {
         PrivilegePoExample example=new PrivilegePoExample();
         PrivilegePoExample.Criteria criteria=example.createCriteria();
@@ -263,7 +265,7 @@ public class PrivilegeDao implements InitializingBean {
         }
 
     }
-    public ReturnObject<PageInfo<BasePrivilegeRetVo>> getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
+    public ReturnObject getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
     {
         PrivilegePoExample example=new PrivilegePoExample();
         PrivilegePoExample.Criteria criteria=example.createCriteria();
@@ -282,8 +284,9 @@ public class PrivilegeDao implements InitializingBean {
                 BasePrivilegeRetVo basePrivilegeRetVo=(BasePrivilegeRetVo)Common.cloneVo(po,BasePrivilegeRetVo.class);
                 vo.add(basePrivilegeRetVo);
             }
-            PageInfo pageInfo=new PageInfo(vo);
-            return new ReturnObject<>(pageInfo);
+            PageInfo<BasePrivilegeRetVo> pageInfo=new PageInfo(vo);
+            ReturnObject returnObject= new ReturnObject(pageInfo);
+            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
         }catch (Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));

@@ -74,15 +74,6 @@ public class RoleDao {
 
     public final static String ROLEKEY = "r_%d";
 
-    public ReturnObject<Object> delRolePrivById(Long rid,Long pid)
-    {
-        RolePrivilegePoExample example=new RolePrivilegePoExample();
-        RolePrivilegePoExample.Criteria criteria=example.createCriteria();
-        criteria.andRoleIdEqualTo(rid);
-        criteria.andPrivilegeIdEqualTo(pid);
-        return null;
-
-    }
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -114,7 +105,7 @@ public class RoleDao {
      * @param pagesize
      * @return
      */
-    public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long rid,Integer pagenum,Integer pagesize)
+    public ReturnObject selectBaseRolePrivs(Long rid,Integer pagenum,Integer pagesize)
     {
         RolePrivilegePoExample example=new RolePrivilegePoExample();
         RolePrivilegePoExample.Criteria criteria=example.createCriteria();
@@ -141,7 +132,8 @@ public class RoleDao {
                     voList.add(vo);
                 }
                 PageInfo<BasePrivilegeRetVo> rolePage = PageInfo.of(voList);
-                return new ReturnObject<>(rolePage);
+                ReturnObject returnObject=new ReturnObject(rolePage);
+                return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
             }
 
         }catch(Exception e)
