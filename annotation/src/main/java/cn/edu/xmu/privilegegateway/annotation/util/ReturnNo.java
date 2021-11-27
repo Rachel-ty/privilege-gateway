@@ -87,7 +87,10 @@ public enum ReturnNo {
     USERPROXY_BIGGER(750,"开始时间要小于失效时间"),
     USERPROXY_SELF(751,"自己不可以代理自己"),
     USERPROXY_DEPART_CONFLICT(752,"两个代理双方的部门冲突"),
-    USERPROXY_DEPART_MANAGER_CONFLICT(753,"管理员无此部门权限");
+    USERPROXY_DEPART_MANAGER_CONFLICT(753,"管理员无此部门权限"),
+    ROLE_RELATION_EXIST(754, "重复继承角色"),
+    GROUP_RELATION_EXIST(755, "重复定义用户组"),
+    PRIVILEGE_RELATION_EXIST(756, "重复定义权限");
 
     private int code;
     private String message;

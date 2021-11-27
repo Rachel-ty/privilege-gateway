@@ -136,4 +136,10 @@
 
     </dependencies>
 
+    <distributionManagement>
+        <site>
+            <id>siteserver</id>
+            <url>dav:http://172.16.4.1/webdav/oomall-testreport/privilege-service</url>
+        </site>
+    </distributionManagement>
 </project>
