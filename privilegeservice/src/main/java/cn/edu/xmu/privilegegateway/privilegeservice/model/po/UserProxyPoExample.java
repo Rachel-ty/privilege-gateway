@@ -1064,6 +1064,146 @@ public class UserProxyPoExample {
             addCriterion("`modifier_name` not between", value1, value2, "modifierName");
             return (Criteria) this;
         }
+
+        public Criteria andUserNameIsNull() {
+            addCriterion("`user_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameIsNotNull() {
+            addCriterion("`user_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameEqualTo(String value) {
+            addCriterion("`user_name` =", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameNotEqualTo(String value) {
+            addCriterion("`user_name` <>", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameGreaterThan(String value) {
+            addCriterion("`user_name` >", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`user_name` >=", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameLessThan(String value) {
+            addCriterion("`user_name` <", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameLessThanOrEqualTo(String value) {
+            addCriterion("`user_name` <=", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameLike(String value) {
+            addCriterion("`user_name` like", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameNotLike(String value) {
+            addCriterion("`user_name` not like", value, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameIn(List<String> values) {
+            addCriterion("`user_name` in", values, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameNotIn(List<String> values) {
+            addCriterion("`user_name` not in", values, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameBetween(String value1, String value2) {
+            addCriterion("`user_name` between", value1, value2, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andUserNameNotBetween(String value1, String value2) {
+            addCriterion("`user_name` not between", value1, value2, "userName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameIsNull() {
+            addCriterion("`proxy_user_name` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameIsNotNull() {
+            addCriterion("`proxy_user_name` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameEqualTo(String value) {
+            addCriterion("`proxy_user_name` =", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameNotEqualTo(String value) {
+            addCriterion("`proxy_user_name` <>", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameGreaterThan(String value) {
+            addCriterion("`proxy_user_name` >", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameGreaterThanOrEqualTo(String value) {
+            addCriterion("`proxy_user_name` >=", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameLessThan(String value) {
+            addCriterion("`proxy_user_name` <", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameLessThanOrEqualTo(String value) {
+            addCriterion("`proxy_user_name` <=", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameLike(String value) {
+            addCriterion("`proxy_user_name` like", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameNotLike(String value) {
+            addCriterion("`proxy_user_name` not like", value, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameIn(List<String> values) {
+            addCriterion("`proxy_user_name` in", values, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameNotIn(List<String> values) {
+            addCriterion("`proxy_user_name` not in", values, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameBetween(String value1, String value2) {
+            addCriterion("`proxy_user_name` between", value1, value2, "proxyUserName");
+            return (Criteria) this;
+        }
+
+        public Criteria andProxyUserNameNotBetween(String value1, String value2) {
+            addCriterion("`proxy_user_name` not between", value1, value2, "proxyUserName");
+            return (Criteria) this;
+        }
     }
 
     /**

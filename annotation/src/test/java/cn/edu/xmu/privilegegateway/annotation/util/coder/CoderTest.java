@@ -35,7 +35,7 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-        userPo.setSignature("5ba795c3ecac9a2439cbad74e938b972c9735bacbc5d6961691b3ce84c2a8a63");
+        userPo.setSignature("85039d0bd948c82d81322ee21b0865ec2f78f1a7656189db39663d0e72cbb07d");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
         List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
@@ -59,7 +59,7 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-        userPo.setSignature("86ddf992cf42a29a289d103f5384248c4dff352d303d7e808efb1963792099ed");
+        userPo.setSignature("4e243938c71b02afa22b71a592d353b4718bc522db1406cb17c5f2358966e345");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
         List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
