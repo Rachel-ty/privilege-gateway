@@ -894,6 +894,66 @@ public class RolePoExample {
             addCriterion("`modifier_name` not between", value1, value2, "modifierName");
             return (Criteria) this;
         }
+
+        public Criteria andBaseroleIsNull() {
+            addCriterion("`baserole` is null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleIsNotNull() {
+            addCriterion("`baserole` is not null");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleEqualTo(Byte value) {
+            addCriterion("`baserole` =", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleNotEqualTo(Byte value) {
+            addCriterion("`baserole` <>", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleGreaterThan(Byte value) {
+            addCriterion("`baserole` >", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleGreaterThanOrEqualTo(Byte value) {
+            addCriterion("`baserole` >=", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleLessThan(Byte value) {
+            addCriterion("`baserole` <", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleLessThanOrEqualTo(Byte value) {
+            addCriterion("`baserole` <=", value, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleIn(List<Byte> values) {
+            addCriterion("`baserole` in", values, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleNotIn(List<Byte> values) {
+            addCriterion("`baserole` not in", values, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleBetween(Byte value1, Byte value2) {
+            addCriterion("`baserole` between", value1, value2, "baserole");
+            return (Criteria) this;
+        }
+
+        public Criteria andBaseroleNotBetween(Byte value1, Byte value2) {
+            addCriterion("`baserole` not between", value1, value2, "baserole");
+            return (Criteria) this;
+        }
     }
 
     /**
