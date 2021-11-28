@@ -81,7 +81,10 @@ public class UserProxyService {
             userProxyRetVos.add(userProxyRetVo);
         }
         data.put("list", userProxyRetVos);
-        return new ReturnObject(data);
+        if(proxies.getCode()==ReturnNo.OK){
+            return new ReturnObject(data);
+        }
+        return new ReturnObject(proxies.getCode(),data);
     }
 
     @Transactional(rollbackFor = Exception.class)
