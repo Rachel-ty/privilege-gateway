@@ -123,8 +123,7 @@ public class UserProxyDao {
             if(flag){
                 return new ReturnObject(data);
             }else {
-                ReturnObject returnObject = new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY,data);
             }
         } catch (Exception e) {
             logger.error(e.getMessage());
