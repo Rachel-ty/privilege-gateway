@@ -380,7 +380,6 @@ public class Common {
                         HttpStatus.INTERNAL_SERVER_ERROR);
 
             case FIELD_NOTVALID:
-            case RESOURCE_FALSIFY:
             case IMG_FORMAT_ERROR:
             case IMG_SIZE_EXCEED:
             case LATE_BEGINTIME:
