@@ -38,7 +38,6 @@ public enum ReturnNo {
     //--------------------------------------------
     //状态码 400
     FIELD_NOTVALID(503,"字段不合法"),
-    RESOURCE_FALSIFY(511, "信息签名不正确"),
     IMG_FORMAT_ERROR(508,"图片格式不正确"),
     IMG_SIZE_EXCEED(509,"图片大小超限"),
     PARAMETER_MISSED(510, "缺少必要参数"),
@@ -55,6 +54,7 @@ public enum ReturnNo {
 
     //状态码 200
     STATENOTALLOW(507,"当前状态禁止此操作"),
+    RESOURCE_FALSIFY(511, "信息签名不正确"),
 
     /***************************************************
      *    权限模块错误码
