@@ -37,4 +37,5 @@ public class UserProxy{
     private String modifierName;
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime gmtModified;
+    private Byte sign;
 }

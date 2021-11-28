@@ -29,6 +29,7 @@ public class UserProxyRetVo {
     private LocalDateTime gmtModified;
     private UserSimpleRetVo creator;
     private UserSimpleRetVo modifier;
+    private Byte sign;
     public UserProxyRetVo(){
         user= new UserSimpleRetVo();
         proxyUser= new UserSimpleRetVo();

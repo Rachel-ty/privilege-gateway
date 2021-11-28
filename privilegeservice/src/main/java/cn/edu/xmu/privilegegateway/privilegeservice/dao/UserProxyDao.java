@@ -68,6 +68,7 @@ public class UserProxyDao {
             UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, codeFields, signFields, "signature");
             userProxyPoMapper.insert(userProxyPo);
             UserProxy userProxy = (UserProxy) Common.cloneVo(userProxyPo, UserProxy.class);
+            userProxy.setSign((byte)0);
             return new ReturnObject<>(userProxy);
         } catch (Exception e) {
             logger.error(e.getMessage());
@@ -105,14 +106,26 @@ public class UserProxyDao {
         PageHelper.startPage(page, pageSize);
         try {
             List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
-            for (UserProxyPo po : results) {
-                if (baseSign.check(po, signFields, po.getSignature())) {
-                    return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
-                }
-            }
             PageInfo pageInfo = new PageInfo<>(results);
             ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), UserProxy.class);
-            return pageRetVo;
+            Map<String,Object> data = (Map<String, Object>) pageRetVo.getData();
+            List<UserProxy> list = (List<UserProxy>) data.get("list");
+            boolean flag=true;
+            for (UserProxy userProxy : list) {
+                if (baseSign.check(userProxy, signFields, userProxy.getSignature())) {
+                    userProxy.setSign((byte)0);
+                }else {
+                    userProxy.setSign((byte)1);
+                    flag=false;
+                }
+            }
+            data.put("list",list);
+            if(flag){
+                return new ReturnObject(data);
+            }else {
+                ReturnObject returnObject = new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+
+            }
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
