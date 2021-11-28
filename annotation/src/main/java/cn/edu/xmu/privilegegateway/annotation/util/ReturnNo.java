@@ -38,7 +38,6 @@ public enum ReturnNo {
     //--------------------------------------------
     //状态码 400
     FIELD_NOTVALID(503,"字段不合法"),
-    RESOURCE_FALSIFY(511, "信息签名不正确"),
     IMG_FORMAT_ERROR(508,"图片格式不正确"),
     IMG_SIZE_EXCEED(509,"图片大小超限"),
     PARAMETER_MISSED(510, "缺少必要参数"),
@@ -55,6 +54,7 @@ public enum ReturnNo {
 
     //状态码 200
     STATENOTALLOW(507,"当前状态禁止此操作"),
+    RESOURCE_FALSIFY(511, "信息签名不正确"),
 
     /***************************************************
      *    权限模块错误码
@@ -87,7 +87,10 @@ public enum ReturnNo {
     USERPROXY_BIGGER(750,"开始时间要小于失效时间"),
     USERPROXY_SELF(751,"自己不可以代理自己"),
     USERPROXY_DEPART_CONFLICT(752,"两个代理双方的部门冲突"),
-    USERPROXY_DEPART_MANAGER_CONFLICT(753,"管理员无此部门权限");
+    USERPROXY_DEPART_MANAGER_CONFLICT(753,"管理员无此部门权限"),
+    ROLE_RELATION_EXIST(754, "重复继承角色"),
+    GROUP_RELATION_EXIST(755, "重复定义用户组"),
+    PRIVILEGE_RELATION_EXIST(756, "重复定义权限");
 
     private int code;
     private String message;

@@ -22,6 +22,8 @@
     <result column="id_number" jdbcType="VARCHAR" property="idNumber" />
     <result column="passport_number" jdbcType="VARCHAR" property="passportNumber" />
     <result column="signature" jdbcType="VARCHAR" property="signature" />
+    <result column="creator_name" jdbcType="VARCHAR" property="creatorName" />
+    <result column="modifier_name" jdbcType="VARCHAR" property="modifierName" />
   </resultMap>
   <sql id="Base_Column_List">
     <!--
@@ -30,7 +32,7 @@
     -->
     `id`, `user_name`, `mobile`, `email`, `name`, `avatar`, `open_id`, `depart_id`, `password`, 
     `creator_id`, `gmt_create`, `modifier_id`, `gmt_modified`, `id_number`, `passport_number`, 
-    `signature`
+    `signature`, `creator_name`, `modifier_name`
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
     <!--
@@ -62,14 +64,14 @@
       `name`, `avatar`, `open_id`, 
       `depart_id`, `password`, `creator_id`, 
       `gmt_create`, `modifier_id`, `gmt_modified`, 
-      `id_number`, `passport_number`, `signature`
-      )
+      `id_number`, `passport_number`, `signature`, 
+      `creator_name`, `modifier_name`)
     values (#{userName,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, 
       #{name,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{openId,jdbcType=VARCHAR}, 
       #{departId,jdbcType=BIGINT}, #{password,jdbcType=VARCHAR}, #{creatorId,jdbcType=BIGINT}, 
       #{gmtCreate,jdbcType=TIMESTAMP}, #{modifierId,jdbcType=BIGINT}, #{gmtModified,jdbcType=TIMESTAMP}, 
-      #{idNumber,jdbcType=VARCHAR}, #{passportNumber,jdbcType=VARCHAR}, #{signature,jdbcType=VARCHAR}
-      )
+      #{idNumber,jdbcType=VARCHAR}, #{passportNumber,jdbcType=VARCHAR}, #{signature,jdbcType=VARCHAR}, 
+      #{creatorName,jdbcType=VARCHAR}, #{modifierName,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo">
     <!--
@@ -126,6 +128,12 @@
       <if test="signature != null">
         `signature`,
       </if>
+      <if test="creatorName != null">
+        `creator_name`,
+      </if>
+      <if test="modifierName != null">
+        `modifier_name`,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="userName != null">
@@ -172,6 +180,12 @@
       </if>
       <if test="signature != null">
         #{signature,jdbcType=VARCHAR},
+      </if>
+      <if test="creatorName != null">
+        #{creatorName,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierName != null">
+        #{modifierName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -227,6 +241,12 @@
       <if test="signature != null">
         `signature` = #{signature,jdbcType=VARCHAR},
       </if>
+      <if test="creatorName != null">
+        `creator_name` = #{creatorName,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierName != null">
+        `modifier_name` = #{modifierName,jdbcType=VARCHAR},
+      </if>
     </set>
     where `id` = #{id,jdbcType=BIGINT}
   </update>
@@ -250,7 +270,9 @@
       `gmt_modified` = #{gmtModified,jdbcType=TIMESTAMP},
       `id_number` = #{idNumber,jdbcType=VARCHAR},
       `passport_number` = #{passportNumber,jdbcType=VARCHAR},
-      `signature` = #{signature,jdbcType=VARCHAR}
+      `signature` = #{signature,jdbcType=VARCHAR},
+      `creator_name` = #{creatorName,jdbcType=VARCHAR},
+      `modifier_name` = #{modifierName,jdbcType=VARCHAR}
     where `id` = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

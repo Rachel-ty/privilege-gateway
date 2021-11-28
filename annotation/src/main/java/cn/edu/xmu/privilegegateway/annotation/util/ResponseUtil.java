@@ -82,5 +82,13 @@ public class ResponseUtil {
         return obj;
     }
 
+    public static Object fail(ReturnNo code, String errmsg, Object data) {
+        Map<String, Object> obj = new HashMap<String, Object>();
+        obj.put("errno", code.getCode());
+        obj.put("errmsg", errmsg);
+        obj.put("data", data);
+        return obj;
+    }
+
 }
 

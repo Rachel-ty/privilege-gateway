@@ -28,6 +28,8 @@
     <result column="id_number" jdbcType="VARCHAR" property="idNumber" />
     <result column="passport_number" jdbcType="VARCHAR" property="passportNumber" />
     <result column="level" jdbcType="INTEGER" property="level" />
+    <result column="creator_name" jdbcType="VARCHAR" property="creatorName" />
+    <result column="modifier_name" jdbcType="VARCHAR" property="modifierName" />
   </resultMap>
   <sql id="Example_Where_Clause">
     <!--
@@ -70,7 +72,7 @@
     `id`, `user_name`, `password`, `mobile`, `mobile_verified`, `email`, `email_verified`, 
     `name`, `avatar`, `last_login_time`, `last_login_ip`, `open_id`, `state`, `depart_id`, 
     `signature`, `creator_id`, `gmt_create`, `modifier_id`, `gmt_modified`, `id_number`, 
-    `passport_number`, `level`
+    `passport_number`, `level`, `creator_name`, `modifier_name`
   </sql>
   <select id="selectByExample" parameterType="cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPoExample" resultMap="BaseResultMap">
     <!--
@@ -123,16 +125,16 @@
       `last_login_ip`, `open_id`, `state`, 
       `depart_id`, `signature`, `creator_id`, 
       `gmt_create`, `modifier_id`, `gmt_modified`, 
-      `id_number`, `passport_number`, `level`
-      )
+      `id_number`, `passport_number`, `level`, 
+      `creator_name`, `modifier_name`)
     values (#{userName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR}, 
       #{mobileVerified,jdbcType=TINYINT}, #{email,jdbcType=VARCHAR}, #{emailVerified,jdbcType=TINYINT}, 
       #{name,jdbcType=VARCHAR}, #{avatar,jdbcType=VARCHAR}, #{lastLoginTime,jdbcType=TIMESTAMP}, 
       #{lastLoginIp,jdbcType=VARCHAR}, #{openId,jdbcType=VARCHAR}, #{state,jdbcType=TINYINT}, 
       #{departId,jdbcType=BIGINT}, #{signature,jdbcType=VARCHAR}, #{creatorId,jdbcType=BIGINT}, 
       #{gmtCreate,jdbcType=TIMESTAMP}, #{modifierId,jdbcType=BIGINT}, #{gmtModified,jdbcType=TIMESTAMP}, 
-      #{idNumber,jdbcType=VARCHAR}, #{passportNumber,jdbcType=VARCHAR}, #{level,jdbcType=INTEGER}
-      )
+      #{idNumber,jdbcType=VARCHAR}, #{passportNumber,jdbcType=VARCHAR}, #{level,jdbcType=INTEGER}, 
+      #{creatorName,jdbcType=VARCHAR}, #{modifierName,jdbcType=VARCHAR})
   </insert>
   <insert id="insertSelective" parameterType="cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo">
     <!--
@@ -207,6 +209,12 @@
       <if test="level != null">
         `level`,
       </if>
+      <if test="creatorName != null">
+        `creator_name`,
+      </if>
+      <if test="modifierName != null">
+        `modifier_name`,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="userName != null">
@@ -271,6 +279,12 @@
       </if>
       <if test="level != null">
         #{level,jdbcType=INTEGER},
+      </if>
+      <if test="creatorName != null">
+        #{creatorName,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierName != null">
+        #{modifierName,jdbcType=VARCHAR},
       </if>
     </trim>
   </insert>
@@ -344,6 +358,12 @@
       <if test="level != null">
         `level` = #{level,jdbcType=INTEGER},
       </if>
+      <if test="creatorName != null">
+        `creator_name` = #{creatorName,jdbcType=VARCHAR},
+      </if>
+      <if test="modifierName != null">
+        `modifier_name` = #{modifierName,jdbcType=VARCHAR},
+      </if>
     </set>
     where `id` = #{id,jdbcType=BIGINT}
   </update>
@@ -373,7 +393,9 @@
       `gmt_modified` = #{gmtModified,jdbcType=TIMESTAMP},
       `id_number` = #{idNumber,jdbcType=VARCHAR},
       `passport_number` = #{passportNumber,jdbcType=VARCHAR},
-      `level` = #{level,jdbcType=INTEGER}
+      `level` = #{level,jdbcType=INTEGER},
+      `creator_name` = #{creatorName,jdbcType=VARCHAR},
+      `modifier_name` = #{modifierName,jdbcType=VARCHAR}
     where `id` = #{id,jdbcType=BIGINT}
   </update>
 </mapper>

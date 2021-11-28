@@ -161,6 +161,7 @@ CREATE TABLE `auth_role` (
   `state` tinyint DEFAULT NULL,
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
+  `baserole` tinyint DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='角色表';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -319,7 +320,6 @@ CREATE TABLE `auth_user_role` (
   `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `modifier_id` bigint DEFAULT NULL COMMENT '修改用户id',
   `gmt_modified` datetime DEFAULT NULL COMMENT '修改时间',
-  `baserole` tinyint DEFAULT '0',
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   PRIMARY KEY (`id`),
@@ -336,4 +336,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-26 10:06:22
+-- Dump completed on 2021-11-28 16:12:32

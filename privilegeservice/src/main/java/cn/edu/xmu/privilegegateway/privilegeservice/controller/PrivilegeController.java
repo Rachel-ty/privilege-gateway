@@ -35,6 +35,7 @@ import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -57,6 +58,7 @@ import java.util.List;
  **/
 @Api(value = "权限服务", tags = "privilege")
 @RestController /*Restful的Controller对象*/
+@RefreshScope
 @RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class PrivilegeController {
 
