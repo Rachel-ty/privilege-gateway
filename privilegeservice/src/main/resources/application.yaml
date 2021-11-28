@@ -1,19 +1,21 @@
 spring:
   redis:
-    host: 101.132.164.244
-    port: 6889
+    host: 172.16.2.172
     database: 0
-    password: 123456
+    password: 12345678
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://localhost:3306/privilege_gateway?serverTimezone=GMT%2B8
+    url: jdbc:mysql://172.16.1.254:3306/privilege_gateway?serverTimezone=GMT%2B8
     username: dbuser
     password: 12345678
   cloud:
     nacos:
       discovery:
-        server-addr: 10.30.64.225:8848
+        server-addr: 172.16.4.136:8848
+  application:
+    name: privilege-service
+
 mybatis:
   #po对象的包
   type-aliases-package: cn.edu.xmu.privilegegateway.privilegeservice.model.po
@@ -34,11 +36,11 @@ privilegeservice:
   #dav信息配置
   dav:
     #dav服务器用户名
-    username: other
+    username: ooad_javaee
     #dav服务器密码
-    password: 123456
+    password: 12345678
     #dav服务器路径
-    baseUrl: http://106.52.203.83/webdav/
+    baseUrl: http://172.16.4.1/webdav/test
   user:
     # user的权限字在Redis中失效秒数
     expiretime: 600
