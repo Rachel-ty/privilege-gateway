@@ -406,7 +406,12 @@ public class Common {
                 }
 
             default:
-                return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg(), returnObject.getData());
+                data = returnObject.getData();
+                if (data != null){
+                    return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg(), returnObject.getData());
+                }else{
+                    return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
+                }
         }
     }
 
