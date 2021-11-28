@@ -70,8 +70,8 @@ public class UserDao{
     @Autowired
     private RoleDao roleDao;
 
-    @Autowired
-    private JavaMailSender mailSender;
+//    @Autowired
+//    private JavaMailSender mailSender;
 
     /**
      * 用户的redis key： u_id
