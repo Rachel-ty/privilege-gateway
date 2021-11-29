@@ -13,12 +13,12 @@ import javax.validation.constraints.NotBlank;
  */
 @Data
 public class UserInformationVo {
-    @NotBlank
+    @NotBlank(message = "名称不能为空")
     private String name;
-    @NotBlank
+    @NotBlank(message="头像url不能为空")
     private String avatar;
-    @NotBlank
+    @NotBlank(message="身份证号不能为空")
     private String idNumber;
-    @NotBlank
+    @NotBlank(message = "护照号不能为空")
     private String passportNumber;
 }
