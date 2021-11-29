@@ -273,6 +273,7 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 505, message = "操作id不是自己的对象")
     })
+    @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}/forbid")
     public Object ForbidPriv(@PathVariable("did") Long did,
                              @PathVariable("id") Long pid)

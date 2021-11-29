@@ -251,6 +251,16 @@ public class PrivilegeDao implements InitializingBean {
         }
 
     }
+    /*获取权限*/
+
+    /**
+     * @author zhangyu
+     * @param url
+     * @param type
+     * @param pagenum
+     * @param pagesize
+     * @return
+     */
     public ReturnObject getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
     {
         PrivilegePoExample example=new PrivilegePoExample();
@@ -293,6 +303,13 @@ public class PrivilegeDao implements InitializingBean {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));
         }
     }
+    /*删除权限*/
+
+    /**
+     * @author zhangyu
+     * @param pid
+     * @return
+     */
     public ReturnObject delPriv(Long pid)
     {
         //先删除pid对应的role-privilege项
@@ -322,6 +339,12 @@ public class PrivilegeDao implements InitializingBean {
     }
     /*禁用权限*/
 
+    /**
+     * @author zhangyu
+     * @param pid
+     * @return
+     */
+
     public ReturnObject forbidPriv(Long pid)
     {
         try {
@@ -331,7 +354,6 @@ public class PrivilegeDao implements InitializingBean {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             po.setState((byte)1);
            poMapper.updateByPrimaryKey(po);
-
             //清除对应的redis缓存
             String key=po.getUrl()+"-"+po.getRequestType();
             if(redisTemplate.hasKey(key))
@@ -342,6 +364,13 @@ public class PrivilegeDao implements InitializingBean {
         }
         return new ReturnObject(ReturnNo.OK);
     }
+
+    /**
+     * 解禁权限
+     * @author zhangyu
+     * @param pid
+     * @return
+     */
     public ReturnObject releasePriv(Long pid)
     {
         try
@@ -352,11 +381,11 @@ public class PrivilegeDao implements InitializingBean {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             po.setState((byte)0);
             poMapper.updateByPrimaryKey(po);
-
+            String key=po.getUrl()+"-"+po.getRequestType();
+            redisTemplate.opsForHash().putIfAbsent("Priv", key, po.getId());
         }catch (Exception e)
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
-
         }
         return new ReturnObject(ReturnNo.OK);
     }
