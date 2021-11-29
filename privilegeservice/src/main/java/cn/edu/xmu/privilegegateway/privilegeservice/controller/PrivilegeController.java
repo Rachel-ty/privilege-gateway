@@ -1125,9 +1125,6 @@ public class PrivilegeController {
     public Object uploadImg(@LoginUser Long userId,
                             @LoginName String userName,
                             HttpServletRequest request){
-//        //----------------------------------
-//        userId = 60L;
-//        //----------------------------------
         //对输入数据进行合法性判断
         List<MultipartFile> files = ((MultipartHttpServletRequest) request)
                 .getFiles("file");
