@@ -1,9 +1,10 @@
 spring:
-  cloud:
-    nacos:
-      server-addr: 172.16.4.136:8848
   application:
     name: privilege-service
+  cloud:
+    nacos:
+      config:
+        server-addr: 172.16.4.136:8848
   profiles:
     active: dev
 

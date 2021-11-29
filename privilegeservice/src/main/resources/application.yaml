@@ -12,67 +12,48 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 172.16.4.136:8848
+        server-addr: 172.16.4.136
   application:
     name: privilege-service
 
+
 mybatis:
-  #po对象的包
   type-aliases-package: cn.edu.xmu.privilegegateway.privilegeservice.model.po
-  #mapper.xml所在的位置
   mapper-locations: classpath*:cn.edu.xmu.privilegegateway.privilegeservice.mapper/*.xml
-#  mapper-locations: classpath*:mapper/*.xml
-  #自动将SQL中查出来的带下划线的字段，转换为驼峰标志，再去匹配类中的属性
   configuration:
-    #输出产生的SQL
     #log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
     map-underscore-to-camel-case: true
 
 privilegeservice:
-  #是否对数据库中的未初始化的数据初始化
   initialization: false
-  #分布式锁失效时间（秒）
   lockerExpireTime: 30
-  #dav信息配置
   dav:
-    #dav服务器用户名
     username: ooad_javaee
-    #dav服务器密码
     password: 12345678
-    #dav服务器路径
     baseUrl: http://172.16.4.1/webdav/test
   user:
-    # user的权限字在Redis中失效秒数
     expiretime: 600
   role:
-    # role的权限字在Redis中失效秒数
     expiretime: 600
   login:
-    #是否允许重复登录
     multiply: false
-    #jwt过期的时间(秒)
     jwtExpire: 3600
-  #Bloom过滤器参数
   bloomfilter:
-    #新注册用户的Email Bloom过滤器
     new-user-email:
-      #错误率
       error-rate: 0.001
-      #容量
       capacity: 1000
-    #新注册用户的电话 Bloom过滤器
     new-user-mobile:
-      #错误率
       error-rate: 0.001
-      #容量
       capacity: 1000
-    #新注册用户的用户名 Bloom过滤器
     new-user-name:
-      #错误率
       error-rate: 0.001
-      #容量
       capacity: 1000
 
-#pagehelper分页插件配置
 pagehelper:
   helper-dialect: mysql
+
+server:
+  port: 8087
+  tomcat:
+    threads:
+      max: 200
