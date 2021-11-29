@@ -7,8 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class AdminVo {
-    private Long id;
-    private String name;
-    private Integer sign;
+public class SimpleBaseRolePrivlegeVo {
+    private Long roleId;
+    private Long privilegeId;
+    private Long creatorId;
+    private String creatorName;
 }

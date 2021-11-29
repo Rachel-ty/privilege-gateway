@@ -235,8 +235,8 @@ public class UserService {
      * @param id: 权限id
      * @return
      */
-    public ReturnObject changePriv(Long id, PrivilegeVo vo){
-        return privilegeDao.changePriv(id, vo);
+    public ReturnObject changePriv(Long id, PrivilegeVo vo,Long ModifierId,String ModifierName){
+        return privilegeDao.changePriv(id, vo,ModifierId,ModifierName);
     }
 
     /**
@@ -510,6 +510,6 @@ public class UserService {
         return userDao.modifyPassword(vo);
     }
 
-    
-    
+
+
 }

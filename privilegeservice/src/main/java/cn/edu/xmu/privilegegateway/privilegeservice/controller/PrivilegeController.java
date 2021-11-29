@@ -28,6 +28,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
@@ -119,8 +120,9 @@ public class PrivilegeController {
             @ApiResponse(code = 505, message = "did不为0"),
             @ApiResponse(code=0,message="成功")
     })
+    @Audit(departName = "departs")
     @GetMapping("/departs/{did}/baseroles/{id}/privileges")
-    public Object GetFuncRolePriv(@PathVariable("did") Long did,
+    public Object GetBaseRolePriv(@PathVariable("did") Long did,
                                   @PathVariable("id") Long roleid,
                                  @RequestParam(required = true,value = "page") Integer page,
                                   @RequestParam(required = true,value="pageSize") Integer pagesize)
@@ -137,6 +139,7 @@ public class PrivilegeController {
             @ApiResponse(code = 505, message = "did不为0"),
             @ApiResponse(code=0,message="成功")
     })
+    @Audit(departName = "departs")
     @DeleteMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
     public Object delBaseRolePriv(@PathVariable Long did,
                                   @PathVariable Long roleid,
@@ -148,10 +151,10 @@ public class PrivilegeController {
         }
         else
         {
-            return Common.decorateReturnObject(roleService.delRolePriv(roleid,pid));
+            return Common.decorateReturnObject(roleService.delBaseRolePriv(roleid,pid));
         }
     }
-    /*新建权限*/
+    /*新建权限，新增权限*/
 
     /**
      * @author: zhangyu
@@ -170,18 +173,20 @@ public class PrivilegeController {
             @ApiResponse(code = 742, message = "权限url/RequestType重复"),
             @ApiResponse(code=0,message="成功")
     })
+    @Audit(departName = "departs")
     @PostMapping("/departs/{did}/privileges")
-    public Object AddPriv(@LoginUser Long createid,
+    public Object AddPriv(
                         @PathVariable("did") Long did,
                         @Valid @RequestBody PrivilegeVo vo,
-                          BindingResult bindingResult)
+                          BindingResult bindingResult,
+                          @LoginUser Long creatorid,
+                        @LoginName String creatorname)
     {
         if(did!=Long.valueOf(0))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        createid=0L;
-        ReturnObject<VoObject> returnObject=privilegeService.AddPrivileges(vo,createid);
+        ReturnObject<VoObject> returnObject=privilegeService.AddPrivileges(vo,creatorid,creatorname);
         return Common.decorateReturnObject(returnObject);
 
     }
@@ -205,6 +210,7 @@ public class PrivilegeController {
             @ApiResponse(code = 505, message = "did不为0"),
             @ApiResponse(code=0,message="成功")
     })
+    @Audit(departName = "departs")
     @GetMapping("/departs/{did}/privileges")
     public Object getPrivs(@PathVariable Long did,
                            @RequestParam String url,
@@ -221,7 +227,7 @@ public class PrivilegeController {
     /*删除权限*/
 
     /**
-     *
+     * @author zhangyu
      * @param did
      * @param pid
      * @return
@@ -237,6 +243,7 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 505, message = "操作id不是自己的对象")
     })
+    @Audit(departName = "departs")
     @DeleteMapping("/departs/{did}/privileges/{id}")
     public Object DeletePriv(@PathVariable("did") Long did,
                              @PathVariable("id") Long pid)
@@ -453,10 +460,13 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}")
-    public Object changePriv(@PathVariable("id") Long id, @Validated @RequestBody PrivilegeVo vo, BindingResult bindingResult, @LoginUser Long userId, @PathVariable("did") Long departId,
+    public Object changePriv(@PathVariable("id") Long id,
+                             @Validated @RequestBody PrivilegeVo vo,
+                             BindingResult bindingResult,
+                             @LoginUser Long ModifierId,
+                             @LoginName String ModifierName,
+                             @PathVariable("did") Long departId,
                              HttpServletResponse httpServletResponse){
-        logger.debug("changePriv: id = "+ id +" vo" + vo);
-        logger.debug("getAllPrivs: userId = " + userId +" departId = "+departId);
         /* 处理参数校验错误 */
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
@@ -466,7 +476,7 @@ public class PrivilegeController {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 
-        ReturnObject<VoObject> returnObject = userService.changePriv(id, vo);
+        ReturnObject<VoObject> returnObject = userService.changePriv(id, vo,ModifierId,ModifierName);
         return Common.decorateReturnObject(returnObject);
 
     }
@@ -1274,11 +1284,11 @@ public class PrivilegeController {
         logger.debug("delRolePriv: id = "+ did+roleid+privilegeid);
         if(did!=0)
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = roleService.delRolePriv(roleid,privilegeid);
+        ReturnObject returnObject = roleService.delBaseRolePriv(roleid,privilegeid);
         return Common.decorateReturnObject(returnObject);
     }
     /**
-     * 增加功能角色权限
+     * 增加功能角色权限，给功能角色新增权限
      * @return Object
      * createdBy 王琛 24320182203277
      * modified by 张宇
@@ -1293,21 +1303,23 @@ public class PrivilegeController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
+    @Audit(departName = "daparts")
     @PostMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
-    public Object addRolePriv(@PathVariable("did") Long did,@PathVariable Long roleid, @PathVariable Long privilegeid, @LoginUser @ApiIgnore @RequestParam(required = false, defaultValue = "1") Long userId){
-        logger.debug("addRolePriv: id = "+ roleid+" userid: id = "+ userId);
+    public Object addRolePriv(@PathVariable("did") Long did,
+                              @PathVariable Long roleid,
+                              @PathVariable Long privilegeid,
+                              @LoginUser Long creatorid,
+                              @LoginName String creatorname
+                                )
+    {
         if(did!=0)
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        logger.info(did.toString()+"roleid"+roleid.toString()+"pid"+privilegeid.toString());
-        ReturnObject returnObject = roleService.addRolePriv(roleid, privilegeid, userId);
+        SimpleBaseRolePrivlegeVo vo=new SimpleBaseRolePrivlegeVo(roleid,privilegeid,creatorid,creatorname);
+        ReturnObject returnObject = roleService.addBaseRolePriv(vo);
+        return Common.decorateReturnObject(returnObject);
 
-        if (returnObject.getCode() == ReturnNo.OK) {
-            return Common.getRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
     }
 
     /**

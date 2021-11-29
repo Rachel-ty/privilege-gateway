@@ -2,12 +2,14 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.AdminVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
@@ -25,7 +27,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -45,6 +50,9 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+
+    @Autowired
+    private BaseCoder coder;
 
     /**
      * 将权限载入到本地缓存中
@@ -173,15 +181,18 @@ public class PrivilegeDao implements InitializingBean {
      * @modifiedBy 24320182203266
      * @param id: 权限id
      * @return ReturnObject
+     * modifieb by zhangyu
      */
-    public ReturnObject changePriv(Long id, PrivilegeVo vo){
+    public ReturnObject changePriv(Long id, PrivilegeVo vo,Long ModifierId,String ModifierName){
         PrivilegePo po = this.poMapper.selectByPrimaryKey(id);
         logger.debug("changePriv: vo = "+ vo  + " po = "+ po);
         if(po==null)
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        /* 验证权限是否被篡改 */
         Privilege privilege = new Privilege(po);
-        if(!privilege.getCacuSignature().equals(privilege.getSignature())){
+        Collection<String> codeFields = new ArrayList<>();
+        List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
+        var ret=coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
+        if(ret==null){
             return new ReturnObject(ReturnNo.RESOURCE_FALSIFY, "该权限可能被篡改，请联系管理员处理");
         }
         /* 验证数据是否重复 */
@@ -193,75 +204,50 @@ public class PrivilegeDao implements InitializingBean {
             return new ReturnObject(ReturnNo.URL_SAME, "URL和RequestType不得与已有的数据重复");
         }
         /* 开始更新 */
-        PrivilegePo newPo = privilege.createUpdatePo(vo);
-        try{
-            newPo.setId(po.getId()); // 这里设置要更新的权限的Id
-        } catch (Exception e) {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
-        }
+        PrivilegePo newPo =(PrivilegePo) coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
+        newPo.setModifierId(ModifierId);
+        newPo.setModifierName(ModifierName);
+        try {
+            this.poMapper.updateByPrimaryKeySelective(newPo);
 
-        this.poMapper.updateByPrimaryKeySelective(newPo);
-        return new ReturnObject(ReturnNo.OK);
-    }
-    /*新增权限*/
-    public ReturnObject insertPriv(Privilege bo,String name,Long id)
-    {
-        try
-        {
-            //这里vo转po
-            PrivilegePoExample example=new PrivilegePoExample();
-            PrivilegePoExample.Criteria criteria=example.createCriteria();
-            //criteria.andUrlEqualTo(bo.getUrl());
-            //criteria.andRequestTypeEqualTo(bo.getRequestType());
-            List<PrivilegePo> polist=poMapper.selectByExample(example);
-            if(polist.size()>0)
-            {
-                return new ReturnObject(ReturnNo.URL_SAME);
-            }
-            PrivilegePo po=new PrivilegePo();
-
-            poMapper.insertSelective(po);
         }catch (Exception e)
         {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+            new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        return null;
+        return new ReturnObject(ReturnNo.OK);
     }
     /*新建权限
 
      */
 
     /**
-     * author: zhangyu
-     * @param bo
+     *
+     */
+    /**
+     * @author: zhangyu
+     * @param vo
      * @param creatorid
+     * @param creatorname
      * @return
      */
-    public ReturnObject addPriv(Privilege bo,Long creatorid)
+    public ReturnObject addPriv(PrivilegeVo vo,Long creatorid,String creatorname)
     {
-        PrivilegePoExample example=new PrivilegePoExample();
-        PrivilegePoExample.Criteria criteria=example.createCriteria();
-        PrivilegePo po=(PrivilegePo) Common.cloneVo(bo,PrivilegePo.class);
-        if(creatorid==null)
-            return new ReturnObject<>(ReturnNo.AUTH_ID_NOTEXIST);
-        po.setCreatorId(creatorid);
-        criteria.andRequestTypeEqualTo(po.getRequestType());
-        criteria.andUrlEqualTo(po.getUrl());
-        //上面两个判断有没有重复
+        Collection<String> codeFields = new ArrayList<>();
+        List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
+        PrivilegePo po=(PrivilegePo)coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
+        po.setGmtCreate(LocalDateTime.now());
         try {
-            List<PrivilegePo> poList = poMapper.selectByExample(example);
-            if (poList.isEmpty()) {
                 int ret=poMapper.insertSelective(po);
-                if(ret==0)
-                    return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
-                else
-                    return new ReturnObject((BasePrivilegeRetVo)Common.cloneVo(po, BasePrivilegeRetVo.class));
-            } else {
-                    return new ReturnObject<>(ReturnNo.URL_SAME);
-            }
+                PrivilegePo ponew=(PrivilegePo) coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
+                poMapper.updateByPrimaryKey(ponew);
+                PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
+                retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
+                retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
+                retVo.setSign(0);
+                return new ReturnObject(retVo);
         }catch (Exception e)
         {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("服务器错误",e.getMessage()));
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,String.format("重复定义",e.getMessage()));
         }
 
     }
@@ -277,16 +263,31 @@ public class PrivilegeDao implements InitializingBean {
             {
                 return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
-            List<BasePrivilegeRetVo> vo=new ArrayList<>(polist.size());
+            List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             PageHelper.startPage(pagenum, pagesize);
+            Collection<String> codeFields = new ArrayList<>();
+            List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
             for(PrivilegePo po:polist)
             {
-                BasePrivilegeRetVo basePrivilegeRetVo=(BasePrivilegeRetVo)Common.cloneVo(po,BasePrivilegeRetVo.class);
-                vo.add(basePrivilegeRetVo);
+                PrivilegeRetVo retVo=(PrivilegeRetVo)coder.decode_check(po,PrivilegeRetVo.class,codeFields,signFields,"signature");
+                if(retVo!=null)
+                {
+                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
+                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
+                    retVo.setSign(0);
+                }
+                else
+                {
+                    retVo=(PrivilegeRetVo) Common.cloneVo(po,PrivilegeRetVo.class);
+                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),1));
+                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),1));
+                    retVo.setSign(1);
+                }
+                vo.add(retVo);
             }
             PageInfo<BasePrivilegeRetVo> pageInfo=new PageInfo(vo);
             ReturnObject returnObject= new ReturnObject(pageInfo);
-            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
+            return Common.getPageRetVo(returnObject,PrivilegeRetVo.class);
         }catch (Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));
@@ -330,6 +331,7 @@ public class PrivilegeDao implements InitializingBean {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             po.setState((byte)1);
            poMapper.updateByPrimaryKey(po);
+
             //清除对应的redis缓存
             String key=po.getUrl()+"-"+po.getRequestType();
             if(redisTemplate.hasKey(key))

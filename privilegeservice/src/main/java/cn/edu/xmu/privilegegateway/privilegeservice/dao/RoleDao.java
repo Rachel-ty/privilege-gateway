@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -11,9 +12,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.AdminVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -26,9 +25,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -72,6 +69,9 @@ public class RoleDao {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private BaseCoder coder;
+
     public final static String ROLEKEY = "r_%d";
 
     /**
@@ -112,35 +112,47 @@ public class RoleDao {
         criteria.andRoleIdEqualTo(rid);
         try
         {
+            PageHelper.startPage(pagenum,pagesize);
             //获得权限id
             List<RolePrivilegePo> polist=rolePrivilegePoMapper.selectByExample(example);
-            logger.debug("page = " + pagenum + "pageSize = " + pagesize);
             if(polist.isEmpty())
             {
                 return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
             List<BasePrivilegeRetVo> voList=new ArrayList<BasePrivilegeRetVo>(polist.size());
+            Collection<String> codeFields = new ArrayList<>();
+            List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
             for(RolePrivilegePo po:polist)
             {
                 //Privilege已经是bo对象
                 PrivilegePo privilegePo=privDao.findPrivByid(po.getPrivilegeId());
                 if(privilegePo!=null)
                 {
-                    BasePrivilegeRetVo vo=(BasePrivilegeRetVo) Common.cloneVo(privilegePo, BasePrivilegeRetVo.class);
-                    vo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName()));
-                    vo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName()));
+                    BasePrivilegeRetVo vo=(BasePrivilegeRetVo)coder.decode_check(privilegePo, BasePrivilegeRetVo.class,codeFields,signFields,"signature");
+                    if(vo!=null)
+                    {
+                        vo.setCreator(new AdminVo(privilegePo.getCreatorId(),privilegePo.getCreatorName(),0));
+                        vo.setModifier(new AdminVo(privilegePo.getModifierId(), po.getModifierName(), 0));
+                        vo.setSign(0);
+                    }
+                    else
+                    {
+                        vo.setCreator(new AdminVo(privilegePo.getCreatorId(),privilegePo.getCreatorName(),1));
+                        vo.setModifier(new AdminVo(privilegePo.getModifierId(), po.getModifierName(), 1));
+                        vo.setSign(1);
+                    }
                     voList.add(vo);
                 }
-                PageInfo<BasePrivilegeRetVo> rolePage = PageInfo.of(voList);
-                ReturnObject returnObject=new ReturnObject(rolePage);
-                return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
+
             }
+            PageInfo<BasePrivilegeRetVo> rolePage = PageInfo.of(voList);
+            ReturnObject returnObject=new ReturnObject(rolePage);
+            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
 
         }catch(Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库发生错误",e.getMessage()));
         }
-        return null;
     }
     /**
      * 将一个角色的所有权限id载入到Redis
@@ -432,79 +444,44 @@ public class RoleDao {
     }
 
     /**
-     * 由Role Id, Privilege Id 增加 角色权限
-     *
-     * @param  roleid, Privilegeid, userid
-     * @return RolePrivilegeRetVo
+     * 由Role Id, Privilege Id 增加功能角色权限
      * created by 王琛 24320182203277
      * modified by zhangyu
      */
-    public ReturnObject<Object> addPrivByRoleIdAndPrivId(Long roleid, Long privid, Long userid){
-        UserPo userpo = userMapper.selectByPrimaryKey(userid);
-        PrivilegePo privilegepo = privilegePoMapper.selectByPrimaryKey(privid);
-        RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
-        if(userpo==null || privilegepo==null || rolePo==null){
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
+    /**
+     * @param vo
+     * @return
+     */
+    public ReturnObject<Object> addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
+        Collection<String> codeFields = new ArrayList<>();
+        List<String> signFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId", "creatorId"));
+        RolePrivilegePo po=(RolePrivilegePo) coder.code_sign(vo,RolePrivilegePo.class,codeFields,signFields,"signature");
         //获取当前时间
         LocalDateTime localDateTime = LocalDateTime.now();
-        RolePrivilege rolePrivilege = new RolePrivilege();
+        po.setGmtCreate(localDateTime);
+        //查询是否有对应的角色和权限
+        try
+        {
+            RolePo rolePo=roleMapper.selectByPrimaryKey(vo.getRoleId());
+            if(rolePo==null||rolePo.getBaserole()!=0)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            PrivilegePo privilegePo=privilegePoMapper.selectByPrimaryKey(vo.getPrivilegeId());
+            if(privilegePo==null)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            rolePrivilegePoMapper.insertSelective(po);
+            BaseRolePrivilegeRetVo retvo=(BaseRolePrivilegeRetVo) Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
+            retvo.setName(privilegePo.getName());
 
-        //查询是否功能角色已经存在此权限
-        RolePrivilegePoExample example = new RolePrivilegePoExample();
-        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-        criteria.andPrivilegeIdEqualTo(privid);
-        criteria.andRoleIdEqualTo(roleid);
-        List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
-        RolePrivilegePo roleprivilegepo = new RolePrivilegePo();
+            retvo.setCreator(new AdminVo(vo.getCreatorId(),vo.getCreatorName(),0));
+            retvo.getModifier().setSign(0);
+            retvo.setSign(0);
+            return new ReturnObject(retvo);
 
-        if(rolePrivilegePos.isEmpty()){
-            roleprivilegepo.setRoleId(roleid);
-            roleprivilegepo.setPrivilegeId(privid);
-            roleprivilegepo.setCreatorId(userid);
-            roleprivilegepo.setGmtCreate(localDateTime);
-
-            StringBuilder signature = Common.concatString("-", roleprivilegepo.getRoleId().toString(),
-                    roleprivilegepo.getPrivilegeId().toString(), roleprivilegepo.getCreatorId().toString(), localDateTime.toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-            roleprivilegepo.setSignature(newSignature);
-
-            try {
-                int ret = rolePrivilegePoMapper.insert(roleprivilegepo);
-
-                if (ret == 0) {
-                    //插入失败
-                    return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-                } else {
-                    //插入成功
-                    //清除角色权限
-                    String key = String.format(ROLEKEY, roleid);
-                    if(redisTemplate.hasKey(key)){
-                        redisTemplate.delete(key);
-                    }
-                }
-            }catch (DataAccessException e){
-                // 数据库错误
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
-            }catch (Exception e) {
-                // 其他Exception错误
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了错误：%s", e.getMessage()));
-            }
-
-        }else{
-//            FIELD_NOTVALID
-            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("角色权限已存在"));
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
         }
-        /*
-        //组装返回的bo
-        rolePrivilege.setId(roleprivilegepo.getId());
-        rolePrivilege.setCreator(userpo);
-        rolePrivilege.setRole(rolePo);
-        rolePrivilege.setPrivilege(privilegepo);
-        rolePrivilege.setGmtModified(localDateTime.toString());
-        */
-        return new ReturnObject<>(ReturnNo.OK);
+
     }
 
 
@@ -520,8 +497,8 @@ public class RoleDao {
      * @return
      */
 
-    public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
-        ReturnObject<Object> retObj = null;
+    public ReturnObject delBaseRolePriv(Long rid,Long pid){
+        ReturnObject retObj = null;
         RolePrivilegePoExample example=new RolePrivilegePoExample();
         RolePrivilegePoExample.Criteria criteria=example.createCriteria();
         criteria.andRoleIdEqualTo(rid);

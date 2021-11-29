@@ -25,6 +25,12 @@ public class PrivilegeRetVo {
 
     private LocalDateTime gmtModified;
 
+    private AdminVo creator;
+
+    private AdminVo modifier;
+
+    private Integer sign;
+
     public PrivilegeRetVo(Privilege obj){
         this.id = obj.getId();
         this.name = obj.getName();

@@ -7,6 +7,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.SimpleBaseRolePrivlegeVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -99,9 +100,9 @@ public class RoleService {
      * @param pagesize
      * @return
      */
+    @Transactional(readOnly = true)
     public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
     {
-        PageHelper.startPage(pagenum,pagesize);
         return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
 
     }
@@ -125,7 +126,7 @@ public class RoleService {
      * @return
      */
     @Transactional
-    public ReturnObject<Object> delRolePriv(Long rid,Long pid){
+    public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
         ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
         return ret;
     }
@@ -140,11 +141,9 @@ public class RoleService {
      * modifiedby zhangyu
      */
     @Transactional
-    public ReturnObject<Object> addRolePriv(Long roleid, Long privid, Long userid){
+    public ReturnObject<Object> addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
         //新增
-        ReturnObject<Object> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
-        //新增成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
+        ReturnObject<Object> ret = roleDao.addBaseRolePriv(vo);
         return ret;
     }
 

@@ -13,8 +13,9 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.rmi.activation.ActivationGroupDesc;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,9 +49,9 @@ public class PrivilegeService {
      * @param cid
      * @return
      */
-    public ReturnObject<VoObject> AddPrivileges(PrivilegeVo vo, Long cid)
+    public ReturnObject<VoObject> AddPrivileges(PrivilegeVo vo, Long cid,String cname)
     {
-        return privilegeDao.addPriv((Privilege) Common.cloneVo(vo,Privilege.class),cid);
+        return privilegeDao.addPriv(vo,cid,cname);
     }
 
     /**
@@ -61,19 +62,22 @@ public class PrivilegeService {
      * @param pagesize
      * @return
      */
+    @Transactional(readOnly = true)
     public ReturnObject<PageInfo<BasePrivilegeRetVo>> GetPriv(String url , Byte requestType, Integer pagenum, Integer pagesize)
     {
-        PageHelper.startPage(pagenum, pagesize);
         return privilegeDao.getPriv(url,requestType,pagenum,pagesize);
     }
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject DelPriv(Long privid)
     {
         return privilegeDao.delPriv(privid);
     }
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject ForbidPriv(Long privid)
     {
         return privilegeDao.forbidPriv(privid);
     }
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject ReleasePriv(Long pid)
     {
         return privilegeDao.releasePriv(pid);
