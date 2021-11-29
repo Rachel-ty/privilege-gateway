@@ -11,6 +11,8 @@ import lombok.Data;
  */
 @Data
 public class ConclusionVo {
+    @NotNull(message = "审核结果不能为空")
     private Boolean conclusion;
+    @NotNull(message = "用户等级不能为空")
     private Integer level;
 }
