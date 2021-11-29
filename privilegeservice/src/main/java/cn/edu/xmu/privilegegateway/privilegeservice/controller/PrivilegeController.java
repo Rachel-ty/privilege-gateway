@@ -44,6 +44,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
@@ -63,6 +64,7 @@ import java.util.List;
 @RequestMapping(value = "", produces = "application/json;charset=UTF-8")
 public class PrivilegeController {
 
+    static final Integer IMAGE_MAX_SIZE=1000000;
     private  static  final Logger logger = LoggerFactory.getLogger(PrivilegeController.class);
 
     private JwtHelper jwtHelper = new JwtHelper();
@@ -858,10 +860,11 @@ public class PrivilegeController {
 //====================以上
     /**
      * 注册用户
-     * @param vo:vo对象
-     * @param result 检查结果
+     * @param newUserVo:vo对象
+     * @param bindingResult 检查结果
      * @return  Object
      * createdBy: LiangJi3229 2020-11-10 18:41
+     * modifiedBy: BingShuai Liu 22920192204245
      */
     @ApiOperation(value="注册用户")
     @ApiImplicitParams({
@@ -873,16 +876,14 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 404, message = "参数不合法")
     })
-    @PostMapping("adminusers")
-    public Object register(@Validated @RequestBody NewUserVo vo, BindingResult result){
-        if(result.hasErrors()){
-            return Common.processFieldErrors(result,httpServletResponse);
+    @PostMapping("users")
+    public Object register(@Validated @RequestBody NewUserVo newUserVo, BindingResult bindingResult){
+        var res = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (res != null) {
+            return res;
         }
-        ReturnObject returnObject=newUserService.register(vo);
-        if(returnObject.getCode()==ReturnNo.OK){
-            return ResponseUtil.ok(returnObject.getData());
-        }
-        else return ResponseUtil.fail(returnObject.getCode());
+        ReturnObject returnObject=newUserService.newUser(newUserVo);
+        return Common.decorateReturnObject(returnObject);
     }
 
     /**
@@ -1075,41 +1076,189 @@ public class PrivilegeController {
         }
     }
 
-    /**
-     * auth014: 管理员审核用户
-     * @param id: 用户 id
-     * @param bindingResult 校验信息
-     * @return Object
-     * @author 24320182203227 LiZihan
-     */
-    @ApiOperation(value = "管理员审核用户")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="did", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="approve", required = true, dataType="Boolean", paramType="body")
 
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 503, message = "字段不合法"),
-            @ApiResponse(code = 705, message = "无权限访问")
-    })
-    @Audit // 需要认证
-    @PutMapping("shops/{did}/adminusers/{id}/approve")
-    public Object approveUser(@PathVariable Long id,@PathVariable Long did, BindingResult bindingResult,@RequestBody Boolean approve,@Depart Long shopid) {
-        logger.debug("approveUser: did = "+ did+" userid: id = "+ id+" opinion: "+approve);
-        ReturnObject returnObject=null;
-        if(did==0|| did.equals(shopid))
-        {
-            returnObject=newUserService.approveUser(approve,id);
+    /**
+     * 已注册用户查看自己信息
+     * @param userId
+     * @param userName
+     * @return
+     */
+    @Audit(departName = "departs")
+    @GetMapping("self/users")
+    public Object showSelfInformation(@LoginUser Long userId,
+                                      @LoginName String userName){
+        ReturnObject ret =userService.showUserInformation(userId,null);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 已注册用户修改自己的信息
+     * @param userId
+     * @param userName
+     * @param userInformationVo
+     * @param bindingResult
+     * @return
+     */
+    @Audit
+    @PutMapping("self/users")
+    public Object modifyUserInformation(@LoginUser Long userId,
+                                        @LoginName String userName,
+                                        @Validated @RequestBody UserInformationVo userInformationVo,
+                                        BindingResult bindingResult){
+        var res = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (res != null) {
+            return res;
         }
-        else
-        {
-            logger.error("approveUser: 无权限查看此部门的用户 did=" + did);
-            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
+        ReturnObject ret =userService.modifyUserInformation(userId,userInformationVo);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 注册用户上传头像
+     * @param userId
+     * @param userName
+     * @param request
+     * @return
+     */
+    @Audit
+    @PostMapping("self/users/uploadImg")
+    public Object uploadImg(@LoginUser Long userId,
+                            @LoginName String userName,
+                            HttpServletRequest request){
+//        //----------------------------------
+//        userId = 60L;
+//        //----------------------------------
+        //对输入数据进行合法性判断
+        List<MultipartFile> files = ((MultipartHttpServletRequest) request)
+                .getFiles("file");
+        if(files.size()<=0){
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.FIELD_NOTVALID));
         }
-        return returnObject;
+        MultipartFile multipartFile=files.get(0);
+        //图片超限
+        if(multipartFile.getSize()>IMAGE_MAX_SIZE){
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.IMG_SIZE_EXCEED));
+        }
+
+        ReturnObject returnObject=userService.uploadNewImg(userId,multipartFile);
+        return Common.decorateReturnObject(returnObject);
+    }
+
+    /**
+     * 查询用户信息
+     * @param did
+     * @param userId
+     * @param loginUserName
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Audit(departName = "departs")
+    @GetMapping("departs/{did}/users")
+    public Object showUsers(@PathVariable Long did,
+                            @LoginUser Long userId,
+                            @LoginName String loginUserName,
+                            @RequestParam(required = false) String userName,
+                            @RequestParam(required = false) String mobile,
+                            @RequestParam(required = false) String email,
+                            @RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer pageSize){
+        ReturnObject ret = userService.showUsers(did,userName,mobile,email,page,pageSize);
+        if(ret.getCode()!=ReturnNo.OK){
+            return Common.decorateReturnObject(ret);
+        }
+        return Common.getPageRetVo(ret, UserRetVo.class);
+    }
+
+    /**
+     * 查询新注册用户信息
+     * @param did
+     * @param userId
+     * @param loginUserName
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Audit(departName = "departs")
+    @GetMapping("departs/{did}/users/new")
+    public Object showNewUsers(@PathVariable Long did,
+                               @LoginUser Long userId,
+                               @LoginName String loginUserName,
+                               @RequestParam(required = false) String userName,
+                               @RequestParam(required = false) String mobile,
+                               @RequestParam(required = false) String email,
+                               @RequestParam(defaultValue = "1") Integer page, @RequestParam(defaultValue = "10") Integer pageSize){
+        ReturnObject ret = newUserService.showNewUsers(did,userName,mobile,email,page,pageSize);
+        if(ret.getCode()!=ReturnNo.OK){
+            return Common.decorateReturnObject(ret);
+        }
+        return Common.getPageRetVo(ret, UserSimpleRetVo.class);
+    }
+
+    /**
+     * 审核新注册用户信息
+     * @param did
+     * @param id
+     * @param userId
+     * @param loginUserName
+     * @param conclusionVo
+     * @param bindingResult
+     * @return
+     */
+    @Audit(departName = "departs")
+    @PutMapping("departs/{did}/users/{id}/audit")
+    public Object judgeNewUser(@PathVariable Long did,
+                               @PathVariable Long id,
+                               @LoginUser Long userId,
+                               @LoginName String loginUserName,
+                               @Validated @RequestBody ConclusionVo conclusionVo,
+                               BindingResult bindingResult
+    ){
+        var res = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (res != null) {
+            return res;
+        }
+        ReturnObject ret = newUserService.judgeUser(did,id,conclusionVo,userId,loginUserName);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 查看任意用户信息
+     * @param did
+     * @param id
+     * @param userId
+     * @param loginUserName
+     * @return
+     */
+    @Audit(departName = "departs")
+    @GetMapping("departs/{did}/users/{id}")
+    public Object showAnyUser(@PathVariable Long did,
+                              @PathVariable Long id,
+                              @LoginUser Long userId,
+                              @LoginName String loginUserName){
+        ReturnObject ret =userService.showUserInformation(id,did);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 内部api-获得用户名
+     * @param id
+     * @param userId
+     * @param loginUserName
+     * @return
+     */
+    @Audit(departName = "departs")
+    @GetMapping("internal/users/{id}")
+    public Object getUserName(@PathVariable Long id,
+                              @LoginUser Long userId,
+                              @LoginName String loginUserName){
+        ReturnObject ret =userService.showUserName(id);
+        return Common.decorateReturnObject(ret);
     }
 
 }

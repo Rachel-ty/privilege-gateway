@@ -1,14 +1,13 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import com.github.pagehelper.PageHelper;
@@ -25,8 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -85,6 +83,13 @@ public class UserService {
      */
     @Value("${privilegeservice.lockerExpireTime}")
     private long lockerExpireTime;
+
+    @Autowired
+    private BaseCoder baseCoder;
+    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
+            "passportNumber"));
 
     /**
      * ID获取用户信息
@@ -510,6 +515,204 @@ public class UserService {
         return userDao.modifyPassword(vo);
     }
 
-    
-    
+
+
+    /**
+     * 获取用户状态
+     * @return
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject getUserStates() {
+        return userDao.getUserState();
+    }
+
+    /**
+     * 查看单个用户信息
+     * @param id
+     * @return
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject showUserInformation(Long id,Long did){
+        UserPo userPo= userDao.findUserById(id);
+        if (null==userPo){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        if(did!=null){
+            if (!did.equals(userPo.getDepartId())){
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            }
+        }
+        UserBo userBo =( UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+        if(null==userBo){
+            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+        }
+        UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
+        userRetVo.setSign(0);
+        UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
+        if (null==creatorPo){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
+        if(null==creator){
+            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+        }
+        UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),0);
+        userRetVo.setCreator(creatorSimpleRetVo);
+        if(userPo.getModifierId()!=null){
+            UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
+            if (null==modifierPo){
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
+            if(null==modifier){
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+            }
+            UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),0);
+            userRetVo.setModifier(modifierSimpleRetVo);
+        }
+        return new ReturnObject(userRetVo);
+    }
+
+    /**
+     * 修改用户信息
+     * @param id
+     * @return
+     */
+    @Transactional( rollbackFor = Exception.class)
+    public ReturnObject modifyUserInformation(Long id,UserInformationVo userInformationVo){
+        UserPo userPo= userDao.findUserById(id);
+        if (userPo==null){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+        if(null!=userInformationVo.getName()){
+            userBo.setName(userInformationVo.getName());
+        }
+        if(null!=userInformationVo.getAvatar()){
+            userBo.setAvatar(userInformationVo.getAvatar());
+        }
+        if(null!=userInformationVo.getIdNumber()){
+            userBo.setIdNumber(userInformationVo.getIdNumber());
+        }
+        if(null!=userInformationVo.getPassportNumber()){
+            userBo.setPassportNumber(userInformationVo.getPassportNumber());
+        }
+        ReturnObject ret = userDao.modifyUser(userBo);
+        return ret;
+    }
+
+    /**
+     * 查看所有用户
+     * @param did
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject<PageInfo<Object>> showUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
+        ReturnObject ret = userDao.selectAllUsers(did,userName,mobile,email,page,pageSize);
+        if(ret.getCode()!=ReturnNo.OK){
+            return ret;
+        }
+        List<UserPo> userPos = (List<UserPo>) ret.getData();
+        List<Object> userRetVos = new ArrayList<>();
+        for (UserPo userPo:userPos){
+            UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+            if(null==userBo){
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+            }
+            UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
+            userRetVo.setSign(0);
+            UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
+            if (null==creatorPo){
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
+            if(null==creator){
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+            }
+            UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),0);
+            userRetVo.setCreator(creatorSimpleRetVo);
+            if(userPo.getModifierId()!=null){
+                UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
+                if (null==modifierPo){
+                    return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+                }
+                UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
+                if(null==modifier){
+                    return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+                }
+                UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),0);
+                userRetVo.setModifier(modifierSimpleRetVo);
+            }
+            userRetVos.add(userRetVo);
+        }
+        PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(userRetVos);
+        return new ReturnObject(proxyRetVoPageInfo);
+    }
+
+    /**
+     * 获取用户名
+     * @param id
+     * @return
+     */
+    @Transactional( rollbackFor = Exception.class)
+    public ReturnObject showUserName(Long id){
+        UserPo userPo= userDao.findUserById(id);
+        if (userPo==null){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+        if(null==userBo){
+            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+        }
+
+        ReturnObject ret = new ReturnObject(userBo.getUserName());
+        return ret;
+    }
+
+    @Transactional
+    public ReturnObject uploadNewImg(Long id, MultipartFile multipartFile){
+        UserPo userPo= userDao.findUserById(id);
+        if (userPo==null){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        UserBo user = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+        ReturnObject returnObject = new ReturnObject();
+        try{
+            returnObject = ImgHelper.remoteSaveImg(multipartFile,100000,davUsername, davPassword,baseUrl);
+
+            //文件上传错误
+            if(returnObject.getCode()!=ReturnNo.OK){
+                logger.debug(returnObject.getErrmsg());
+                return returnObject;
+            }
+
+            String oldFilename = user.getAvatar();
+            user.setAvatar(returnObject.getData().toString());
+            ReturnObject updateReturnObject = userDao.updateUserAvatar(user);
+
+            //数据库更新失败，需删除新增的图片
+            if(updateReturnObject.getCode()==ReturnNo.FIELD_NOTVALID){
+                ImgHelper.deleteRemoteImg(returnObject.getData().toString(),davUsername, davPassword,baseUrl);
+                return updateReturnObject;
+            }
+
+            //数据库更新成功需删除旧图片，未设置则不删除
+            if(oldFilename!=null) {
+                ImgHelper.deleteRemoteImg(oldFilename, davUsername, davPassword,baseUrl);
+            }
+        }
+        catch (IOException e){
+            logger.debug("uploadImg: I/O Error:" + baseUrl);
+            return new ReturnObject(ReturnNo.FILE_NO_WRITE_PERMISSION);
+        }
+        return returnObject;
+    }
+
+
+
 }
