@@ -950,18 +950,17 @@ public class PrivilegeController {
      * @return Object
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value="用户重置密码")
     @ApiResponses({
             @ApiResponse(code = 745, message = "与系统预留的邮箱不一致"),
-            @ApiResponse(code = 746, message = "与系统预留的电话不一致"),
             @ApiResponse(code = 0, message = "成功"),
     })
-    @PutMapping("adminusers/password/reset")
+    @PutMapping("self/password/reset")
     @ResponseBody
     public Object resetPassword(@RequestBody ResetPwdVo vo,BindingResult bindingResult
             , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
-
         if (logger.isDebugEnabled()) {
             logger.debug("resetPassword");
         }
@@ -972,7 +971,6 @@ public class PrivilegeController {
         }
 
         String ip = IpUtil.getIpAddr(httpServletRequest);
-
         ReturnObject returnObject = userService.resetPassword(vo,ip);
         return Common.decorateReturnObject(returnObject);
     }
@@ -984,6 +982,7 @@ public class PrivilegeController {
      * @return Object
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value="用户修改密码",produces = "application/json")
     @ApiResponses({
@@ -991,7 +990,7 @@ public class PrivilegeController {
             @ApiResponse(code = 741, message = "不能与旧密码相同"),
             @ApiResponse(code = 0, message = "成功"),
     })
-    @PutMapping("/adminusers/password")
+    @PutMapping("/self/password")
     @ResponseBody
     public Object modifyPassword(@RequestBody ModifyPwdVo vo) {
         if (logger.isDebugEnabled()) {

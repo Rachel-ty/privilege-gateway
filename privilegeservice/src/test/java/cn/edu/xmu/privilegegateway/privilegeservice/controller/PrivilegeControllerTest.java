@@ -1,15 +1,25 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -28,8 +38,14 @@ public class PrivilegeControllerTest {
     private static String token;
     private static JwtHelper jwtHelper = new JwtHelper();
 
+    @MockBean
+    private HttpServletRequest request;
+    @Autowired
+    private UserDao userDao;
     @Autowired
     private MockMvc mvc;
+    @MockBean
+    private RedisUtil redisUtil;
 
     @BeforeEach
     void init() {
@@ -183,7 +199,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString2="{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":1,\"list\":[]},\"errmsg\":\"成功\"}";
+        String expectString2 = "{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":1,\"list\":[]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString2, responseString2, true);
     }
 
@@ -210,5 +226,41 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString2, responseString2, true);
     }
 
+    /**
+     * Method: resetPassword(@RequestBody ResetPwdVo vo,BindingResult bindingResult
+     * , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest)
+     */
+    @Test
+    public void testResetPassword() throws Exception {
 
+        String contentJson1="{\"name\":\"minge@163.com\"}";
+        String responseString1 = mvc.perform(put("/self/password/reset")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+
+    }
+    @Test
+    public void testModifyPassword() throws Exception {
+
+        String contentJson1="{\n" +
+                "  \"name\": \"minge@163.com\",\n" +
+                "  \"captcha\": \"123456\",\n" +
+                "  \"newPassword\": \"123456\"\n" +
+                "}";
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(1L);
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
+        String responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(responseString1);
+//        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+//        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+    }
 }
