@@ -66,7 +66,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString2 = "{\"errno\":750,\"data\":null,\"errmsg\":\"开始时间要小于失效时间\"}";
+        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
         JSONAssert.assertEquals(expectString2, responseString2, true);
         //代理被代理为同一个人
         String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
@@ -75,7 +75,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString3 = "{\"errno\":751,\"data\":null,\"errmsg\":\"自己不可以代理自己\"}";
+        String expectString3 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
         JSONAssert.assertEquals(expectString3, responseString3, true);
         //不存在用户
         String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
@@ -93,7 +93,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString5 = "{\"errno\":752,\"data\":null,\"errmsg\":\"两个代理双方的部门冲突\"}";
+        String expectString5 = "{\"errno\":752,\"errmsg\":\"两个代理双方的部门冲突\"}";
         JSONAssert.assertEquals(expectString5, responseString5, true);
     }
 
@@ -109,7 +109,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString1 = "{\"errno\":705,\"data\":null,\"errmsg\":\"无权限\"}";
+        String expectString1 = "{\"errno\":705,\"errmsg\":\"无权限\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
         //开始时间早于结束时间
         String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
@@ -118,7 +118,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString2 = "{\"errno\":750,\"data\":null,\"errmsg\":\"开始时间要小于失效时间\"}";
+        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
         JSONAssert.assertEquals(expectString2, responseString2, true);
         //正常插入
         String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
@@ -136,7 +136,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString4 = "{\"errno\":751,\"data\":null,\"errmsg\":\"自己不可以代理自己\"}";
+        String expectString4 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
         JSONAssert.assertEquals(expectString4, responseString4, false);
 
     }

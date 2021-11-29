@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyRetVo;
@@ -81,7 +82,7 @@ public class UserProxyService {
             userProxyRetVos.add(userProxyRetVo);
         }
         data.put("list", userProxyRetVos);
-        if(proxies.getCode()==ReturnNo.OK){
+        if(proxies.getCode()== ReturnNo.OK){
             return new ReturnObject(data);
         }
         return new ReturnObject(proxies.getCode(),data);
