@@ -3,7 +3,6 @@ package cn.edu.xmu.privilegegateway.annotation.util.coder;
 import cn.edu.xmu.privilegegateway.annotation.AnnotationApplication;
 import cn.edu.xmu.privilegegateway.annotation.model.User;
 import cn.edu.xmu.privilegegateway.annotation.model.UserPo;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,7 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import  static  org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author wang zhongyu
  * @date 2021-11-22
@@ -106,5 +106,40 @@ public class CoderTest {
         assertNull(user3);
 
 
+    }
+
+    @Test
+    public void encodeTest2(){
+        User user = new User();
+        user.setName("你好");
+        user.setUserName("aaaaa");
+        user.setMobile("13112244");
+        user.setEmail("mingqiu@xmu.edu.cn");
+        user.setPassword("44555");
+        user.setOpenId("12345");
+        user.setState(User.State.NEW);
+        user.setDepartId(123L);
+        user.setCreatorId(1L);
+        user.setLevel(0);
+
+        Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
+        List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
+
+        UserPo userPo = (UserPo) coder.code_sign(user, UserPo.class, codeFields, null, null);
+        assertNotNull(userPo);
+        assertEquals("AE6FBCE630F0F0DC8DB292E1B8930B88", userPo.getName());
+        assertEquals("59E386459AF5D61D4F60CB98E9C563B3", userPo.getMobile());
+        assertEquals("D52C16A52D7FAD7AF5CD8131F3A282DD5AF5A7CAF7F164B0C093E08AC27D0F9E", userPo.getEmail());
+        assertEquals("945B8CB9CF2B67C8663E6D213A128D37", userPo.getPassword());
+
+        User user1 = (User) coder.decode_check(userPo, User.class , codeFields, null, null);
+        assertEquals("你好", user1.getName());
+        assertEquals("13112244", user1.getMobile());
+        assertEquals("mingqiu@xmu.edu.cn", user1.getEmail());
+        assertEquals("44555", user1.getPassword());
+
+        userPo.setLevel(2);
+        User user4 = (User) coder.decode_check(userPo, User.class , codeFields, null, null);
+        assertNotNull(user4);
     }
 }
