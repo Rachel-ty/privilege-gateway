@@ -18,10 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
-//import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -70,7 +69,7 @@ public class UserDao{
 
     @Autowired
     private RoleDao roleDao;
-//
+
 //    @Autowired
 //    private JavaMailSender mailSender;
 
@@ -529,6 +528,7 @@ public class UserDao{
         }
         return retIds;
     }
+
     public void initialize() throws Exception {
         //初始化user
         UserPoExample example = new UserPoExample();

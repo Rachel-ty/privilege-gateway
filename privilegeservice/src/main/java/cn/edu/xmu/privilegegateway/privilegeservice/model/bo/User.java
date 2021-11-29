@@ -220,7 +220,7 @@ public class User implements VoObject {
     public UserSimpleRetVo createSimpleVo() {
         UserSimpleRetVo userSimpleRetVo = new UserSimpleRetVo();
         userSimpleRetVo.setId(this.id);
-        userSimpleRetVo.setUserName(this.userName);
+        userSimpleRetVo.setName(this.userName);
 
         return userSimpleRetVo;
     }

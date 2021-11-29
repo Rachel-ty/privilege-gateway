@@ -74,6 +74,27 @@ public class ReturnObject<T> {
     }
 
     /**
+     * 有错误码，自定义message和值的构造函数
+     * @param code 错误码
+     * @param data 返回值
+     */
+    public ReturnObject(ReturnNo code, T data) {
+        this(code);
+        this.data = data;
+    }
+
+    /**
+     * 有错误码，自定义message和值的构造函数
+     * @param code 错误码
+     * @param errmsg 自定义message
+     * @param data 返回值
+     */
+    public ReturnObject(ReturnNo code, String errmsg, T data) {
+        this(code, errmsg);
+        this.data = data;
+    }
+
+    /**
      * 错误信息
      * @return 错误信息
      */
