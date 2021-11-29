@@ -80,7 +80,6 @@ public abstract class BaseCoder {
                 field.set(target, encryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
-                continue;
             }
         }
 
@@ -122,7 +121,6 @@ public abstract class BaseCoder {
                 field.set(target, decryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
-                continue;
             }
         }
 
