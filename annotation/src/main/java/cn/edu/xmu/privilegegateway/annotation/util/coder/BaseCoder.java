@@ -100,6 +100,17 @@ public abstract class BaseCoder {
     }
 
     /**
+     * 加密
+     * @param originObj 原始对象
+     * @param targetClass   目标对象类型
+     * @param codeFields 加密属性
+     * @return 加密好的目标对象类型
+     */
+    public Object code(Object originObj, Class targetClass, Collection<String> codeFields) {
+        return code_sign(originObj, targetClass, codeFields, null, null);
+    }
+
+    /**
      * 解密并验证签名
      * @param originObj 原始对象
      * @param targetClass   目标对象类型
@@ -134,5 +145,16 @@ public abstract class BaseCoder {
         }
 
         return target;
+    }
+
+    /**
+     * 解密
+     * @param originObj 原始对象
+     * @param targetClass   目标对象类型
+     * @param codeFields 加密属性
+     * @return 解密后的对象
+     */
+    public Object decode(Object originObj, Class targetClass, Collection<String> codeFields) {
+        return decode_check(originObj, targetClass, codeFields, null, null);
     }
 }
