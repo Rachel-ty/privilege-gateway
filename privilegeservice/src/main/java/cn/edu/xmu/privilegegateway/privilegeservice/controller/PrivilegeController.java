@@ -1109,10 +1109,9 @@ public class PrivilegeController {
         if (res != null) {
             return res;
         }
-        ReturnObject ret =userService.modifyUserInformation(userId,userInformationVo);
+        ReturnObject ret =userService.modifyUserInformation(userId,userInformationVo,userId,userName);
         return Common.decorateReturnObject(ret);
     }
-
     /**
      * 注册用户上传头像
      * @param userId
