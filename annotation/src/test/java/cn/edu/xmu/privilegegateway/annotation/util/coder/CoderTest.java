@@ -32,7 +32,6 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-//        userPo.setSignature("85039d0bd948c82d81322ee21b0865ec2f78f1a7656189db39663d0e72cbb07d");
         userPo.setSignature("b52d494a0f2e926675816d4d341f1f12944080eddea75ee741d3392726a91d44");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
@@ -57,7 +56,6 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-//        userPo.setSignature("4e243938c71b02afa22b71a592d353b4718bc522db1406cb17c5f2358966e345");
         userPo.setSignature("68c39a26b45733a555d1178f16d274bf38261447559371cfd82a083b9cc00b34");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
@@ -82,7 +80,6 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-//        userPo.setSignature("4e243938c71b02afa22b71a592d353b4718bc522db1406cb17c5f2358966e345");
         userPo.setSignature("68c39a26b45733a555d1178f16d274bf38261447559371cfd82a083b9cc00b34");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
@@ -120,7 +117,7 @@ public class CoderTest {
         List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
 
         UserPo userPo = (UserPo) coder.code_sign(user, UserPo.class, codeFields, signFields, "signature");
-        assertNotNull(userPo);
+        assertNotNull(userPo.getSignature());
         assertEquals("AE6FBCE630F0F0DC8DB292E1B8930B88", userPo.getName());
         assertEquals("59E386459AF5D61D4F60CB98E9C563B3", userPo.getMobile());
         assertEquals("D52C16A52D7FAD7AF5CD8131F3A282DD5AF5A7CAF7F164B0C093E08AC27D0F9E", userPo.getEmail());
@@ -185,17 +182,15 @@ public class CoderTest {
         userPo.setState((byte) 1);
         userPo.setDepartId(123L);
         userPo.setCreatorId(1L);
-//        userPo.setSignature("4e243938c71b02afa22b71a592d353b4718bc522db1406cb17c5f2358966e345");
         userPo.setSignature("68c39a26b45733a555d1178f16d274bf38261447559371cfd82a083b9cc00b34");
 
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
         List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
         UserPo user1 = (UserPo) coder.decode_check(userPo, null , codeFields, signFields, "signature");
-        assertNotNull(user1);
+        assertNotNull(user1.getSignature());
         assertEquals("个", user1.getName());
         assertEquals("15983424556", user1.getMobile());
         assertEquals("ees@123.com", user1.getEmail());
         assertEquals("123456", user1.getPassword());
-
     }
 }
