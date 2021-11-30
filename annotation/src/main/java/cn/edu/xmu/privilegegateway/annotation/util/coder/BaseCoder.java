@@ -67,21 +67,29 @@ public abstract class BaseCoder {
      * @return 加密签名好的目标对象类型
      */
     public Object code_sign(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
+        Object target;
+        if (targetClass == null) {
+            target = originObj;
+        }
+        else {
+            target = Common.cloneVo(originObj, targetClass);
+        }
 
-        Object target = Common.cloneVo(originObj, targetClass);
-
-        // 字段加密
-        for(String fieldName : codeFields) {
-            try {
-                Field field = target.getClass().getDeclaredField(fieldName);
-                field.setAccessible(true);
-                String originValue = (String) field.get(target);
-                String encryptValue = encrypt(originValue);
-                field.set(target, encryptValue);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
+        if (codeFields != null) {
+            // 字段加密
+            for(String fieldName : codeFields) {
+                try {
+                    Field field = target.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    String originValue = (String) field.get(target);
+                    String encryptValue = encrypt(originValue);
+                    field.set(target, encryptValue);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
+                }
             }
         }
+
 
         if (signFields != null && signTarget != null) {
             // 生成签名
@@ -120,18 +128,26 @@ public abstract class BaseCoder {
      * @return 签名错误也需要返回data对象
      */
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
-        Object target = Common.cloneVo(originObj, targetClass);
+        Object target;
+        if (targetClass == null) {
+            target = originObj;
+        }
+        else {
+            target = Common.cloneVo(originObj, targetClass);
+        }
 
-        // 字段解密
-        for(String fieldName : codeFields) {
-            try {
-                Field field = target.getClass().getDeclaredField(fieldName);
-                field.setAccessible(true);
-                String originValue = (String) field.get(target);
-                String decryptValue = decrypt(originValue);
-                field.set(target, decryptValue);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
+        if (codeFields != null) {
+            // 字段解密
+            for (String fieldName : codeFields) {
+                try {
+                    Field field = target.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    String originValue = (String) field.get(target);
+                    String decryptValue = decrypt(originValue);
+                    field.set(target, decryptValue);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
+                }
             }
         }
 
