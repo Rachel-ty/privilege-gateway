@@ -69,7 +69,7 @@ public abstract class BaseCoder {
     public Object code_sign(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
         Object target;
         if (targetClass == null) {
-            target = originObj;
+            target = Common.cloneVo(originObj, originObj.getClass());
         }
         else {
             target = Common.cloneVo(originObj, targetClass);
@@ -130,7 +130,7 @@ public abstract class BaseCoder {
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
         Object target;
         if (targetClass == null) {
-            target = originObj;
+            target = Common.cloneVo(originObj, originObj.getClass());
         }
         else {
             target = Common.cloneVo(originObj, targetClass);
@@ -154,11 +154,10 @@ public abstract class BaseCoder {
         logger.info(String.format("decode_check: 解密后的结果 target= %s", target.toString()));
 
         if (signFields != null && signTarget != null) {
-            // 校验签名
+            // 校验签名，被篡改时将目标对象的signTarget字段设为null
             if (!sign.check(originObj, signFields, signTarget)) {
-                Field field = null;
                 try {
-                    field = target.getClass().getDeclaredField(signTarget);
+                    Field field = target.getClass().getDeclaredField(signTarget);
                     field.setAccessible(true);
                     field.set(target, null);
                 } catch (NoSuchFieldException | IllegalAccessException e) {
