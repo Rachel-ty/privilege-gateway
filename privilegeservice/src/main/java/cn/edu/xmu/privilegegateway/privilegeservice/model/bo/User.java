@@ -194,8 +194,8 @@ public class User implements VoObject {
      */
     public UserPo createUpdatePo(UserVo vo) {
         String nameEnc = vo.getName() == null ? null : AES.encrypt(vo.getName(), User.AESPASS);
-        String mobEnc = null;
-        String emlEnc = null;
+        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
+        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
         Byte state = (byte) this.state.code;
 
         UserPo po = new UserPo();
