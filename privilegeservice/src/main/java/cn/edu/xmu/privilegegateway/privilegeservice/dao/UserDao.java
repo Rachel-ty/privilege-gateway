@@ -80,6 +80,11 @@ public class UserDao{
             "passportNumber"));
     final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
             "passportNumber"));
+    final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
+    final static Collection<String> userProxyCodeFields = new ArrayList<>();
+    final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
+    final static Collection<String> userRoleCodeFields = new ArrayList<>();
+
 
 //    @Autowired
 //    private JavaMailSender mailSender;
@@ -549,19 +554,8 @@ public class UserDao{
         List<UserPo> userPos = userMapper.selectByExample(example);
 
         for (UserPo po : userPos) {
-            UserPo newPo = new UserPo();
-            newPo.setPassword(AES.encrypt(po.getPassword(), User.AESPASS));
-            newPo.setEmail(AES.encrypt(po.getEmail(), User.AESPASS));
-            newPo.setMobile(AES.encrypt(po.getMobile(), User.AESPASS));
-            newPo.setName(AES.encrypt(po.getName(), User.AESPASS));
-            newPo.setId(po.getId());
-
-            StringBuilder signature = Common.concatString("-", po.getUserName(), newPo.getPassword(),
-                    newPo.getMobile(), newPo.getEmail(), po.getOpenId(), po.getState().toString(), po.getDepartId().toString(),
-                    po.getCreatorId().toString());
-            newPo.setSignature(SHA256.getSHA256(signature.toString()));
-
-            userMapper.updateByPrimaryKeySelective(newPo);
+            UserPo newUserPo = (UserPo)baseCoder.code_sign(po,UserPo.class,userCodeFields,userSignFields,"signature");
+            userMapper.updateByPrimaryKeySelective(newUserPo);
         }
 
         //初始化UserProxy
@@ -571,13 +565,8 @@ public class UserDao{
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example1);
 
         for (UserProxyPo po : userProxyPos) {
-            UserProxyPo newPo = new UserProxyPo();
-            newPo.setId(po.getId());
-            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
-                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-            newPo.setSignature(newSignature);
-            userProxyPoMapper.updateByPrimaryKeySelective(newPo);
+            UserProxyPo newUserProxyPo = (UserProxyPo) baseCoder.code_sign(po,UserProxyPo.class,userProxyCodeFields,userProxySignFields,"signature");
+            userProxyPoMapper.updateByPrimaryKeySelective(newUserProxyPo);
         }
 
         //初始化UserRole
@@ -586,14 +575,8 @@ public class UserDao{
         criteria3.andSignatureIsNull();
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
         for (UserRolePo po : userRolePoList) {
-            StringBuilder signature = Common.concatString("-",
-                    po.getUserId().toString(), po.getRoleId().toString(), po.getCreatorId().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-
-            UserRolePo newPo = new UserRolePo();
-            newPo.setId(po.getId());
-            newPo.setSignature(newSignature);
-            userRolePoMapper.updateByPrimaryKeySelective(newPo);
+            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po,UserRole.class,userRoleCodeFields,userRoleSignFields,"signature");
+            userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
         }
 
     }
