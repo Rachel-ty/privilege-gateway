@@ -2,6 +2,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
@@ -53,6 +54,14 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private BaseCoder coder;
+
+    @Autowired
+    private RedisUtil redisUtil;
+
+    public final static String PRIVILEGEKEY = "%s_%s";
+    public final static Collection<String> codeFields = new ArrayList<>();
+    public final static List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
+
 
     /**
      * 将权限载入到本地缓存中
@@ -189,8 +198,6 @@ public class PrivilegeDao implements InitializingBean {
         if(po==null)
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         Privilege privilege = new Privilege(po);
-        Collection<String> codeFields = new ArrayList<>();
-        List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
         var ret=coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
         if(ret==null){
             return new ReturnObject(ReturnNo.RESOURCE_FALSIFY, "该权限可能被篡改，请联系管理员处理");
@@ -232,8 +239,6 @@ public class PrivilegeDao implements InitializingBean {
      */
     public ReturnObject addPriv(PrivilegeVo vo,Long creatorid,String creatorname)
     {
-        Collection<String> codeFields = new ArrayList<>();
-        List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
         PrivilegePo po=(PrivilegePo)coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
         po.setGmtCreate(LocalDateTime.now());
         try {
@@ -275,8 +280,6 @@ public class PrivilegeDao implements InitializingBean {
             }
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             PageHelper.startPage(pagenum, pagesize);
-            Collection<String> codeFields = new ArrayList<>();
-            List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
             for(PrivilegePo po:polist)
             {
                 PrivilegeRetVo retVo=(PrivilegeRetVo)coder.decode_check(po,PrivilegeRetVo.class,codeFields,signFields,"signature");

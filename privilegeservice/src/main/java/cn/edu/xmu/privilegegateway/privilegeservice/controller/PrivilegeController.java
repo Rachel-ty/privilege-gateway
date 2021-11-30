@@ -84,6 +84,7 @@ public class PrivilegeController {
 
     @Autowired
     private PrivilegeService privilegeService;
+
     /**
      * @author: zhang yu
      * @date: 2021/11/24 16:28
@@ -158,7 +159,6 @@ public class PrivilegeController {
 
     /**
      * @author: zhangyu
-     * @param createid
      * @param did
      * @param vo
      * @param bindingResult

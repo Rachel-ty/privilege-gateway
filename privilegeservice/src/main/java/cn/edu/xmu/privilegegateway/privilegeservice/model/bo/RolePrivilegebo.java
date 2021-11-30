@@ -9,6 +9,7 @@ import lombok.Data;
 */
 @Data
 public class RolePrivilegebo {
-    private Long roleid;
-    private Long privilegeid;
+    private Long roleId;
+    private Long privilegeId;
+
 }

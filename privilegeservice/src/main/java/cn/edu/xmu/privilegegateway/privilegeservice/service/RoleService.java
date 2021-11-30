@@ -4,6 +4,7 @@ import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RolePrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
@@ -31,6 +32,8 @@ public class RoleService {
     @Autowired
     UserDao userDao;
 
+    @Autowired
+    RolePrivilegeDao rolePrivilegeDao;
     /**
      * 分页查询所有角色
      *
@@ -103,7 +106,7 @@ public class RoleService {
     @Transactional(readOnly = true)
     public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
     {
-        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+        return rolePrivilegeDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
 
     }
     /**
@@ -127,23 +130,25 @@ public class RoleService {
      */
     @Transactional
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
-        ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
+        ReturnObject<Object> ret = rolePrivilegeDao.delBaseRolePriv(rid,pid);
         return ret;
     }
 
     /**
      * 增加功能角色权限
-     * @param roleid 角色id
-     * @param privid 权限id
-     * @param userid 用户id
      * @return 权限列表
      * createdBy 王琛 24320182203277
      * modifiedby zhangyu
      */
+    /**
+     *
+     * @param vo
+     * @return
+     */
     @Transactional
     public ReturnObject<Object> addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
         //新增
-        ReturnObject<Object> ret = roleDao.addBaseRolePriv(vo);
+        ReturnObject<Object> ret = rolePrivilegeDao.addBaseRolePriv(vo);
         return ret;
     }
 
