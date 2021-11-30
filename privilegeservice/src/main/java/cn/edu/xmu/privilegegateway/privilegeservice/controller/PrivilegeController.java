@@ -890,19 +890,16 @@ public class PrivilegeController {
      * 查询所有状态
      * @return Object
      * createdBy: LiangJi3229 2020-11-10 18:41
+     * modifiedBy: BingShuai Liu 22920192204245
      */
     @ApiOperation(value="获得管理员用户的所有状态")
     @ApiResponses({
             @ApiResponse(code = 0,message = "成功")
     })
-    @GetMapping("adminusers/states")
+    @GetMapping("users/states")
     public Object getAllStates(){
-        User.State[] states=User.State.class.getEnumConstants();
-        List<StateVo> stateVos=new ArrayList<StateVo>();
-        for(int i=0;i<states.length;i++){
-            stateVos.add(new StateVo(states[i]));
-        }
-        return ResponseUtil.ok(new ReturnObject<List>(stateVos).getData());
+        ReturnObject<List> returnObject=userService.getUserStates();
+        return Common.decorateReturnObject(returnObject);
     }
 
     /**
@@ -1081,6 +1078,7 @@ public class PrivilegeController {
      * 已注册用户查看自己信息
      * @param userId
      * @param userName
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit(departName = "departs")
@@ -1097,6 +1095,7 @@ public class PrivilegeController {
      * @param userName
      * @param userInformationVo
      * @param bindingResult
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit
@@ -1117,6 +1116,7 @@ public class PrivilegeController {
      * @param userId
      * @param userName
      * @param request
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit
@@ -1151,6 +1151,7 @@ public class PrivilegeController {
      * @param page
      * @param pageSize
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     @Audit(departName = "departs")
     @GetMapping("departs/{did}/users")
@@ -1178,6 +1179,7 @@ public class PrivilegeController {
      * @param email
      * @param page
      * @param pageSize
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit(departName = "departs")
@@ -1197,38 +1199,12 @@ public class PrivilegeController {
     }
 
     /**
-     * 审核新注册用户信息
-     * @param did
-     * @param id
-     * @param userId
-     * @param loginUserName
-     * @param conclusionVo
-     * @param bindingResult
-     * @return
-     */
-    @Audit(departName = "departs")
-    @PutMapping("departs/{did}/users/{id}/audit")
-    public Object judgeNewUser(@PathVariable Long did,
-                               @PathVariable Long id,
-                               @LoginUser Long userId,
-                               @LoginName String loginUserName,
-                               @Validated @RequestBody ConclusionVo conclusionVo,
-                               BindingResult bindingResult
-    ){
-        var res = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (res != null) {
-            return res;
-        }
-        ReturnObject ret = newUserService.judgeUser(did,id,conclusionVo,userId,loginUserName);
-        return Common.decorateReturnObject(ret);
-    }
-
-    /**
      * 查看任意用户信息
      * @param did
      * @param id
      * @param userId
      * @param loginUserName
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit(departName = "departs")
@@ -1246,6 +1222,7 @@ public class PrivilegeController {
      * @param id
      * @param userId
      * @param loginUserName
+     * @author BingShuai Liu 22920192204245
      * @return
      */
     @Audit(departName = "departs")
