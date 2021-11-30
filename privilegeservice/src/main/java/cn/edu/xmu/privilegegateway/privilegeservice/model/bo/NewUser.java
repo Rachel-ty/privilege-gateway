@@ -29,10 +29,10 @@ public class NewUser implements VoObject {
         this.mobile=AES.encrypt(vo.getMobile(),User.AESPASS);
         this.userName=vo.getUserName();
         this.password=AES.encrypt(vo.getPassword(),User.AESPASS);
-        this.avatar=vo.getAvatar();
+//        this.avatar=vo.getAvatar();
         this.name=AES.decrypt(vo.getName(),User.AESPASS);
         this.departId=vo.getDepartId();
-        this.openId=vo.getOpenId();
+//        this.openId=vo.getOpenId();
         this.gmtCreated=LocalDateTime.now();
         this.setEmail(AES.encrypt(vo.getEmail(), User.AESPASS));
     }

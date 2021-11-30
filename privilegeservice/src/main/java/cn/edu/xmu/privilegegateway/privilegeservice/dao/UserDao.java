@@ -1,11 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
@@ -13,12 +11,14 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Repository;
@@ -69,6 +69,22 @@ public class UserDao{
 
     @Autowired
     private RoleDao roleDao;
+
+    @Autowired
+    private BaseCoder baseCoder;
+    final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
+    final static Collection<String> userProxyCodeFields = new ArrayList<>();
+    final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
+    final static Collection<String> userRoleCodeFields = new ArrayList<>();
+
 
 //    @Autowired
 //    private JavaMailSender mailSender;
@@ -538,19 +554,8 @@ public class UserDao{
         List<UserPo> userPos = userMapper.selectByExample(example);
 
         for (UserPo po : userPos) {
-            UserPo newPo = new UserPo();
-            newPo.setPassword(AES.encrypt(po.getPassword(), User.AESPASS));
-            newPo.setEmail(AES.encrypt(po.getEmail(), User.AESPASS));
-            newPo.setMobile(AES.encrypt(po.getMobile(), User.AESPASS));
-            newPo.setName(AES.encrypt(po.getName(), User.AESPASS));
-            newPo.setId(po.getId());
-
-            StringBuilder signature = Common.concatString("-", po.getUserName(), newPo.getPassword(),
-                    newPo.getMobile(), newPo.getEmail(), po.getOpenId(), po.getState().toString(), po.getDepartId().toString(),
-                    po.getCreatorId().toString());
-            newPo.setSignature(SHA256.getSHA256(signature.toString()));
-
-            userMapper.updateByPrimaryKeySelective(newPo);
+            UserPo newUserPo = (UserPo)baseCoder.code_sign(po,UserPo.class,userCodeFields,userSignFields,"signature");
+            userMapper.updateByPrimaryKeySelective(newUserPo);
         }
 
         //初始化UserProxy
@@ -560,13 +565,8 @@ public class UserDao{
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example1);
 
         for (UserProxyPo po : userProxyPos) {
-            UserProxyPo newPo = new UserProxyPo();
-            newPo.setId(po.getId());
-            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
-                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-            newPo.setSignature(newSignature);
-            userProxyPoMapper.updateByPrimaryKeySelective(newPo);
+            UserProxyPo newUserProxyPo = (UserProxyPo) baseCoder.code_sign(po,UserProxyPo.class,userProxyCodeFields,userProxySignFields,"signature");
+            userProxyPoMapper.updateByPrimaryKeySelective(newUserProxyPo);
         }
 
         //初始化UserRole
@@ -575,14 +575,8 @@ public class UserDao{
         criteria3.andSignatureIsNull();
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
         for (UserRolePo po : userRolePoList) {
-            StringBuilder signature = Common.concatString("-",
-                    po.getUserId().toString(), po.getRoleId().toString(), po.getCreatorId().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-
-            UserRolePo newPo = new UserRolePo();
-            newPo.setId(po.getId());
-            newPo.setSignature(newSignature);
-            userRolePoMapper.updateByPrimaryKeySelective(newPo);
+            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po,UserRole.class,userRoleCodeFields,userRoleSignFields,"signature");
+            userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
         }
 
     }
@@ -981,44 +975,37 @@ public class UserDao{
             clearUserPrivCache(uid);
         }
     }
-     /**
+    /**
      * 创建user
      *
      * createdBy Li Zihan 243201822032227
+     * modifiedBy BingShuai Liu 22920192204245
      */
-    public ReturnObject addUser(NewUserPo po)
+    public ReturnObject addUser(NewUserPo po,Integer level,Long userId,String userName)
     {
-        ReturnObject returnObject = null;
-        UserPo userPo = new UserPo();
-        userPo.setEmail(AES.encrypt(po.getEmail(), User.AESPASS));
-        userPo.setMobile(AES.encrypt(po.getMobile(), User.AESPASS));
-        userPo.setUserName(po.getUserName());
-        userPo.setAvatar(po.getAvatar());
-        userPo.setDepartId(po.getDepartId());
-        userPo.setOpenId(po.getOpenId());
-        userPo.setGmtCreate(LocalDateTime.now());
+        NewUserBo newUserBo = (NewUserBo) baseCoder.decode_check(po,NewUserBo.class,newUserCodeFields,newUserSignFields,"signature");
+        newUserBo.setLevel(level);
+        UserPo userPo = (UserPo) baseCoder.code_sign(newUserBo,UserPo.class,userCodeFields,userSignFields,"signature");
+        Common.setPoCreatedFields(userPo,userId,userName);
         try{
-            returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
-            logger.debug("success insert User: " + userPo.getId());
-        }
-        catch (DataAccessException e)
-        {
-            if (Objects.requireNonNull(e.getMessage()).contains("auth_user.user_name_uindex")) {
-                //若有重复名则修改失败
-                logger.debug("insertUser: have same user name = " + userPo.getName());
-                returnObject = new ReturnObject<>(ReturnNo.ROLE_EXIST, String.format("用户名重复：" + userPo.getName()));
-            } else {
-                logger.debug("sql exception : " + e.getMessage());
-                returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+            userPoMapper.insert(userPo);
+            return new ReturnObject(newUserBo);
+        }catch (DuplicateKeyException e){
+            String info=e.getMessage();
+            if(info.contains("user_name_uindex")){
+                return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
+            }
+            else if(info.contains("email_uindex")){
+                return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
+            }
+            else{
+                return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
             }
         }
-
-        catch (Exception e) {
-            // 其他Exception错误
-            logger.error("other exception : " + e.getMessage());
-            returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        catch (Exception e){
+            logger.error(e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        return returnObject;
     }
 
     /**
@@ -1044,6 +1031,111 @@ public class UserDao{
             logger.error("exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
+    }
+
+    /**
+     * 获取用户状态
+     * @return
+     */
+    public ReturnObject getUserState(){
+        List<Map<String, Object>> stateList = new ArrayList<>();
+        for (UserBo.State states : UserBo.State.values()) {
+            Map<String, Object> temp = new HashMap<>();
+            temp.put("code", states.getCode());
+            temp.put("name", states.getDescription());
+            stateList.add(temp);
+        }
+        return new ReturnObject<>(stateList);
+    }
+
+    /**
+     * 修改用户信息
+     * @param userBo
+     * @return
+     */
+    public ReturnObject modifyUser(UserBo userBo){
+        UserPo userPo = (UserPo) baseCoder.code_sign(userBo,UserPo.class,userCodeFields,userSignFields,"signature");
+        try {
+            userPoMapper.updateByPrimaryKeySelective(userPo);
+            return new ReturnObject();
+        }catch (DuplicateKeyException e){
+            String info=e.getMessage();
+            if(info.contains("user_name_uindex")){
+                return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
+            }
+            else if(info.contains("email_uindex")){
+                return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
+            }
+            else{
+                return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
+            }
+        }
+        catch (Exception e){
+            logger.error(e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
+    /**
+     * 获取所有用户
+     * @param did
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     */
+    public ReturnObject selectAllUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
+        UserPoExample example = new UserPoExample();
+        UserPoExample.Criteria criteria= example.createCriteria();
+        PageHelper.startPage(page,pageSize);
+        List<UserPo> userPos = new ArrayList<>();
+        UserBo userBo = new UserBo();
+        userBo.setDepartId(did);
+        userBo.setUserName(userName);
+        userBo.setMobile(mobile);
+        userBo.setEmail(email);
+        UserBo encryptedUserBo = (UserBo) baseCoder.code_sign(userBo,UserBo.class,userCodeFields,userSignFields,"signature");
+        try {
+            criteria.andDepartIdEqualTo(did);
+            if (userName!=null){
+                criteria.andUserNameEqualTo(encryptedUserBo.getUserName());
+            }
+            if (mobile!=null){
+                criteria.andMobileEqualTo(encryptedUserBo.getMobile());
+            }
+            if (email!=null){
+                criteria.andEmailEqualTo(encryptedUserBo.getEmail());
+            }
+            userPos = userPoMapper.selectByExample(example);
+            // TODO:验签
+            for(UserPo userPo: userPos){
+                if(null==baseCoder.decode_check(userPo,NewUserPo.class,userCodeFields,userSignFields,"signature")){
+                    logger.error(ReturnNo.RESOURCE_FALSIFY.getMessage());
+                    return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+                }
+            }
+            return new ReturnObject(userPos);
+        }catch (DataAccessException e){
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+    }
+
+    public ReturnObject updateUserAvatar(UserBo userBo) {
+        ReturnObject returnObject = new ReturnObject();
+        UserPo newUserPo = new UserPo();
+        newUserPo.setId(userBo.getId());
+        newUserPo.setAvatar(userBo.getAvatar());
+        int ret = userMapper.updateByPrimaryKeySelective(newUserPo);
+        if (ret == 0) {
+            logger.debug("updateUserAvatar: update fail. user id: " + userBo.getId());
+            returnObject = new ReturnObject(ReturnNo.FIELD_NOTVALID);
+        } else {
+            logger.debug("updateUserAvatar: update user success : " + userBo.toString());
+            returnObject = new ReturnObject();
+        }
+        return returnObject;
     }
 }
 

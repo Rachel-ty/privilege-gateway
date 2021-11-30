@@ -60,32 +60,40 @@ public abstract class BaseCoder {
     /**
      * 加密并签名
      * @param originObj 原始对象
-     * @param targetClass   目标对象类型
-     * @param codeFields 加密属性
-     * @param signFields 签名属性 null代表不生成签名
-     * @param signTarget 签名字段 null代表不生成签名
+     * @param targetClass 目标对象类型，如果null表示不拷贝生成新对象
+     * @param codeFields 加密属性 如果null 表示无加密属性
+     * @param signFields 签名属性 null代表不检验签名
+     * @param signTarget 签名字段 null代表不检验签名
      * @return 加密签名好的目标对象类型
      */
     public Object code_sign(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
+        Object target;
+        if (targetClass == null) {
+            target = Common.cloneVo(originObj, originObj.getClass());
+        }
+        else {
+            target = Common.cloneVo(originObj, targetClass);
+        }
 
-        Object target = Common.cloneVo(originObj, targetClass);
-
-        // 字段加密
-        for(String fieldName : codeFields) {
-            try {
-                Field field = target.getClass().getDeclaredField(fieldName);
-                field.setAccessible(true);
-                String originValue = (String) field.get(target);
-                String encryptValue = encrypt(originValue);
-                field.set(target, encryptValue);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
+        if (codeFields != null) {
+            // 字段加密
+            for(String fieldName : codeFields) {
+                try {
+                    Field field = target.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    String originValue = (String) field.get(target);
+                    String encryptValue = encrypt(originValue);
+                    field.set(target, encryptValue);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
+                }
             }
         }
 
+
         if (signFields != null && signTarget != null) {
             // 生成签名
-            String signature = sign.getSignature(originObj, signFields);
+            String signature = sign.getSignature(target, signFields);
             try {
                 Field signatureField = target.getClass().getDeclaredField(signTarget);
                 signatureField.setAccessible(true);
@@ -113,34 +121,48 @@ public abstract class BaseCoder {
     /**
      * 解密并验证签名
      * @param originObj 原始对象
-     * @param targetClass   目标对象类型
-     * @param codeFields 加密属性
+     * @param targetClass   目标对象类型 null表示不拷贝对象
+     * @param codeFields 加密属性 null表示无加密属性
      * @param signFields 签名属性 null代表不检验签名
      * @param signTarget 签名字段 null代表不检验签名
-     * @return null代表信息已被篡改
+     * @return 如果targetClass传入是null，返回originObj， 签名错误也需要返回data对象，对象的signature属性是null
      */
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
-        Object target = Common.cloneVo(originObj, targetClass);
+        Object target;
+        if (targetClass == null) {
+            target = Common.cloneVo(originObj, originObj.getClass());
+        }
+        else {
+            target = Common.cloneVo(originObj, targetClass);
+        }
 
-        // 字段解密
-        for(String fieldName : codeFields) {
-            try {
-                Field field = target.getClass().getDeclaredField(fieldName);
-                field.setAccessible(true);
-                String originValue = (String) field.get(target);
-                String decryptValue = decrypt(originValue);
-                field.set(target, decryptValue);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
+        if (codeFields != null) {
+            // 字段解密
+            for (String fieldName : codeFields) {
+                try {
+                    Field field = target.getClass().getDeclaredField(fieldName);
+                    field.setAccessible(true);
+                    String originValue = (String) field.get(target);
+                    String decryptValue = decrypt(originValue);
+                    field.set(target, decryptValue);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
+                }
             }
         }
 
         logger.info(String.format("decode_check: 解密后的结果 target= %s", target.toString()));
 
         if (signFields != null && signTarget != null) {
-            // 校验签名
-            if (!sign.check(target, signFields, signTarget)) {
-                return null;
+            // 校验签名，被篡改时将目标对象的signTarget字段设为null
+            if (!sign.check(originObj, signFields, signTarget)) {
+                try {
+                    Field field = target.getClass().getDeclaredField(signTarget);
+                    field.setAccessible(true);
+                    field.set(target, null);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.error("decode_check: 目标类中不存在给定的signTarget字段");
+                }
             }
         }
 

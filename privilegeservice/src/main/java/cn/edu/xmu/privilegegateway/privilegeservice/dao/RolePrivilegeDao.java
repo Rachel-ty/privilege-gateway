@@ -101,11 +101,11 @@ public class RolePrivilegeDao {
                     int sign=0;
                     //校验权限是否错误
                     PrivilegePo newprivilegepo=(PrivilegePo) coder.decode_check(privilegePo,PrivilegePo.class,PrivilegeDao.codeFields,PrivilegeDao.signFields,"signatrue");
-                    if(newprivilegepo==null)
+                    if(newprivilegepo.getSignature()==null)
                         sign=1;
                     //校验关系是否有错误
                     RolePrivilegePo newpo=(RolePrivilegePo)coder.decode_check(po,RolePrivilegePo.class,RolePrivilegeDao.codeFields,RolePrivilegeDao.signFields,"signature");
-                    if(newpo==null)
+                    if(newpo.getSignature()==null)
                         sign=1;
                     BasePrivilegeRetVo vo=(BasePrivilegeRetVo) Common.cloneVo(newpo,BasePrivilegeRetVo.class);
                     vo.setCreator(new AdminVo(privilegePo.getCreatorId(),privilegePo.getCreatorName(),sign));
