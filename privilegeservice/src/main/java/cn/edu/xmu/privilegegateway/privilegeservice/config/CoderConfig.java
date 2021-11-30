@@ -14,7 +14,7 @@
  * limitations under the License.
  **/
 
-package cn.edu.xmu.privilegegateway.annotation.config;
+package cn.edu.xmu.privilegegateway.privilegeservice.config;
 
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.imp.AESCoder;
