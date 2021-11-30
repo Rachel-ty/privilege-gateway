@@ -1,7 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -9,6 +12,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.bloom.BloomFilter;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import com.github.pagehelper.PageHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -20,6 +24,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 新用户Dao
@@ -57,6 +65,14 @@ public class NewUserDao implements InitializingBean {
     private double mobileError = 0.01;
     @Value("${privilegeservice.bloomfilter.new-user-mobile.capacity}")
     private int mobileCapacity = 10000;
+
+    @Autowired
+    private BaseCoder baseCoder;
+    final static List<String> signFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static Collection<String> codeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+
 
     /**
      * 初始化布隆过滤器
@@ -105,33 +121,25 @@ public class NewUserDao implements InitializingBean {
 
     /**
      * 由vo创建newUser检查重复后插入
-     * @param vo vo对象
+     * @param newUserBo
      * @return ReturnObject
      * createdBy: LiangJi3229 2020-11-10 18:41
      * modifiedBy: Ming Qiu 2021-11-21 06:11
+     * modifiedBy: BIngShuai Liu 2021-11-29 19:58
      */
-    public ReturnObject createNewUserByVo(NewUserVo vo){
+    public ReturnObject createNewUserByBo(NewUserBo newUserBo){
         //logger.debug(String.valueOf(bloomFilter.includeByBloomFilter("mobileBloomFilter","FAED5EEF1C8562B02110BCA3F9165CBE")));
         //by default,email/mobile are both needed
-        NewUserPo userPo=new NewUserPo();
+        NewUserPo newUserPo = (NewUserPo) baseCoder.code_sign(newUserBo,NewUserPo.class,codeFields,signFields,"signature");
         ReturnObject returnObject;
-        userPo.setEmail(AES.encrypt(vo.getEmail(), User.AESPASS));
-        userPo.setMobile(AES.encrypt(vo.getMobile(),User.AESPASS));
-        userPo.setUserName(AES.encrypt(vo.getUserName(),User.AESPASS));
-        returnObject=checkBloomFilter(userPo);
-
-        userPo.setPassword(AES.encrypt(vo.getPassword(), User.AESPASS));
-        userPo.setAvatar(vo.getAvatar());
-        userPo.setName(AES.encrypt(vo.getName(), User.AESPASS));
-        userPo.setDepartId(vo.getDepartId());
-        userPo.setOpenId(vo.getOpenId());
-        userPo.setGmtCreate(LocalDateTime.now());
+        returnObject=checkBloomFilter(newUserPo);
         try{
-            stringBloomFilter.addValue(NAMEFILTER,vo.getUserName());
-            stringBloomFilter.addValue(EMAILFILTER,vo.getEmail());
-            stringBloomFilter.addValue(MOBILEFILTER,vo.getMobile());
-            newUserPoMapper.insert(userPo);
-            returnObject=new ReturnObject<>(userPo);
+            stringBloomFilter.addValue(NAMEFILTER,newUserBo.getUserName());
+            stringBloomFilter.addValue(EMAILFILTER,newUserBo.getEmail());
+            stringBloomFilter.addValue(MOBILEFILTER,newUserBo.getMobile());
+            newUserPo.setGmtCreate(LocalDateTime.now());
+            newUserPoMapper.insert(newUserPo);
+            returnObject=new ReturnObject<>(newUserPo);
             logger.debug("success trying to insert newUser");
         }
         //catch exception by unique index
@@ -203,5 +211,51 @@ public class NewUserDao implements InitializingBean {
         return newUserPo;
     }
 
+    /**
+     * 获取新注册用户表
+     * @param did
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
+    public ReturnObject selectAllNewUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
+        NewUserPoExample example = new NewUserPoExample();
+        NewUserPoExample.Criteria criteria= example.createCriteria();
+        PageHelper.startPage(page,pageSize);
+        List<NewUserPo> newUserPos = new ArrayList<>();
+        UserBo userBo = new UserBo();
+        userBo.setDepartId(did);
+        userBo.setUserName(userName);
+        userBo.setMobile(mobile);
+        userBo.setEmail(email);
+        UserBo encryptedUserBo = (UserBo) baseCoder.code_sign(userBo,UserBo.class,codeFields,signFields,"signature");
+        try {
+            criteria.andDepartIdEqualTo(did);
+            if (userName!=null){
+                criteria.andUserNameEqualTo(encryptedUserBo.getUserName());
+            }
+            if (mobile!=null){
+                criteria.andMobileEqualTo(encryptedUserBo.getMobile());
+            }
+            if (email!=null){
+                criteria.andEmailEqualTo(encryptedUserBo.getEmail());
+            }
+            newUserPos = newUserPoMapper.selectByExample(example);
+            // 验签
+            for(NewUserPo newUserPo: newUserPos){
+                if(null==baseCoder.decode_check(newUserPo,NewUserPo.class,codeFields,signFields,"signature")){
+                    logger.error(ReturnNo.RESOURCE_FALSIFY.getMessage());
+                    return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+                }
+            }
+            return new ReturnObject(newUserPos);
+        }catch (DataAccessException e){
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+    }
 }
 
