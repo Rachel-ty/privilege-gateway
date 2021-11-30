@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -110,9 +111,9 @@ public class UserDao{
     private final static String CAPTCHAKEY = "cp_%s";
 
     /**
+     * @author yue hao
      * @param id 用户ID
      * @return 用户的权限列表
-     * @author yue hao
      */
 
     public ReturnObject<List> findPrivsByUserId(Long id, Long did) {
