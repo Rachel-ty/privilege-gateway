@@ -1036,6 +1036,7 @@ public class UserDao{
     /**
      * 获取用户状态
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject getUserState(){
         List<Map<String, Object>> stateList = new ArrayList<>();
@@ -1052,6 +1053,7 @@ public class UserDao{
      * 修改用户信息
      * @param userBo
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject modifyUser(UserBo userBo){
         UserPo userPo = (UserPo) baseCoder.code_sign(userBo,UserPo.class,userCodeFields,userSignFields,"signature");
@@ -1085,6 +1087,7 @@ public class UserDao{
      * @param page
      * @param pageSize
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject selectAllUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
         UserPoExample example = new UserPoExample();

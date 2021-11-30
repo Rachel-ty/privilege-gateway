@@ -75,6 +75,7 @@ public class NewUserService {
      * @param page
      * @param pageSize
      * @return
+     * @author BingShuai Liu 22920192204245
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject<PageInfo<Object>> showNewUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
@@ -91,34 +92,6 @@ public class NewUserService {
         }
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(newUsers);
         return new ReturnObject(proxyRetVoPageInfo);
-    }
-
-    /**
-     * 管理员审核用户
-     * @param did
-     * @param id
-     * @param conclusionVo
-     * @return
-     */
-    @Transactional
-    public ReturnObject judgeUser(Long did, Long id, ConclusionVo conclusionVo, Long userId, String userName){
-        NewUserPo newUserPo = newUserDao.findNewUserById(id);
-        UserPo userPo = userDao.findUserById(userId);
-        if(newUserPo==null||userPo==null){
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        if (!newUserPo.getDepartId().equals(did)||!userPo.getDepartId().equals(did)){
-            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-        }
-        if (conclusionVo.getConclusion()){
-            ReturnObject ret = userDao.addUser(newUserPo,conclusionVo.getLevel(),userId,userName);
-            if(ret.getCode()== ReturnNo.OK){
-                newUserDao.physicallyDeleteUser(id);
-            }
-            return ret;
-        }else {
-            return newUserDao.physicallyDeleteUser(id);
-        }
     }
 
 }

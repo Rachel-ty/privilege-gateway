@@ -211,6 +211,17 @@ public class NewUserDao implements InitializingBean {
         return newUserPo;
     }
 
+    /**
+     * 获取新注册用户表
+     * @param did
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
     public ReturnObject selectAllNewUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
         NewUserPoExample example = new NewUserPoExample();
         NewUserPoExample.Criteria criteria= example.createCriteria();

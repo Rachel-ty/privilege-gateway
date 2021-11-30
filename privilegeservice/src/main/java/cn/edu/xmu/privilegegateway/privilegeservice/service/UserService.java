@@ -520,6 +520,7 @@ public class UserService {
     /**
      * 获取用户状态
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject getUserStates() {
@@ -530,6 +531,7 @@ public class UserService {
      * 查看单个用户信息
      * @param id
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject showUserInformation(Long id,Long did){
@@ -568,6 +570,7 @@ public class UserService {
      * 修改用户信息
      * @param id
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     @Transactional( rollbackFor = Exception.class)
     public ReturnObject modifyUserInformation(Long id,UserInformationVo userInformationVo,Long userId, String userName){
@@ -591,6 +594,7 @@ public class UserService {
      * @param page
      * @param pageSize
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject<PageInfo<Object>> showUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
@@ -631,6 +635,7 @@ public class UserService {
      * 获取用户名
      * @param id
      * @return
+     * @author BingShuai Liu 22920192204245
      */
     @Transactional( rollbackFor = Exception.class)
     public ReturnObject showUserName(Long id){
@@ -647,6 +652,13 @@ public class UserService {
         return ret;
     }
 
+    /**
+     * 上传头像
+     * @param id
+     * @param multipartFile
+     * @return
+     * @author Bingshuai Liu 22920192204245
+     */
     @Transactional
     public ReturnObject uploadNewImg(Long id, MultipartFile multipartFile){
         UserPo userPo= userDao.findUserById(id);
