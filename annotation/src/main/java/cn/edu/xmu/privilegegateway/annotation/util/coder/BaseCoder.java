@@ -93,7 +93,7 @@ public abstract class BaseCoder {
 
         if (signFields != null && signTarget != null) {
             // 生成签名
-            String signature = sign.getSignature(originObj, signFields);
+            String signature = sign.getSignature(target, signFields);
             try {
                 Field signatureField = target.getClass().getDeclaredField(signTarget);
                 signatureField.setAccessible(true);
@@ -155,8 +155,15 @@ public abstract class BaseCoder {
 
         if (signFields != null && signTarget != null) {
             // 校验签名
-            if (!sign.check(target, signFields, signTarget)) {
-                return null;
+            if (!sign.check(originObj, signFields, signTarget)) {
+                Field field = null;
+                try {
+                    field = target.getClass().getDeclaredField(signTarget);
+                    field.setAccessible(true);
+                    field.set(target, null);
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    logger.error("decode_check: 目标类中不存在给定的signTarget字段");
+                }
             }
         }
 
