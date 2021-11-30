@@ -526,7 +526,7 @@ public class UserService {
         return userDao.getUserState();
     }
 
-     /**
+    /**
      * 查看单个用户信息
      * @param id
      * @return
@@ -570,13 +570,14 @@ public class UserService {
      * @return
      */
     @Transactional( rollbackFor = Exception.class)
-    public ReturnObject modifyUserInformation(Long id,UserInformationVo userInformationVo){
+    public ReturnObject modifyUserInformation(Long id,UserInformationVo userInformationVo,Long userId, String userName){
         UserPo userPo= userDao.findUserById(id);
         if (userPo==null){
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         UserBo userBo = (UserBo)Common.cloneVo(userInformationVo,UserBo.class);
         userBo.setId(id);
+        Common.setPoModifiedFields(userBo,userId,userName);
         ReturnObject ret = userDao.modifyUser(userBo);
         return ret;
     }
