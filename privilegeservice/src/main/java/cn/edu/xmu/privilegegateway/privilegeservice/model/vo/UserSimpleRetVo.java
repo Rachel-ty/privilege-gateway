@@ -13,11 +13,14 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel
+@ApiModel("代理用户信息视图")
 public class UserSimpleRetVo {
     @ApiModelProperty(name = "用户id", value = "id")
     private Long id;
 
-    @ApiModelProperty(name = "用户名", value = "userName")
-    private String name;
+    @ApiModelProperty(name = "用户名", value = "name")
+    private String userName;
+
+    @ApiModelProperty(name = "签名", value = "sign")
+    private Integer sign;
 }

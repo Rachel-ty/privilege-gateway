@@ -25,24 +25,24 @@ public class NewUserVo {
     "^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,10}$"
      */
     @Length(min=6,message = "用户名长度过短")
-    @NotNull(message = "用户名不能为空")
+    @NotBlank(message = "用户名不能为空")
     private String userName;
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$",message = "密码格式不正确，请包含大小写字母数字及特殊符号")
-    @NotNull(message = "请输入密码")
+    @NotBlank(message = "请输入密码")
     private String password;
     @NotBlank(message = "名称不能为空")
     private String name;
-    //@URL(message = "URL格式不正确")
-    private String avatar;
     @Pattern(regexp="[+]?[0-9*#]+",message="手机号格式不正确")
-    @NotNull(message = "手机号不能为空")
+    @NotBlank(message = "手机号不能为空")
     private String mobile;
     @Email(message = "email格式不正确")
-    @NotNull(message = "email不能为空")
+    @NotBlank(message = "email不能为空")
     private String email;
-    @NotNull
-    private String openId;
     @NotNull(message = "部门id不能为空")
-    @Min(value = 0,message = "请输入正确的部门id")
+    @Min(value = -1,message = "请输入正确的部门id")
     private Long departId;
+    @NotBlank(message = "身份证号不能为空")
+    private String idNumber;
+    @NotBlank(message = "护照号不能为空")
+    private String passportNumber;
 }
