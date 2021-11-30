@@ -6,6 +6,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ApproveConclusionVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ConclusionVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -102,7 +103,7 @@ public class NewUserService {
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject approveUser(ApproveConclusionVo approve, Long did,Long id,Long loginUser,String loginName) {
+    public ReturnObject approveUser(ApproveConclusionVo approve, Long did, Long id, Long loginUser, String loginName) {
 
         ReturnObject returnObject = null;
         if ((newUserDao.checkUserDid(id, did) || did == Long.valueOf(0))) {

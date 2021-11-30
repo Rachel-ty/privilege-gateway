@@ -20,7 +20,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -72,14 +71,16 @@ public class UserDao{
 
     @Autowired
     private BaseCoder baseCoder;
+
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
-    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
-            "passportNumber"));
-    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
-            "passportNumber"));
+    //user表需要加密的全部字段
+    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
+    //user表校验的所有字段
+    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
+
     final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
     final static Collection<String> userProxyCodeFields = new ArrayList<>();
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
@@ -107,10 +108,6 @@ public class UserDao{
      * 验证码的redis key: cp_id
      */
     private final static String CAPTCHAKEY = "cp_%s";
-    //user表需要加密的全部字段
-   private Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
-   //user表校验的所有字段
-   private List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
 
     /**
      * @param id 用户ID
@@ -728,15 +725,13 @@ public class UserDao{
             }
             User user=new User(userPo);
 
-            userPo = (UserPo) coder.decode_check(userPo, UserPo.class, codeFields, signFields, "signature");
-
-            userPo.setName(userVo.getName());
-            userPo.setAvatar(userVo.getAvatar());
-            userPo.setIdNumber(userVo.getIdNumber());
-            userPo.setPassportNumber(userVo.getPassportNumber());
-            userPo.setLevel(userVo.getLevel());
-            Common.setPoModifiedFields(userPo,loginUser,loginName);
-            userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+            user.setName(userVo.getName());
+            user.setAvatar(userVo.getAvatar());
+            user.setIdNumber(userVo.getIdNumber());
+            user.setPassportNumber(userVo.getPassportNumber());
+            user.setLevel(userVo.getLevel());
+            Common.setPoModifiedFields(user,loginUser,loginName);
+            userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
 
             //更新修改
             ret = userMapper.updateByPrimaryKeySelective(userPo);
@@ -799,7 +794,7 @@ public class UserDao{
     private UserPo createUserStateModPo(Long id, User.State state) {
         // 查询密码等资料以计算新签名
         UserPo userPo = userMapper.selectByPrimaryKey(id);
-        userPo= (UserPo) coder.decode_check(userPo, UserPo.class, codeFields, signFields, "signature");
+        userPo= (UserPo) baseCoder.decode_check(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
         // 不修改已被逻辑废弃的账户的状态
         if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
             return null;
@@ -830,7 +825,7 @@ public class UserDao{
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         Common.setPoModifiedFields(po,loginUser,loginName);
-        po= (UserPo) coder.code_sign(po, UserPo.class, codeFields, signFields, "signature");
+        po= (UserPo) baseCoder.code_sign(po, UserPo.class, userCodeFields, userSignFields, "signature");
         ReturnObject<Object> retObj;
         int ret;
         try {
@@ -950,12 +945,12 @@ public class UserDao{
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
-        userpo = (UserPo) coder.decode_check(userpo, UserPo.class , codeFields, null, "signature");
+        userpo = (UserPo) baseCoder.decode_check(userpo, UserPo.class , userCodeFields, null, "signature");
         //新密码与原密码相同
         if (userpo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
         userpo.setPassword(modifyPwdVo.getNewPassword());
-        userpo = (UserPo) coder.code_sign(userpo, UserPo.class, codeFields, signFields, "signature");
+        userpo = (UserPo) baseCoder.code_sign(userpo, UserPo.class, userCodeFields, userSignFields, "signature");
         //更新数据库
         try {
             userMapper.updateByPrimaryKeySelective(userpo);
@@ -998,7 +993,7 @@ public class UserDao{
         UserPo userPo =(UserPo) Common.cloneVo(po,UserPo.class);
         Common.setPoCreatedFields(userPo,loginUser,loginName);
 
-        userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
 
         try {
             returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
@@ -1034,7 +1029,7 @@ public class UserDao{
             UserPo userPo=new UserPo();
             userPo.setDepartId(departId);
             Common.setPoModifiedFields(userPo,loginUser,loginName);
-            userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+            userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
 
             logger.debug("Update User: " + userId);
             int ret = userPoMapper.updateByPrimaryKeySelective(userPo);

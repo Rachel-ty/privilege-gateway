@@ -103,6 +103,14 @@ public class User implements VoObject {
 
     private Long modifierId;
 
+    private String creatorName;
+
+    private String modifierName;
+
+    private String idNumber;
+
+    private String passportNumber;
+
     private String signature;
 
     private String cacuSignature;
@@ -125,6 +133,9 @@ public class User implements VoObject {
             this.emailVerified = po.getEmailVerified() == 1;
         }
         this.name = AES.decrypt(po.getName(), AESPASS);
+        this.idNumber = AES.decrypt(po.getIdNumber(), AESPASS);
+        this.passportNumber = AES.decrypt(po.getPassportNumber(), AESPASS);
+        this.level=po.getLevel();
         this.avatar = po.getAvatar();
         this.lastLoginTime = po.getLastLoginTime();
         this.lastLoginIp = po.getLastLoginIp();
@@ -134,6 +145,9 @@ public class User implements VoObject {
         }
         this.departId = po.getDepartId();
         this.creatorId = po.getCreatorId();
+        this.creatorName=po.getCreatorName();
+        this.modifierId=po.getModifierId();
+        this.modifierName=po.getModifierName();
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
         this.signature = po.getSignature();

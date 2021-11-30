@@ -2,30 +2,36 @@ package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.*;
+import java.nio.charset.StandardCharsets;
+import javax.servlet.http.HttpServletRequest;
+
 
 /**
  * @author xiuchen lang 22920192204222
@@ -36,6 +42,8 @@ import java.lang.*;
 @SpringBootTest(classes = PrivilegeServiceApplication.class)
 public class PrivilegeControllerTest {
     private static String token;
+    private static String pToken;
+    private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
 
     @MockBean
@@ -50,6 +58,8 @@ public class PrivilegeControllerTest {
     @BeforeEach
     void init() {
         token = jwtHelper.createToken(46L, "lxc", 0L, 1, 36000);
+        pToken = jwtHelper.createToken(60L, "pikaas", 0L, 1, 36000);
+        adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 36000);
     }
 
     /**
