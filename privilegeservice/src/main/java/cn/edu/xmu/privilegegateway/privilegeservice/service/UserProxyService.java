@@ -54,8 +54,8 @@ public class UserProxyService {
         UserProxyRetVo userProxyRetVo = (UserProxyRetVo) Common.cloneVo(userProxy, UserProxyRetVo.class);
         ReturnObject<User> user = userDao.getUserById(userProxy.getUserId());
         ReturnObject<User> proxyUser = userDao.getUserById(userProxy.getProxyUserId());
-//        userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName()));
-//        userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
+        userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName()));
+        userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
         return new ReturnObject(userProxyRetVo);
     }
 
@@ -77,8 +77,8 @@ public class UserProxyService {
             UserProxyRetVo userProxyRetVo = (UserProxyRetVo) Common.cloneVo(userProxy, UserProxyRetVo.class);
             ReturnObject<User> user = userDao.getUserById(userProxy.getUserId());
             ReturnObject<User> proxyUser = userDao.getUserById(userProxy.getProxyUserId());
-//            userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName()));
-//            userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
+            userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName()));
+            userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
             userProxyRetVos.add(userProxyRetVo);
         }
         data.put("list", userProxyRetVos);
