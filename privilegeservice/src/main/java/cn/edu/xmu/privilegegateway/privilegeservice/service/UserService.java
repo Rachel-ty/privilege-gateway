@@ -526,7 +526,7 @@ public class UserService {
         return userDao.getUserState();
     }
 
-    /**
+     /**
      * 查看单个用户信息
      * @param id
      * @return
@@ -543,20 +543,14 @@ public class UserService {
             }
         }
         UserBo userBo =( UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        if(null==userBo){
-            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-        }
         UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
-        userRetVo.setSign(0);
+        userRetVo.setSign(userBo!=null?0:1);
         UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
         if (null==creatorPo){
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        if(null==creator){
-            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-        }
-        UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),0);
+        UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),creator!=null?0:1);
         userRetVo.setCreator(creatorSimpleRetVo);
         if(userPo.getModifierId()!=null){
             UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
@@ -564,10 +558,7 @@ public class UserService {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
             UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            if(null==modifier){
-                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-            }
-            UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),0);
+            UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),modifier!=null?0:1);
             userRetVo.setModifier(modifierSimpleRetVo);
         }
         return new ReturnObject(userRetVo);
@@ -584,19 +575,8 @@ public class UserService {
         if (userPo==null){
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
-        UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        if(null!=userInformationVo.getName()){
-            userBo.setName(userInformationVo.getName());
-        }
-        if(null!=userInformationVo.getAvatar()){
-            userBo.setAvatar(userInformationVo.getAvatar());
-        }
-        if(null!=userInformationVo.getIdNumber()){
-            userBo.setIdNumber(userInformationVo.getIdNumber());
-        }
-        if(null!=userInformationVo.getPassportNumber()){
-            userBo.setPassportNumber(userInformationVo.getPassportNumber());
-        }
+        UserBo userBo = (UserBo)Common.cloneVo(userInformationVo,UserBo.class);
+        userBo.setId(id);
         ReturnObject ret = userDao.modifyUser(userBo);
         return ret;
     }
@@ -621,20 +601,14 @@ public class UserService {
         List<Object> userRetVos = new ArrayList<>();
         for (UserPo userPo:userPos){
             UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            if(null==userBo){
-                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-            }
             UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
-            userRetVo.setSign(0);
+            userRetVo.setSign(userBo!=null?0:1);
             UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
             if (null==creatorPo){
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
             UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            if(null==creator){
-                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-            }
-            UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),0);
+            UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),creator!=null?0:1);
             userRetVo.setCreator(creatorSimpleRetVo);
             if(userPo.getModifierId()!=null){
                 UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
@@ -642,10 +616,7 @@ public class UserService {
                     return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
                 }
                 UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
-                if(null==modifier){
-                    return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-                }
-                UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),0);
+                UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),modifier!=null?0:1);
                 userRetVo.setModifier(modifierSimpleRetVo);
             }
             userRetVos.add(userRetVo);
@@ -653,6 +624,7 @@ public class UserService {
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(userRetVos);
         return new ReturnObject(proxyRetVoPageInfo);
     }
+
 
     /**
      * 获取用户名
