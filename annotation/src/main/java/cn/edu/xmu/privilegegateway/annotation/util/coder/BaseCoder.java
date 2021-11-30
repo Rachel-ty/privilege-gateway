@@ -80,22 +80,34 @@ public abstract class BaseCoder {
                 field.set(target, encryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.info("code_sign: 给定的加密字段不存在，已跳过该字段");
-                continue;
             }
         }
 
-        // 生成签名
-        String signature = sign.getSignature(originObj, signFields);
-        try {
-            Field signatureField = target.getClass().getDeclaredField(signTarget);
-            signatureField.setAccessible(true);
-            signatureField.set(target, signature);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            logger.error("code_sign: 指定的签名字段不存在，存放签名失败:", e.getMessage());
-            return null;
+        if (signFields != null && signTarget != null) {
+            // 生成签名
+            String signature = sign.getSignature(originObj, signFields);
+            try {
+                Field signatureField = target.getClass().getDeclaredField(signTarget);
+                signatureField.setAccessible(true);
+                signatureField.set(target, signature);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                logger.error("code_sign: 指定的签名字段不存在，存放签名失败:", e.getMessage());
+                return null;
+            }
         }
 
         return target;
+    }
+
+    /**
+     * 加密
+     * @param originObj 原始对象
+     * @param targetClass   目标对象类型
+     * @param codeFields 加密属性
+     * @return 加密好的目标对象类型
+     */
+    public Object code(Object originObj, Class targetClass, Collection<String> codeFields) {
+        return code_sign(originObj, targetClass, codeFields, null, null);
     }
 
     /**
@@ -103,8 +115,8 @@ public abstract class BaseCoder {
      * @param originObj 原始对象
      * @param targetClass   目标对象类型
      * @param codeFields 加密属性
-     * @param signFields 签名属性
-     * @param signTarget 签名字段
+     * @param signFields 签名属性 null代表不检验签名
+     * @param signTarget 签名字段 null代表不检验签名
      * @return null代表信息已被篡改
      */
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
@@ -120,16 +132,29 @@ public abstract class BaseCoder {
                 field.set(target, decryptValue);
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 logger.info("decode_check: 给定的解密字段不存在，已跳过该字段");
-                continue;
             }
         }
 
         logger.info(String.format("decode_check: 解密后的结果 target= %s", target.toString()));
-        // 校验签名
-        if (!sign.check(target, signFields, signTarget)) {
-            return null;
+
+        if (signFields != null && signTarget != null) {
+            // 校验签名
+            if (!sign.check(target, signFields, signTarget)) {
+                return null;
+            }
         }
 
         return target;
+    }
+
+    /**
+     * 解密
+     * @param originObj 原始对象
+     * @param targetClass   目标对象类型
+     * @param codeFields 加密属性
+     * @return 解密后的对象
+     */
+    public Object decode(Object originObj, Class targetClass, Collection<String> codeFields) {
+        return decode_check(originObj, targetClass, codeFields, null, null);
     }
 }

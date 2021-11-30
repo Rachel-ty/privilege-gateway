@@ -22,14 +22,11 @@ public class UserVo {
     @ApiModelProperty(value = "用户头像 URL")
     private String avatar;
 
-    @Pattern(regexp = "[+]?[0-9*#]+",
-            message = "手机号码格式不正确")
-    @ApiModelProperty(value = "用户手机号")
-    private String mobile;
-
-    @Pattern(regexp = "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
-            message = "Email 格式不正确")
-    @ApiModelProperty(value = "用户 Email 地址")
-    private String email;
+    @ApiModelProperty(value = "用户身份证号")
+    private String idNumber;
+    @ApiModelProperty(value = "护照号")
+    private String passportNumber;
+    @ApiModelProperty(value = "用户等级")
+    private Integer level;
 
 }

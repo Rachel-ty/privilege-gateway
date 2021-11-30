@@ -245,7 +245,6 @@ public class PrivilegeControllerTest {
     }
     @Test
     public void testModifyPassword() throws Exception {
-
         String contentJson1="{\n" +
                 "  \"name\": \"minge@163.com\",\n" +
                 "  \"captcha\": \"123456\",\n" +
@@ -258,9 +257,151 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(responseString1);
-//        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString1, responseString1, true);
+        String expectString1 = "{\"errno\":741,\"errmsg\":\"不能与旧密码相同\"}}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyPassword2() throws Exception {
+        String contentJson1="{\n" +
+                "  \"name\": \"minge@163.com\",\n" +
+                "  \"captcha\": \"123456\",\n" +
+                "  \"newPassword\": \"12345678\"\n" +
+                "}";
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(1L);
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
+        String responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+
+    @Test
+    public void testReleaseUser() throws Exception {
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        String responseString1 = mvc.perform(put("/departs/1/users/57/release")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyUserInfo() throws Exception {
+        String contentJson1="{\n" +
+                "  \"name\": \"jxy\",\n" +
+                "  \"avatar\": \"1.jpg\",\n" +
+                "  \"idNumber\": \"430124200000000000\",\n" +
+                "  \"passportNumber\": \"123456\",\n" +
+                "  \"level\": 0\n" +
+                "}";
+        String responseString1 = mvc.perform(put("/departs/0/users/61")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyUserInfo2() throws Exception {
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        String contentJson1="{\n" +
+                "  \"name\": \"jxy\",\n" +
+                "  \"avatar\": \"1.jpg\",\n" +
+                "  \"idNumber\": \"430124200000000000\",\n" +
+                "  \"passportNumber\": \"123456\",\n" +
+                "  \"level\": 0\n" +
+                "}";
+
+        String responseString1 = mvc.perform(put("/departs/1/users/57")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testDeleteUser() throws Exception {
+        String responseString1 = mvc.perform(delete("/departs/0/users/61")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testForbidUser() throws Exception {
+        String responseString1 = mvc.perform(put("/departs/0/users/61/forbid")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+        responseString1 = mvc.perform(put("/departs/0/users/61/release")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+       expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testApproveUser() throws Exception {
+        String contentJson1="{\"approve\": \"true\"}";
+
+        String responseString1 = mvc.perform(put("/departs/0/users/1/approve")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+    @Test
+    public void testApproveUser2() throws Exception {
+        String contentJson1="{\"approve\": \"false\"}";
+        String responseString1 = mvc.perform(put("/departs/0/users/1/approve")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+
+    @Test
+    public void testAddToDepart() throws Exception {
+        String responseString1 = mvc.perform(put("/internal/users/60/departs/0")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+
+        expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        responseString1 = mvc.perform(put("/internal/users/60/departs/1")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+        token = jwtHelper.createToken(6L, "jxy", 0L, 1, 36000);
+        responseString1 = mvc.perform(put("/internal/users/1/departs/0")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+
 
     }
-}

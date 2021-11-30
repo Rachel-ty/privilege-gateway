@@ -73,6 +73,7 @@ public class UserDao {
     @Autowired
     BaseCoder coder;
 
+
 //    @Autowired
 //    private JavaMailSender mailSender;
 
@@ -93,6 +94,10 @@ public class UserDao {
      * 验证码的redis key: cp_id
      */
     private final static String CAPTCHAKEY = "cp_%s";
+    //user表需要加密的全部字段
+   private Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
+   //user表校验的所有字段
+   private List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
 
     /**
      * @param id 用户ID
@@ -718,48 +723,43 @@ public class UserDao {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> modifyUserByVo(Long id, UserVo userVo) {
-        // 查询密码等资料以计算新签名
-        UserPo orig = userMapper.selectByPrimaryKey(id);
-        // 不修改已被逻辑废弃的账户
-        if (orig == null || (orig.getState() != null && User.State.getTypeByCode(orig.getState().intValue()) == User.State.DELETE)) {
-            logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
-        // 构造 User 对象以计算签名
-        User user = new User(orig);
-        UserPo po = user.createUpdatePo(userVo);
-
-        // 将更改的联系方式 (如发生变化) 的已验证字段改为 false
-        if (userVo.getEmail() != null && !userVo.getEmail().equals(user.getEmail())) {
-            po.setEmailVerified((byte) 0);
-        }
-        if (userVo.getMobile() != null && !userVo.getMobile().equals(user.getMobile())) {
-            po.setMobileVerified((byte) 0);
-        }
-
+    public ReturnObject<Object> modifyUserByVo(Long did,Long id, UserVo userVo,Long loginUser,String loginName) {
         // 更新数据库
         ReturnObject<Object> retObj;
         int ret;
-        try {
-            ret = userMapper.updateByPrimaryKeySelective(po);
-        } catch (DataAccessException e) {
-            // 如果发生 Exception，判断是邮箱还是啥重复错误
-            if (Objects.requireNonNull(e.getMessage()).contains("auth_user.auth_user_mobile_uindex")) {
-                logger.info("电话重复：" + userVo.getMobile());
-                retObj = new ReturnObject<>(ReturnNo.MOBILE_REGISTERED);
-            } else if (e.getMessage().contains("auth_user.auth_user_email_uindex")) {
-                logger.info("邮箱重复：" + userVo.getEmail());
-                retObj = new ReturnObject<>(ReturnNo.EMAIL_REGISTERED);
-            } else {
-                // 其他情况属未知错误
-                logger.error("数据库错误：" + e.getMessage());
-                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                        String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        if (!checkUserDid(id, did)&&did != Long.valueOf(0)) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
+        try{
+            // 查询密码等资料以计算新签名
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
+            // 不修改已被逻辑废弃的账户
+            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
+                logger.info("用户不存在或已被删除：id = " + id);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
-            return retObj;
+            User user=new User(userPo);
+
+            userPo = (UserPo) coder.decode_check(userPo, UserPo.class, codeFields, signFields, "signature");
+
+            userPo.setName(userVo.getName());
+            userPo.setAvatar(userVo.getAvatar());
+            userPo.setIdNumber(userVo.getIdNumber());
+            userPo.setPassportNumber(userVo.getPassportNumber());
+            userPo.setLevel(userVo.getLevel());
+            Common.setPoModifiedFields(userPo,loginUser,loginName);
+            userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+
+            //更新修改
+            ret = userMapper.updateByPrimaryKeySelective(userPo);
+            } catch (DataAccessException e) {
+                    // 其他情况属未知错误
+                    logger.error("数据库错误：" + e.getMessage());
+                    retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                            String.format("发生了严重的数据库错误：%s", e.getMessage()));
+                return retObj;
         } catch (Exception e) {
             // 其他 Exception 即属未知错误
             logger.error("严重错误：" + e.getMessage());
@@ -808,22 +808,18 @@ public class UserDao {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     private UserPo createUserStateModPo(Long id, User.State state) {
         // 查询密码等资料以计算新签名
-        UserPo orig = userMapper.selectByPrimaryKey(id);
+        UserPo userPo = userMapper.selectByPrimaryKey(id);
+        userPo= (UserPo) coder.decode_check(userPo, UserPo.class, codeFields, signFields, "signature");
         // 不修改已被逻辑废弃的账户的状态
-        if (orig == null || (orig.getState() != null && User.State.getTypeByCode(orig.getState().intValue()) == User.State.DELETE)) {
+        if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
             return null;
         }
-
-        // 构造 User 对象以计算签名
-        User user = new User(orig);
-        user.setState(state);
-        // 构造一个全为 null 的 vo 因为其他字段都不用更新
-        UserVo vo = new UserVo();
-
-        return user.createUpdatePo(vo);
+        userPo.setState(state.getCode().byteValue());
+        return userPo;
     }
 
     /**
@@ -835,14 +831,20 @@ public class UserDao {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> changeUserState(Long id, User.State state) {
+    public ReturnObject<Object> changeUserState(Long did,Long id,Long loginUser,String loginName, User.State state) {
+        if (!checkUserDid(id, did) &&did != Long.valueOf(0)) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
+
         UserPo po = createUserStateModPo(id, state);
         if (po == null) {
             logger.info("用户不存在或已被删除：id = " + id);
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
-
+        Common.setPoModifiedFields(po,loginUser,loginName);
+        po= (UserPo) coder.code_sign(po, UserPo.class, codeFields, signFields, "signature");
         ReturnObject<Object> retObj;
         int ret;
         try {
@@ -865,6 +867,7 @@ public class UserDao {
             retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
+
         return retObj;
     }
 
@@ -893,8 +896,10 @@ public class UserDao {
         }
 
         //验证邮箱、手机号
+
         UserPoExample userPoExample1 = new UserPoExample();
         List<UserPo> userPo1 = null;
+
         try {
             UserPoExample.Criteria criteria_email = userPoExample1.createCriteria();
             criteria_email.andEmailEqualTo(AES.encrypt(vo.getName(), User.AESPASS));
@@ -904,7 +909,6 @@ public class UserDao {
             userPo1 = userMapper.selectByExample(userPoExample1);
             if (userPo1.isEmpty()) {
              return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
-
             }
 
         } catch (Exception e) {
@@ -915,7 +919,7 @@ public class UserDao {
 
         //随机生成验证码
         String captcha = RandomCaptcha.getRandomString(6);
-        while (redisTemplate.hasKey(captcha))
+        while (redisUtil.hasKey(captcha))
             captcha = RandomCaptcha.getRandomString(6);
 
         String id = userPo1.get(0).getId().toString();
@@ -957,28 +961,21 @@ public class UserDao {
         if (!redisUtil.hasKey(key))
             return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
         Long id = (Long) redisUtil.get(key);
-System.out.println(id);
         UserPo userpo = null;
         try {
             userpo = userPoMapper.selectByPrimaryKey(id);
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
-
-        Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password"));
-        List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
-        User user1 = (User) coder.decode_check(userpo, User.class , codeFields, null, "signature");
-System.out.println(user1.getPassword());
+        userpo = (UserPo) coder.decode_check(userpo, UserPo.class , codeFields, null, "signature");
         //新密码与原密码相同
-        if (user1.getPassword().equals(modifyPwdVo.getNewPassword()))
+        if (userpo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
-        user1.setPassword(modifyPwdVo.getNewPassword());
-        UserPo userPo = (UserPo) coder.code_sign(user1, User.class, codeFields, signFields, "signature");
-        System.out.println(userPo.getPassword());
-
+        userpo.setPassword(modifyPwdVo.getNewPassword());
+        userpo = (UserPo) coder.code_sign(userpo, UserPo.class, codeFields, signFields, "signature");
         //更新数据库
         try {
-            userMapper.updateByPrimaryKeySelective(userPo);
+            userMapper.updateByPrimaryKeySelective(userpo);
         } catch (Exception e) {
             e.printStackTrace();
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
@@ -1012,17 +1009,15 @@ System.out.println(user1.getPassword());
      * 创建user
      * <p>
      * createdBy Li Zihan 243201822032227
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject addUser(NewUserPo po) {
+    public ReturnObject addUser(NewUserPo po,Long loginUser,String loginName) {
         ReturnObject returnObject = null;
-        UserPo userPo = new UserPo();
-        userPo.setEmail(AES.encrypt(po.getEmail(), User.AESPASS));
-        userPo.setMobile(AES.encrypt(po.getMobile(), User.AESPASS));
-        userPo.setUserName(po.getUserName());
-        userPo.setAvatar(po.getAvatar());
-        userPo.setDepartId(po.getDepartId());
-        userPo.setOpenId(po.getOpenId());
-        userPo.setGmtCreate(LocalDateTime.now());
+        UserPo userPo =(UserPo) Common.cloneVo(po,UserPo.class);
+        Common.setPoCreatedFields(userPo,loginUser,loginName);
+
+        userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+
         try {
             returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
             logger.debug("success insert User: " + userPo.getId());
@@ -1050,14 +1045,18 @@ System.out.println(user1.getPassword());
      * @Return:
      * @Author: Yifei Wang
      * @Date: 2020/12/8 11:35
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject changeUserDepart(Long userId, Long departId) {
-        UserPo po = new UserPo();
-        po.setId(userId);
-        po.setDepartId(departId);
+    public ReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
+
         try {
+            UserPo userPo=new UserPo();
+            userPo.setDepartId(departId);
+            Common.setPoModifiedFields(userPo,loginUser,loginName);
+            userPo = (UserPo) coder.code_sign(userPo, UserPo.class, codeFields, signFields, "signature");
+
             logger.debug("Update User: " + userId);
-            int ret = userPoMapper.updateByPrimaryKeySelective(po);
+            int ret = userPoMapper.updateByPrimaryKeySelective(userPo);
             if (ret == 0) {
                 return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
             }
@@ -1067,6 +1066,21 @@ System.out.println(user1.getPassword());
             logger.error("exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
+    }
+    /**
+     * 功能描述: 将用户加入部门
+     *
+     * @Param: userId departId
+     * Create by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    public InternalReturnObject addUserToDepart(Long userId, Long departId,Long loginUser,String loginName) {
+            UserPo userPo = userMapper.selectByPrimaryKey(userId);
+            if(userPo.getDepartId()!=-1)
+            {
+                return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+            }
+          ReturnObject ret= changeUserDepart(userId,departId,loginUser,loginName);
+            return new InternalReturnObject(ret.getData());
     }
 }
 

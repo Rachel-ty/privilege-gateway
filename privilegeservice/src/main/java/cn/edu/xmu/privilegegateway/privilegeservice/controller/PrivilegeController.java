@@ -552,6 +552,7 @@ public class PrivilegeController {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:20
      * Modified by 19720182203919 李涵 at 2020/11/8 0:19
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value = "修改任意用户信息")
     @ApiImplicitParams({
@@ -559,13 +560,11 @@ public class PrivilegeController {
             @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
     })
     @ApiResponses({
-            @ApiResponse(code = 732, message = "邮箱已被注册"),
-            @ApiResponse(code = 733, message = "电话已被注册"),
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit // 需要认证
-    @PutMapping("adminusers/{id}")
-    public Object modifyUserInfo(@PathVariable Long id, @Validated @RequestBody UserVo vo, BindingResult bindingResult) {
+    @Audit(departName = "departs") // 需要认证
+    @PutMapping("/departs/{did}/users/{id}")
+    public Object modifyUserInfo(@PathVariable Long did,@PathVariable Long id, @Validated @RequestBody UserVo vo, BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
         }
@@ -575,7 +574,7 @@ public class PrivilegeController {
             logger.info("incorrect data received while modifyUserInfo id = " + id);
             return returnObject;
         }
-        ReturnObject returnObj = userService.modifyUserInfo(id, vo);
+        ReturnObject returnObj = userService.modifyUserInfo(did,id, vo,loginUser,loginName);
         return Common.decorateReturnObject(returnObj);
     }
 
@@ -586,6 +585,7 @@ public class PrivilegeController {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:20
      * Modified by 19720182203919 李涵 at 2020/11/8 0:19
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value = "删除任意用户")
     @ApiImplicitParams({
@@ -595,13 +595,13 @@ public class PrivilegeController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit // 需要认证
-    @DeleteMapping("adminusers/{id}")
-    public Object deleteUser(@PathVariable Long id) {
+    @Audit(departName = "departs") // 需要认证
+    @DeleteMapping("/departs/{did}/users/{id}")
+    public Object deleteUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("deleteUser: id = "+ id);
         }
-        ReturnObject returnObject = userService.deleteUser(id);
+        ReturnObject returnObject = userService.deleteUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -612,6 +612,7 @@ public class PrivilegeController {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:20
      * Modified by 19720182203919 李涵 at 2020/11/8 0:19
+     *Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value = "禁止用户登录")
     @ApiImplicitParams({
@@ -621,25 +622,26 @@ public class PrivilegeController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit // 需要认证
-    @PutMapping("/shops/{did}/adminusers/{id}/forbid")
-    public Object forbidUser(@PathVariable Long id) {
+    @Audit(departName = "departs") // 需要认证
+    @PutMapping("/departs/{did}/users/{id}/forbid")
+    public Object forbidUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("forbidUser: id = "+ id);
         }
-        ReturnObject returnObject = userService.forbidUser(id);
+        ReturnObject returnObject = userService.forbidUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
 
     /**
-     * auth009: 恢复用户
+     * auth009: 解禁用户
      * @param id: 用户 id
      * @return Object
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:20
      * Modified by 19720182203919 李涵 at 2020/11/8 0:19
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    @ApiOperation(value = "恢复用户")
+    @ApiOperation(value = "解禁用户")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
             @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path")
@@ -647,13 +649,13 @@ public class PrivilegeController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit // 需要认证
-    @PutMapping("/shops/{did}/adminusers/{id}/release")
-    public Object releaseUser(@PathVariable Long id) {
+    @Audit(departName = "departs") // 需要认证
+    @PutMapping("/departs/{did}/users/{id}/release")
+    public Object releaseUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("releaseUser: id = "+ id);
         }
-        ReturnObject returnObject = userService.releaseUser(id);
+        ReturnObject returnObject = userService.releaseUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -911,6 +913,7 @@ public class PrivilegeController {
      * @return Object
      * @author 24320182203175 陈晓如
      * Created at 2020/11/11 11:22
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value = "修改自己的信息")
     @ApiImplicitParams({
@@ -926,7 +929,7 @@ public class PrivilegeController {
     @Audit
     @PutMapping("adminusers")
     public Object changeMyAdminselfInfo(@LoginUser @ApiIgnore @RequestParam(required = false) Long id,
-                                        @Validated @RequestBody UserVo vo, BindingResult bindingResult) {
+                                        @Validated @RequestBody UserVo vo, BindingResult bindingResult,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
         }
@@ -936,7 +939,7 @@ public class PrivilegeController {
             logger.info("incorrect data received while modifySelfInfo id = " + id);
             return returnObject;
         }
-        ReturnObject returnObj = userService.modifyUserInfo(id, vo);
+        ReturnObject returnObj = userService.modifyUserInfo(id,id, vo,id,loginName);
         return Common.decorateReturnObject(returnObj);
     }
 
@@ -1080,6 +1083,7 @@ public class PrivilegeController {
      * @param bindingResult 校验信息
      * @return Object
      * @author 24320182203227 LiZihan
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @ApiOperation(value = "管理员审核用户")
     @ApiImplicitParams({
@@ -1090,25 +1094,48 @@ public class PrivilegeController {
 
     })
     @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 503, message = "字段不合法"),
-            @ApiResponse(code = 705, message = "无权限访问")
+            @ApiResponse(code = 0, message = "成功")
     })
-    @Audit // 需要认证
-    @PutMapping("shops/{did}/adminusers/{id}/approve")
-    public Object approveUser(@PathVariable Long id,@PathVariable Long did, BindingResult bindingResult,@RequestBody Boolean approve,@Depart Long shopid) {
-        logger.debug("approveUser: did = "+ did+" userid: id = "+ id+" opinion: "+approve);
-        ReturnObject returnObject=null;
-        if(did==0|| did.equals(shopid))
-        {
-            returnObject=newUserService.approveUser(approve,id);
+    @Audit(departName = "departs") // 需要认证
+    @PutMapping("/departs/{did}/users/{id}/approve")
+    public Object approveUser(@PathVariable Long id,@PathVariable Long did,@RequestBody ApproveConclusionVo vo,BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("approveUser: did = "+ did+" userid: id = "+ id+" opinion: "+vo);
         }
-        else
-        {
-            logger.error("approveUser: 无权限查看此部门的用户 did=" + did);
-            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
+        // 校验前端数据
+        Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (returnObject != null) {
+            logger.info("incorrect data received while approveUser id = " + id);
+            return returnObject;
         }
-        return returnObject;
+        ReturnObject returnObj = newUserService.approveUser(vo,did,id,loginUser,loginName);;
+        return Common.decorateReturnObject(returnObj);
+    }
+
+    /**
+     * auth014: 将某个用户加入部门
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    @ApiOperation(value = "将用户加入部门")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", required = true, dataType="Integer", paramType="path"),
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @Audit(departName = "departs") // 需要认证
+    @PutMapping("/internal/users/{id}/departs/{did}")
+    public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@LoginUser Long loginUser,@LoginName String loginName) {
+        if(did!=0)
+        {
+            return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+        }
+       InternalReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
+        return returnObj;
     }
 
 }

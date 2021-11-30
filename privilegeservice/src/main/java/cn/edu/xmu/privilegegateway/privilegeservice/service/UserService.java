@@ -65,6 +65,10 @@ public class UserService {
     @Autowired
     private RedisUtil redisUtil;
     /**
+     * 最终用户的redis key: up_id
+     */
+    private final static String USERPROXYKEY = "up_%d";
+    /**
      * @author yue hao
      * 根据用户Id查询用户所有权限
      * @param id:用户id
@@ -393,10 +397,11 @@ public class UserService {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject<Object> modifyUserInfo(Long id, UserVo vo) {
-        return userDao.modifyUserByVo(id, vo);
+    public ReturnObject<Object> modifyUserInfo(Long did,Long id, UserVo vo,Long loginUser,String loginName) {
+            return userDao.modifyUserByVo(did,id, vo,loginUser,loginName);
     }
 
     /**
@@ -406,11 +411,32 @@ public class UserService {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject<Object> deleteUser(Long id) {
-        // 注：逻辑删除
-        return userDao.changeUserState(id, User.State.DELETE);
+    public ReturnObject<Object> deleteUser(Long did,Long id,Long loginUser,String loginName) {
+
+            // 注：逻辑删除
+            ReturnObject ret=userDao.changeUserState(did,id,loginUser,loginName ,User.State.DELETE);
+
+            String key =  String.format(USERPROXYKEY, id);
+            logger.debug("login: key = "+ key);
+            if(redisUtil.hasKey(key)){
+                Set<Serializable > set = redisUtil.getSet(key);
+                redisUtil.del(key);
+                /* 将旧JWT加入需要踢出的集合 */
+                String jwt = null;
+                for (Serializable str : set) {
+                    /* 找出JWT */
+                    if((str.toString()).length() > 8){
+                        jwt =  str.toString();
+                        break;
+                    }
+                }
+                logger.debug("login: oldJwt" + jwt);
+                this.banJwt(jwt);
+            }
+            return ret;
     }
 
     /**
@@ -420,10 +446,30 @@ public class UserService {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject<Object> forbidUser(Long id) {
-        return userDao.changeUserState(id, User.State.FORBID);
+    public ReturnObject<Object> forbidUser(Long did,Long id,Long loginUser,String loginName) {
+
+            ReturnObject ret=userDao.changeUserState(did,id,loginUser,loginName, User.State.FORBID);
+            String key =  String.format(USERPROXYKEY, id);
+            logger.debug("login: key = "+ key);
+            if(redisUtil.hasKey(key)){
+                Set<Serializable > set = redisUtil.getSet(key);
+                redisUtil.del(key);
+                /* 将旧JWT加入需要踢出的集合 */
+                String jwt = null;
+                for (Serializable str : set) {
+                    /* 找出JWT */
+                    if((str.toString()).length() > 8){
+                        jwt =  str.toString();
+                        break;
+                    }
+                }
+                logger.debug("login: oldJwt" + jwt);
+                this.banJwt(jwt);
+            }
+            return ret;
     }
 
     /**
@@ -433,10 +479,12 @@ public class UserService {
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject<Object> releaseUser(Long id) {
-        return userDao.changeUserState(id, User.State.NORM);
+    public ReturnObject<Object> releaseUser(Long did,Long id,Long loginUser,String loginName) {
+            return userDao.changeUserState(did,id,loginUser,loginName, User.State.NORM);
+
     }
 
     /**
@@ -510,6 +558,17 @@ public class UserService {
         return userDao.modifyPassword(vo);
     }
 
+    /**
+     * 业务: 将用户加入部门
+     * @param id 用户 id
+     * @return 返回对象 InternalReturnObject
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    @Transactional
+    public  InternalReturnObject<Object> addToDepart(Long did,Long id,Long loginUser,String loginName) {
+
+        return userDao.addUserToDepart(id,did,loginUser,loginName);
+    }
     
     
 }

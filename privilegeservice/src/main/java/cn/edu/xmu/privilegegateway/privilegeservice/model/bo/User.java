@@ -101,6 +101,8 @@ public class User implements VoObject {
 
     private Long creatorId;
 
+    private Long modifierId;
+
     private String signature;
 
     private String cacuSignature;
@@ -182,8 +184,8 @@ public class User implements VoObject {
      */
     public UserPo createUpdatePo(UserVo vo) {
         String nameEnc = vo.getName() == null ? null : AES.encrypt(vo.getName(), User.AESPASS);
-        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
-        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
+        String mobEnc = null;
+        String emlEnc = null;
         Byte state = (byte) this.state.code;
 
         UserPo po = new UserPo();

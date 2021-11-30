@@ -3,6 +3,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
@@ -201,6 +202,23 @@ public class NewUserDao implements InitializingBean {
             logger.error("getNewUser: 新用户数据库不存在该用户 userid=" + id);
         }
         return newUserPo;
+    }
+    /**
+     * @param userid   新用户id
+     * @param departid 路径上的departid
+     * @return boolean
+     * @description 检查用户的departid是否与路径上的一致
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    public boolean checkUserDid(Long userid, Long departid) {
+        NewUserPo newUserPo = newUserPoMapper.selectByPrimaryKey(userid);
+        if (newUserPo == null) {
+            return false;
+        }
+        if (newUserPo.getDepartId() != departid) {
+            return false;
+        }
+        return true;
     }
 
 }
