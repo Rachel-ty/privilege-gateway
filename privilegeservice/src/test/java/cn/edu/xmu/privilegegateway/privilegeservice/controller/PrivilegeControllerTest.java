@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
 
+
 /**
  * @author xiuchen lang 22920192204222
  * @date 2021/11/25 14:07
@@ -291,7 +292,7 @@ public class PrivilegeControllerTest {
     @Test
     public void modifyUserInformation() throws Exception {
         String contentJson = "{\n" +
-                    "  \"name\": \"pikaaa\",\n" +
+                "  \"name\": \"pikaaa\",\n" +
                 "  \"avatar\": \"12345644\",\n" +
                 "  \"idNumber\": \"220723246\",\n" +
                 "  \"passportNumber\": \"89789132132\"\n" +
