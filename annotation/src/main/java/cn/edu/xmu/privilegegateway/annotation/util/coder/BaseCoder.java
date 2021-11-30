@@ -60,10 +60,10 @@ public abstract class BaseCoder {
     /**
      * 加密并签名
      * @param originObj 原始对象
-     * @param targetClass   目标对象类型
-     * @param codeFields 加密属性
-     * @param signFields 签名属性 null代表不生成签名
-     * @param signTarget 签名字段 null代表不生成签名
+     * @param targetClass 目标对象类型，如果null表示不拷贝生成新对象
+     * @param codeFields 加密属性 如果null 表示无加密属性
+     * @param signFields 签名属性 null代表不检验签名
+     * @param signTarget 签名字段 null代表不检验签名
      * @return 加密签名好的目标对象类型
      */
     public Object code_sign(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
@@ -113,11 +113,11 @@ public abstract class BaseCoder {
     /**
      * 解密并验证签名
      * @param originObj 原始对象
-     * @param targetClass   目标对象类型
-     * @param codeFields 加密属性
+     * @param targetClass   目标对象类型 null表示不拷贝对象
+     * @param codeFields 加密属性 null表示无加密属性
      * @param signFields 签名属性 null代表不检验签名
      * @param signTarget 签名字段 null代表不检验签名
-     * @return null代表信息已被篡改
+     * @return 签名错误也需要返回data对象
      */
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
         Object target = Common.cloneVo(originObj, targetClass);
