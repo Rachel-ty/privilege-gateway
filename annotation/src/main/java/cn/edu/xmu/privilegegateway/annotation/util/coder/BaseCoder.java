@@ -117,7 +117,7 @@ public abstract class BaseCoder {
      * @param codeFields 加密属性 null表示无加密属性
      * @param signFields 签名属性 null代表不检验签名
      * @param signTarget 签名字段 null代表不检验签名
-     * @return 签名错误也需要返回data对象
+     * @return 如果targetClass传入是null，返回originObj， 签名错误也需要返回data对象，对象的signature属性是null
      */
     public Object decode_check(Object originObj, Class targetClass, Collection<String> codeFields, List<String>  signFields, String signTarget) {
         Object target = Common.cloneVo(originObj, targetClass);
