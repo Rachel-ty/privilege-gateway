@@ -7,6 +7,7 @@ import org.springframework.util.CollectionUtils;
 
 import java.io.Serializable;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -145,4 +146,87 @@ public class RedisUtil {
     public Long addSet(String key, Serializable... values) {
         return redisTemplate.opsForSet().add(key, values);
     }
+
+    /**
+     * 获取List中第index元素
+     * @param key
+     * @param index
+     * @return
+     */
+    public Serializable indexList(String key, long index) {
+        return redisTemplate.opsForList().index(key, index);
+    }
+
+    /**
+     * 获取list中start至end的元素
+     * @param key
+     * @param start
+     * @param end
+     * @return
+     */
+    public List<Serializable> rangeList(String key, long start, long end){
+        return redisTemplate.opsForList().range(key, start,end);
+    }
+
+    /**
+     * 从队列中移除value对象
+     * @param key redis的key
+     * @param count 前多少个相同的值
+     * @param value 对象
+     * @return
+     */
+    public Long removeList(String key, long count, Object value){
+        return redisTemplate.opsForList().remove(key, count, value);
+    }
+
+    /**
+     * 获取List中元素个数
+     * @param key
+     * @return
+     */
+    public Long sizeList(String key){
+        return redisTemplate.opsForList().size(key);
+    }
+
+    /**
+     * 将元素加到队头
+     * @param key
+     * @param value
+     * @return
+     */
+    public long leftPushList(String key, Serializable value){
+        return redisTemplate.opsForList().leftPush(key, value);
+    }
+
+    /**
+     * 将多个元素加到队头
+     * @param key
+     * @param values
+     * @return
+     */
+    public long leftPushAllList(String key, Serializable... values){
+        return redisTemplate.opsForList().leftPushAll(key, values);
+    }
+
+    /**
+     * 将元素加到队尾
+     * @param key
+     * @param value
+     * @return
+     */
+    public long rightPushList(String key, Serializable value){
+        return redisTemplate.opsForList().rightPush(key, value);
+    }
+
+    /**
+     * 将多个元素加到队尾
+     * @param key
+     * @param values
+     * @return
+     */
+    public long rightPushAllList(String key, Serializable... values){
+        return redisTemplate.opsForList().rightPushAll(key, values);
+    }
+
+
 }

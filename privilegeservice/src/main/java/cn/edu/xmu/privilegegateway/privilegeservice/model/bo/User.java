@@ -156,15 +156,15 @@ public class User implements VoObject {
         userRetVo.setId(id);
         userRetVo.setUserName(userName);
         userRetVo.setMobile(mobile);
-        userRetVo.setName(name);
+//        userRetVo.setName(name);
         userRetVo.setEmail(email);
         userRetVo.setAvatar(avatar);
-        userRetVo.setLastLoginTime(lastLoginTime.toString());
+//        userRetVo.setLastLoginTime(lastLoginTime.toString());
         userRetVo.setLastLoginIp(lastLoginIp);
-        userRetVo.setStatus(state.getCode().byteValue());
+//        userRetVo.setStatus(state.getCode().byteValue());
         userRetVo.setDepart_id(departId);
-        userRetVo.setGmtCreate(gmtCreate.toString());
-        userRetVo.setGmtModified(gmtModified.toString());
+//        userRetVo.setGmtCreate(gmtCreate.toString());
+//        userRetVo.setGmtModified(gmtModified.toString());
 
         return userRetVo;
     }
@@ -222,7 +222,7 @@ public class User implements VoObject {
     public UserSimpleRetVo createSimpleVo() {
         UserSimpleRetVo userSimpleRetVo = new UserSimpleRetVo();
         userSimpleRetVo.setId(this.id);
-        userSimpleRetVo.setName(this.userName);
+//        userSimpleRetVo.setName(this.userName);
 
         return userSimpleRetVo;
     }
