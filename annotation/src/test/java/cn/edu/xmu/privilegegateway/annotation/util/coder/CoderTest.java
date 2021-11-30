@@ -193,36 +193,4 @@ public class CoderTest {
         assertEquals("ees@123.com", user1.getEmail());
         assertEquals("123456", user1.getPassword());
     }
-
-    @Test
-    public void encodeTestaddtion(){
-        UserPo user = new UserPo();
-        user.setName("哈哈哈");
-        user.setUserName("jxy123");
-        user.setMobile("1536666");
-        user.setEmail("hhh@xmu.edu.cn");
-        user.setPassword("123456");
-        user.setOpenId("12345");
-        user.setState((byte) 1);
-        user.setDepartId(1L);
-        user.setCreatorId(1L);
-        user.setLevel(0);
-        user.setPassportNumber("111");
-        user.setIdNumber("123456789");
-
-        //user表需要加密的全部字段
-        Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
-        //user表校验的所有字段
-        List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
-
-        UserPo userPo = (UserPo) coder.code_sign(user, UserPo.class, codeFields, signFields, "signature");
-        System.out.println(userPo.getName());
-        System.out.println(userPo.getEmail());
-        System.out.println(userPo.getMobile());
-        System.out.println(userPo.getPassword());
-        System.out.println(userPo.getIdNumber());
-        System.out.println(userPo.getPassportNumber());
-        System.out.println(userPo.getSignature());
-    }
-
 }
