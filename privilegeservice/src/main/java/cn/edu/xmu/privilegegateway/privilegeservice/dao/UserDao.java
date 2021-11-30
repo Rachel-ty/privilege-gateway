@@ -791,16 +791,29 @@ public class UserDao{
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    private UserPo createUserStateModPo(Long id, User.State state) {
+    private ReturnObject<Object> createUserStateModPo(Long id, User.State state) {
         // 查询密码等资料以计算新签名
-        UserPo userPo = userMapper.selectByPrimaryKey(id);
-        userPo= (UserPo) baseCoder.decode_check(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
-        // 不修改已被逻辑废弃的账户的状态
-        if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
-            return null;
+        ReturnObject<Object> retObj;
+        try {
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
+            // 不修改已被逻辑废弃的账户的状态
+            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
+                return null;
+            }
+            userPo.setState(state.getCode().byteValue());
+            return new ReturnObject<>(userPo);
+        }catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        userPo.setState(state.getCode().byteValue());
-        return userPo;
+        return retObj;
     }
 
     /**
@@ -819,13 +832,14 @@ public class UserDao{
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
 
-        UserPo po = createUserStateModPo(id, state);
+        UserPo po = (UserPo) createUserStateModPo(id, state).getData();
         if (po == null) {
             logger.info("用户不存在或已被删除：id = " + id);
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         Common.setPoModifiedFields(po,loginUser,loginName);
-        po= (UserPo) baseCoder.code_sign(po, UserPo.class, userCodeFields, userSignFields, "signature");
+        User user=new User(po);
+        po= (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
         ReturnObject<Object> retObj;
         int ret;
         try {
@@ -884,7 +898,10 @@ public class UserDao{
             criteria_email.andEmailEqualTo(AES.encrypt(vo.getName(), User.AESPASS));
             UserPoExample.Criteria criteria_phone = userPoExample1.createCriteria();
             criteria_phone.andMobileEqualTo(AES.encrypt(vo.getName(), User.AESPASS));
+            UserPoExample.Criteria criteria_username = userPoExample1.createCriteria();
+            criteria_username.andUserNameEqualTo(vo.getName());
             userPoExample1.or(criteria_phone);
+            userPoExample1.or(criteria_username);
             userPo1 = userMapper.selectByExample(userPoExample1);
             if (userPo1.isEmpty()) {
              return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
@@ -945,12 +962,12 @@ public class UserDao{
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
-        userpo = (UserPo) baseCoder.decode_check(userpo, UserPo.class , userCodeFields, null, "signature");
+        User user=new User(userpo);
         //新密码与原密码相同
-        if (userpo.getPassword().equals(modifyPwdVo.getNewPassword()))
+        if (user.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
-        userpo.setPassword(modifyPwdVo.getNewPassword());
-        userpo = (UserPo) baseCoder.code_sign(userpo, UserPo.class, userCodeFields, userSignFields, "signature");
+        user.setPassword(modifyPwdVo.getNewPassword());
+        userpo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
         //更新数据库
         try {
             userMapper.updateByPrimaryKeySelective(userpo);
@@ -992,8 +1009,8 @@ public class UserDao{
         ReturnObject returnObject = null;
         UserPo userPo =(UserPo) Common.cloneVo(po,UserPo.class);
         Common.setPoCreatedFields(userPo,loginUser,loginName);
-
-        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
+        User user=new User(userPo);
+        userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
 
         try {
             returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
@@ -1023,45 +1040,38 @@ public class UserDao{
      * @Date: 2020/12/8 11:35
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
+    public InternalReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
 
         try {
-            UserPo userPo=new UserPo();
-            userPo.setDepartId(departId);
-            Common.setPoModifiedFields(userPo,loginUser,loginName);
-            userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
-
-            logger.debug("Update User: " + userId);
-            int ret = userPoMapper.updateByPrimaryKeySelective(userPo);
-            if (ret == 0) {
-                return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
-            }
-            logger.debug("Success Update User: " + userId);
-            return new ReturnObject<>(ReturnNo.OK);
-        } catch (Exception e) {
-            logger.error("exception : " + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
-        }
-    }
-    /**
-     * 功能描述: 将用户加入部门
-     *
-     * @Param: userId departId
-     * Create by 22920192204219 蒋欣雨 at 2021/11/29
-     */
-    public InternalReturnObject addUserToDepart(Long userId, Long departId,Long loginUser,String loginName) {
             UserPo userPo = userMapper.selectByPrimaryKey(userId);
             if(userPo.getDepartId()!=-1)
             {
                 return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
             }
-          ReturnObject ret= changeUserDepart(userId,departId,loginUser,loginName);
-            return new InternalReturnObject(ret.getData());
+            userPo.setDepartId(departId);
+            Common.setPoModifiedFields(userPo,loginUser,loginName);
+            User user=new User(userPo);
+            userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
+
+            logger.debug("Update User: " + userId);
+            int ret = userPoMapper.updateByPrimaryKeySelective(userPo);
+            if (ret == 0) {
+                return new InternalReturnObject<>(ReturnNo.FIELD_NOTVALID);
+            }
+            logger.debug("Success Update User: " + userId);
+            return new InternalReturnObject<>(ReturnNo.OK);
+        } catch (Exception e) {
+            logger.error("exception : " + e.getMessage());
+            return new InternalReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+        }
     }
+
+
 
     /**
      * 获取用户状态
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject getUserState(){
         List<Map<String, Object>> stateList = new ArrayList<>();
@@ -1078,6 +1088,7 @@ public class UserDao{
      * 修改用户信息
      * @param userBo
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject modifyUser(UserBo userBo){
         UserPo userPo = (UserPo) baseCoder.code_sign(userBo,UserPo.class,userCodeFields,userSignFields,"signature");
@@ -1111,6 +1122,7 @@ public class UserDao{
      * @param page
      * @param pageSize
      * @return
+     * @author Bingshuai Liu 22920192204245
      */
     public ReturnObject selectAllUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
         UserPoExample example = new UserPoExample();

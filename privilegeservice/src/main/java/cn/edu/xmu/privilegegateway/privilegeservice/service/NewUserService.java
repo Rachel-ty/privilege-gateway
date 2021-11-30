@@ -76,6 +76,7 @@ public class NewUserService {
      * @param page
      * @param pageSize
      * @return
+     * @author BingShuai Liu 22920192204245
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject<PageInfo<Object>> showNewUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
@@ -109,6 +110,10 @@ public class NewUserService {
         if ((newUserDao.checkUserDid(id, did) || did == Long.valueOf(0))) {
             if (approve.getApprove()) {
                 NewUserPo newUserPo = newUserDao.findNewUserById(id);
+                if(newUserPo==null)
+                {
+                    return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+                }
                 returnObject = userDao.addUser(newUserPo,loginUser,loginName);
                 newUserDao.physicallyDeleteUser(id);
             }

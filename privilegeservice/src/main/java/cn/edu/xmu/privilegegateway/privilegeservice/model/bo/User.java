@@ -122,7 +122,7 @@ public class User implements VoObject {
     public User(UserPo po){
         this.id = po.getId();
         this.userName = po.getUserName();
-        this.password =po.getPassword();
+        this.password = AES.decrypt(po.getPassword(),AESPASS);
         this.mobile = AES.decrypt(po.getMobile(),AESPASS);
         if (null != po.getMobileVerified()) {
             this.mobileVerified = po.getMobileVerified() == 1;
@@ -151,10 +151,6 @@ public class User implements VoObject {
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
         this.signature = po.getSignature();
-
-        StringBuilder signature = Common.concatString("-", po.getUserName(), po.getPassword(),
-                po.getMobile(),po.getEmail(),po.getOpenId(),po.getState().toString(),po.getDepartId().toString(),
-                po.getCreatorId().toString());
         this.cacuSignature = SHA256.getSHA256(signature.toString());
     }
 

@@ -6,6 +6,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -229,6 +230,17 @@ public class NewUserDao implements InitializingBean {
         return true;
     }
 
+    /**
+     * 获取新注册用户表
+     * @param did
+     * @param userName
+     * @param mobile
+     * @param email
+     * @param page
+     * @param pageSize
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
     public ReturnObject selectAllNewUsers(Long did, String userName, String mobile, String email, Integer page, Integer pageSize){
         NewUserPoExample example = new NewUserPoExample();
         NewUserPoExample.Criteria criteria= example.createCriteria();

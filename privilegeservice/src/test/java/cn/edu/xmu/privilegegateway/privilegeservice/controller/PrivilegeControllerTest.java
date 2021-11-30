@@ -3,6 +3,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
+import org.apache.http.entity.ContentType;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,9 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -29,6 +33,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.*;
+import java.nio.charset.StandardCharsets;
+
 import java.nio.charset.StandardCharsets;
 import javax.servlet.http.HttpServletRequest;
 
@@ -59,7 +65,7 @@ public class PrivilegeControllerTest {
     void init() {
         token = jwtHelper.createToken(46L, "lxc", 0L, 1, 36000);
         pToken = jwtHelper.createToken(60L, "pikaas", 0L, 1, 36000);
-        adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 36000);
+        adminToken=jwtHelper.createToken(1L, "13088admin", 0L, 1, 36000);
     }
 
     /**
@@ -303,7 +309,7 @@ public class PrivilegeControllerTest {
     @Test
     public void modifyUserInformation() throws Exception {
         String contentJson = "{\n" +
-                    "  \"name\": \"pikaaa\",\n" +
+                "  \"name\": \"pikaaa\",\n" +
                 "  \"avatar\": \"12345644\",\n" +
                 "  \"idNumber\": \"220723246\",\n" +
                 "  \"passportNumber\": \"89789132132\"\n" +
@@ -406,6 +412,13 @@ public class PrivilegeControllerTest {
      * Method: resetPassword(@RequestBody ResetPwdVo vo,BindingResult bindingResult
      * , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest)
      */
+
+
+    /**
+     * 测试
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+
     @Test
     public void testResetPassword() throws Exception {
 
@@ -532,7 +545,7 @@ public class PrivilegeControllerTest {
     public void testApproveUser() throws Exception {
         String contentJson1="{\"approve\": \"true\"}";
 
-        String responseString1 = mvc.perform(put("/departs/0/users/1/approve")
+        String responseString1 = mvc.perform(put("/departs/0/users/4/approve")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -554,7 +567,7 @@ public class PrivilegeControllerTest {
 
     @Test
     public void testAddToDepart() throws Exception {
-        String responseString1 = mvc.perform(put("/internal/users/60/departs/0")
+        String responseString1 = mvc.perform(put("/internal/users/62/departs/0")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
