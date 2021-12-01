@@ -1,6 +1,5 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +48,7 @@ public class BaseRoleAndPrivilegeTest {
         String expected="{\"errno\":0,\"data\":[{\"code\":0,\"name\":\"GET\"},{\"code\":1,\"name\":\"POST\"},{\"code\":2,\"name\":\"PUT\"},{\"code\":3,\"name\":\"DELETE\"}],\"errmsg\":\"成功\"}";
         assertEquals(expected, responseString);
     }
-    /*添加功能角色权限*/
+    /*添加，新增功能角色权限*/
     @Test
     //错误did
     public void testAddRolePrivilegesByErrordid() throws Exception
@@ -63,7 +62,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andReturn().getResponse().getContentAsString();
         assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
     }
-    /*添加功能角色权限*/
+    /*添加新增功能角色权限*/
     @Test
     /*正确测试*/
     public void testAddRolePrivileges() throws Exception{
@@ -76,7 +75,7 @@ public class BaseRoleAndPrivilegeTest {
         String expected ="{\"errno\":0,\"data\":{\"name\":\"查看任意用户信息\",\"gmtCreate\":\"2021-11-30 19:21:30.934\",\"gmtModified\":null,\"creator\":{\"id\":29,\"name\":\"zyu\",\"sign\":0},\"modifier\":{\"id\":null,\"name\":null,\"sign\":0},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expected, responseString,false);
     }
-    /*删除功能角色权限*/
+    /*删除功能角色权限,错误did*/
     @Test
     public void testDelPrivsByErrordid() throws  Exception
     {
@@ -92,7 +91,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     public void testDelBaseRolePrivs() throws  Exception
     {
-        String responseString = this.mvc.perform(delete("/departs/0/roles/23/privileges/2")
+        String responseString = this.mvc.perform(delete("/departs/0/roles/80/privileges/2")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", token))
                 .andExpect(status().isOk())

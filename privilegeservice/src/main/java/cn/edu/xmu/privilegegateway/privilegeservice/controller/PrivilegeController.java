@@ -134,7 +134,7 @@ public class PrivilegeController {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
     }
-    /*取消功能角色权限,
+    /*取消功能角色权限,删除功能角色权限
     * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
     * */
     @ApiOperation(value="取消功能角色权限")

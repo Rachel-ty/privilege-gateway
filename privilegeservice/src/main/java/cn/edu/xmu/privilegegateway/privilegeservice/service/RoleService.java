@@ -2,14 +2,11 @@ package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.RolePrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.SimpleBaseRolePrivlegeVo;
-import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -32,8 +29,6 @@ public class RoleService {
     @Autowired
     UserDao userDao;
 
-    @Autowired
-    RolePrivilegeDao rolePrivilegeDao;
     /**
      * 分页查询所有角色
      *
@@ -106,7 +101,7 @@ public class RoleService {
     @Transactional(readOnly = true)
     public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
     {
-        return rolePrivilegeDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
 
     }
     /**
@@ -130,7 +125,7 @@ public class RoleService {
      */
     @Transactional
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
-        ReturnObject<Object> ret = rolePrivilegeDao.delBaseRolePriv(rid,pid);
+        ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
         return ret;
     }
 
@@ -146,9 +141,9 @@ public class RoleService {
      * @return
      */
     @Transactional
-    public ReturnObject<Object> addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
+    public ReturnObject addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
         //新增
-        ReturnObject<Object> ret = rolePrivilegeDao.addBaseRolePriv(vo);
+        ReturnObject ret = roleDao.addBaseRolePriv(vo);
         return ret;
     }
 

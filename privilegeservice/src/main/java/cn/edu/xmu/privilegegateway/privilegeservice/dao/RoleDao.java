@@ -73,6 +73,17 @@ public class RoleDao {
     private BaseCoder coder;//使用basecoder,便于日后进行加密（现在还没有加密）
 
     public final static String ROLEKEY = "r_%d";
+
+
+    public final static Byte ISBASEROLE=1;
+    public final static Byte NOTBASEROLE=0;
+    public final static Byte FORBIDEN=1;
+    public final static Byte NORMAL=0;
+    //功能角色查询权限key
+    public final static String BASEROLEKEY="br_%d";
+    public final static Collection<String> codeFields = new ArrayList<>();
+    public final static List<String> signFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -458,4 +469,140 @@ public class RoleDao {
         }
         return retIds;
     }
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/25 20:04
+     * @version: 1.0
+     */
+    /**
+     * 查询功能角色权限，先根据roleid查询privilegeid,再根据privilegeidc查询
+     *
+     * @param rid
+     * @param pagenum
+     * @param pagesize
+     * @return
+     */
+    public ReturnObject selectBaseRolePrivs(Long rid, Integer pagenum, Integer pagesize)
+    {
+        try{
+            RolePo rolePo=null;
+            rolePo=roleMapper.selectByPrimaryKey(rid);
+            if(rolePo==null||rolePo.getBaserole()!=ISBASEROLE)
+            {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            }
+            String key=String.format(BASEROLEKEY,rid);
+            PageHelper.startPage(pagenum, pagesize);
+            Set<Long> PrividSet=new HashSet<>();
+            List<BasePrivilegeRetVo> voList=new ArrayList<BasePrivilegeRetVo>();
+            List<PrivilegePo> polist=new ArrayList<>();
+            List<RolePrivilegePo> rolePrivilegePos =new ArrayList<>();
+            if(redisUtil.hasKey(key))
+            {
+                var ret=redisUtil.getSet(key);
+                for(Serializable r:ret)
+                {
+                    Long newr=(Long)r;
+                    PrividSet.add(newr);
+                }
+            }
+            else {
+                RolePrivilegePoExample example = new RolePrivilegePoExample();
+                RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+                criteria.andRoleIdEqualTo(rid);
+                rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
+                for(RolePrivilegePo po:rolePrivilegePos)
+                    PrividSet.add(po.getPrivilegeId());
+            }
+
+            for (Long pid : PrividSet) {
+                PrivilegePo privilege=privDao.findPrivPo(pid);
+                if(privilege.getState()==NORMAL)
+                {
+                    BasePrivilegeRetVo vo=(BasePrivilegeRetVo) Common.cloneVo(privilege,BasePrivilegeRetVo.class);
+                    int sign=0;
+                    if(privilege.getSignature()==null)
+                        sign=1;
+                    vo.setSign(sign);
+                    vo.setCreator(new AdminVo(privilege.getCreatorId(),privilege.getCreatorName(),sign));
+                    vo.setModifier(new AdminVo(privilege.getModifierId(),privilege.getModifierName(),sign));
+                    voList.add(vo);
+                }
+            }
+            PageInfo<BasePrivilegeRetVo> rolePage = PageInfo.of(voList);
+            ReturnObject returnObject=new ReturnObject(rolePage);
+            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
+        }catch(Exception e)
+        {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库发生错误",e.getMessage()));
+        }
+    }
+    /**
+     * 由Role Id, Privilege Id 增加功能角色权限
+     * created by 王琛 24320182203277
+     * modified by zhangyu
+     */
+    /**
+     * @param vo
+     * @return
+     */
+    public ReturnObject addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
+        try
+        {
+            RolePrivilegePo po=(RolePrivilegePo) coder.code_sign(vo,RolePrivilegePo.class,codeFields,signFields,"signature");
+            //获取当前时间
+            LocalDateTime localDateTime = LocalDateTime.now();
+            po.setGmtCreate(localDateTime);
+            //查询是否有对应的角色和权限
+            RolePo rolePo=roleMapper.selectByPrimaryKey(vo.getRoleId());
+            if(rolePo==null||rolePo.getBaserole()==NOTBASEROLE)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            PrivilegePo privilegePo=privDao.findPrivPo(vo.getPrivilegeId());
+            if(privilegePo==null||privilegePo.getState()==FORBIDEN)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            rolePrivilegePoMapper.insertSelective(po);
+            String key=String.format(BASEROLEKEY,po.getRoleId());
+            redisUtil.addSet(key,po.getPrivilegeId());
+            BaseRolePrivilegeRetVo retvo=(BaseRolePrivilegeRetVo) Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
+            retvo.setName(privilegePo.getName());
+            retvo.setCreator(new AdminVo(vo.getCreatorId(),vo.getCreatorName(),0));
+            retvo.getModifier().setSign(0);
+            retvo.setSign(0);
+            return new ReturnObject(retvo);
+
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+        }
+
+    }
+
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/25 20:11
+     * @version: 1.0
+     */
+    /**
+     * 由角色id,privilegeid删除角色对应权限
+     * @param rid
+     * @param pid
+     * @return
+     */
+
+    public ReturnObject delBaseRolePriv(Long rid,Long pid){
+        try {
+            RolePrivilegePoExample example = new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleIdEqualTo(rid);
+            criteria.andPrivilegeIdEqualTo(pid);
+            String key=String.format(BASEROLEKEY,rid);
+            redisUtil.del(key);
+            int ret = rolePrivilegePoMapper.deleteByExample(example);
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
 }

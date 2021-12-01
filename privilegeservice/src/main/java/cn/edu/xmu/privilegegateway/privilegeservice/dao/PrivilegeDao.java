@@ -54,11 +54,7 @@ public class PrivilegeDao implements InitializingBean {
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
-    @Autowired
-    private RolePrivilegeDao rolePrivilegeDao;
 
-    @Autowired
-    private RoleDao roleDao;
 
     @Autowired
     private BaseCoder coder;
@@ -67,9 +63,14 @@ public class PrivilegeDao implements InitializingBean {
     private RedisUtil redisUtil;
     public final static String PRIVILEGEKEY = "P_%s_%d";
     public final static String HASHKEY="Priv";
-    public final static Collection<String> codeFields = new ArrayList<>();
-    public final static List<String> signFields = new ArrayList<>(Arrays.asList("url", "requestType", "id"));
-
+    public final static Collection<String> codeFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
+    public final static List<String> signFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
+    //功能角色
+    public final static String BASEROLEKEY="br_%d";
+    public final static Collection<String> RPcodeFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+    public final static List<String> RPsignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+    public final static Byte FORBIDEN=1;
+    public final static Byte NORMAL=0;
 
     /**
      * 将权限载入到本地缓存中
@@ -189,9 +190,14 @@ public class PrivilegeDao implements InitializingBean {
     /**
      * 修改权限
      * @modifiedBy 24320182203266
-     * @param id: 权限id
-     * @return ReturnObject
      * modifieb by zhangyu
+     */
+    /**
+     *
+     * @param bo
+     * @param mid
+     * @param mname
+     * @return
      */
     public ReturnObject changePriv(Privilege bo,Long mid,String mname){
         try {
@@ -327,12 +333,12 @@ public class PrivilegeDao implements InitializingBean {
             {
                 redisUtil.del(privkey);
             }
-            List<RolePrivilegePo> rolePrivilegePos=rolePrivilegeDao.selectByPrivid(pid);
+            List<RolePrivilegePo> rolePrivilegePos=selectByPrivid(pid);
             for(RolePrivilegePo rolePrivilegePo:rolePrivilegePos)
             {
-                String brkey=String.format(RolePrivilegeDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
+                String brkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
                 redisUtil.del(brkey);
-                rolePrivilegeDao.delBaseRolePrivByid(rolePrivilegePo.getId());
+                rolePrivilegePoMapper.deleteByPrimaryKey(rolePrivilegePo.getId());
             }
         }catch (Exception e)
         {
@@ -355,17 +361,17 @@ public class PrivilegeDao implements InitializingBean {
             PrivilegePo po = poMapper.selectByPrimaryKey(pid);
             if(po==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            po.setState((byte)1);
+            po.setState(FORBIDEN);
             Common.setPoModifiedFields(po,mid,mname);
             poMapper.updateByPrimaryKey(po);
             //清除对应的redis缓存
             String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
             if(redisUtil.hasKey(key))
                 redisUtil.del(key);
-            List<RolePrivilegePo> pos=rolePrivilegeDao.selectByPrivid(pid);
+            List<RolePrivilegePo> pos=selectByPrivid(pid);
             for(RolePrivilegePo rolePrivilegePo:pos)
             {
-                String rpkey=String.format(RolePrivilegeDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
+                String rpkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
                 redisUtil.del(rpkey);
             }
             return new ReturnObject(ReturnNo.OK);
@@ -389,15 +395,15 @@ public class PrivilegeDao implements InitializingBean {
             PrivilegePo po = poMapper.selectByPrimaryKey(pid);
             if(po==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            po.setState((byte)0);
+            po.setState(NORMAL);
             Common.setPoModifiedFields(po,mid,mname);
             poMapper.updateByPrimaryKeySelective(po);
             String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
             redisUtil.addSet(key,pid);
-            List<RolePrivilegePo> pos=rolePrivilegeDao.selectByPrivid(pid);
+            List<RolePrivilegePo> pos=selectByPrivid(pid);
             for(RolePrivilegePo rolePrivilegePo:pos)
             {
-                String rpkey=String.format(RolePrivilegeDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
+                String rpkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
                 redisUtil.addSet(rpkey,pid);
             }
             return new ReturnObject(ReturnNo.OK);
@@ -406,4 +412,25 @@ public class PrivilegeDao implements InitializingBean {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
         }
     }
+    public List<RolePrivilegePo> selectByPrivid(Long Privid)
+    {
+        try
+        {
+            RolePrivilegePoExample example=new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+            criteria.andPrivilegeIdEqualTo(Privid);
+            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
+            List<RolePrivilegePo> newpos=new ArrayList<>(pos.size());
+            for(RolePrivilegePo po:pos)
+            {
+                RolePrivilegePo newpo=(RolePrivilegePo) coder.code_sign(po,RolePrivilegePo.class,codeFields,signFields,"signature");
+                newpos.add(po);
+            }
+            return newpos;
+        }catch (Exception e)
+        {
+            return null;
+        }
+    }
+
 }

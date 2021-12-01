@@ -51,7 +51,7 @@ public class Privilege implements VoObject{
             this.description = description;
         }
 
-        public static RequestType getTypeByCode(Integer code) {
+        public static RequestType getTypeByCode(Byte code) {
             return typeMap.get(code);
         }
 
@@ -101,7 +101,7 @@ public class Privilege implements VoObject{
         this.signature = po.getSignature();
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
-        this.requestType = RequestType.getTypeByCode(po.getRequestType().intValue());
+        this.requestType = RequestType.getTypeByCode(po.getRequestType().byteValue());
 
         StringBuilder signature1 = Common.concatString("-", po.getUrl(), po.getRequestType().toString());
         this.key = String.format(PrivilegeDao.PRIVILEGEKEY,url,requestType.getCode());
