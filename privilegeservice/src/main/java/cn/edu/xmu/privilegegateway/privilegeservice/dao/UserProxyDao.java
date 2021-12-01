@@ -1,7 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
@@ -41,12 +40,6 @@ public class UserProxyDao {
     private UserPoMapper userPoMapper;
     @Autowired
     private BaseCoder baseCoder;
-    protected BaseSign baseSign= new BaseSign() {
-        @Override
-        protected String encrypt(String content) {
-            return null;
-        }
-    };
     final static List<String> signFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
     final static Collection<String> codeFields = new ArrayList<>();
 
@@ -112,7 +105,8 @@ public class UserProxyDao {
             List<UserProxy> list = (List<UserProxy>) data.get("list");
             boolean flag=true;
             for (UserProxy userProxy : list) {
-                if (baseSign.check(userProxy, signFields, userProxy.getSignature())) {
+                UserProxy u = (UserProxy) baseCoder.decode_check(userProxy,null, codeFields, signFields, "signature");
+                if (u.getSignature()!=null) {
                     userProxy.setSign((byte)0);
                 }else {
                     userProxy.setSign((byte)1);
