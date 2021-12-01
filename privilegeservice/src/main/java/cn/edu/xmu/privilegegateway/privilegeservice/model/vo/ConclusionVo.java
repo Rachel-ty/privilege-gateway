@@ -2,6 +2,8 @@ package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
+
 /**
  * Created with IntelliJ IDEA.
  *
