@@ -405,7 +405,7 @@ public class UserService {
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public ReturnObject<Object> modifyUserInfo(Long did,Long id, UserVo vo,Long loginUser,String loginName) {
+    public ReturnObject<Object> modifyUserInfo(Long did,Long id, ModifyUserVo vo,Long loginUser,String loginName) {
             return userDao.modifyUserByVo(did,id, vo,loginUser,loginName);
     }
 

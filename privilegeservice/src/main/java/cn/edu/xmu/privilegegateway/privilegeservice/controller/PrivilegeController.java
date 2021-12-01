@@ -566,7 +566,7 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/departs/{did}/users/{id}")
-    public Object modifyUserInfo(@PathVariable Long did,@PathVariable Long id, @Validated @RequestBody UserVo vo, BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
+    public Object modifyUserInfo(@PathVariable Long did,@PathVariable Long id, @Validated @RequestBody ModifyUserVo vo, BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
         }
@@ -927,7 +927,7 @@ public class PrivilegeController {
     @Audit
     @PutMapping("adminusers")
     public Object changeMyAdminselfInfo(@LoginUser @ApiIgnore @RequestParam(required = false) Long id,
-                                        @Validated @RequestBody UserVo vo, BindingResult bindingResult,@LoginName String loginName) {
+                                        @Validated @RequestBody ModifyUserVo vo, BindingResult bindingResult,@LoginName String loginName) {
         if (logger.isDebugEnabled()) {
             logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
         }
