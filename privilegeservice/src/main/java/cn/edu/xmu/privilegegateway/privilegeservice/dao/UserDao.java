@@ -2,6 +2,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.imp.SHA256Sign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
@@ -71,7 +72,11 @@ public class UserDao{
     private RoleDao roleDao;
 
     @Autowired
+    private GroupDao groupDao;
+
+    @Autowired
     private BaseCoder baseCoder;
+    private SHA256Sign sign = new SHA256Sign();
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
@@ -85,20 +90,33 @@ public class UserDao{
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
 
-
-//    @Autowired
-//    private JavaMailSender mailSender;
-
     /**
-     * 用户的redis key： u_id
+     * 用户的redis key： u_id values:set{br_id};
      *
      */
     private final static String USERKEY = "u_%d";
 
     /**
-     * 最终用户的redis key: up_id
+     * 最终用户的redis key: up_id  values: set{priv_id}
      */
     private final static String USERPROXYKEY = "up_%d";
+
+    /**
+     * 最终用户的redis key: fu_id values: set{br_id};
+     */
+    private final static String FINALUSERKEY = "fu_%d";
+    /**
+     * 用户组的redis key： g_id values:set{br_id};
+     *
+     */
+    private final static String GROUPKEY = "g_%d";
+
+    /**
+     * 用户的redis key：r_id values:set{br_id};
+     */
+    private final static String ROLEKEY = "r_%d";
+
+    private final static int BANED = 2;
 
     /**
      * @author yue hao
@@ -118,7 +136,11 @@ public class UserDao{
             logger.error("findPrivsByUserId: 店铺id不匹配 userid=" + id);
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
-        List<Long> roleIds = roleDao.getRoleIdByUserId(id);
+        ReturnObject returnObject = roleDao.getRoleIdByUserId(id);
+        if(returnObject.getCode()!=ReturnNo.OK){
+            return returnObject;
+        }
+        List<Long> roleIds = (List<Long>) returnObject.getData();
         List<Privilege> privileges = new ArrayList<>();
         for(Long roleId: roleIds) {
             List<Privilege> rolePriv = roleDao.findPrivsByRoleId(roleId);
@@ -133,8 +155,9 @@ public class UserDao{
      *
      * @param userName
      * @return
+     * modifiedBy RenJieZheng 22920192204334
      */
-    public ReturnObject<User> getUserByName(String userName) {
+    public ReturnObject getUserByName(String userName) {
         UserPoExample example = new UserPoExample();
         UserPoExample.Criteria criteria = example.createCriteria();
         criteria.andUserNameEqualTo(userName);
@@ -147,19 +170,20 @@ public class UserDao{
         }
 
         if (null == users || users.isEmpty()) {
-            return new ReturnObject<>();
+            return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
         } else {
-            User user = new User(users.get(0));
-            if (!user.authetic()) {
-                StringBuilder message = new StringBuilder().append("getUserByName: ").append("id= ")
-                        .append(user.getId()).append(" username=").append(user.getUserName());
-                logger.error(message.toString());
-                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
-            } else {
-                return new ReturnObject<>(user);
+            UserPo userPo = users.get(0);
+            if (userPo.getState() != User.State.NORM.getCode().byteValue()){
+                return new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
             }
+            UserBo userBo = (UserBo)baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
+            if(userBo.getSignature() == null){
+                logger.error("getUserByName: 签名错误(auth_user_group):"+ userPo.getId());
+            }
+            return new ReturnObject<>(userBo);
         }
     }
+
 
     /**
      * @param userId 用户ID
@@ -428,7 +452,6 @@ public class UserDao{
         return true;
     }
 
-
     /**
      * 计算User自己的权限，load到Redis
      *
@@ -442,29 +465,67 @@ public class UserDao{
      * 集合里强制加“0”
      * modified by Ming Qiu 2021-11-21 19:34
      *   将redisTemplate 替换成redisUtil
+     * modified by RenJieZheng 22920192204334
+     *  添加对用户组的处理,添加trycatch处理
      */
-    private void loadSingleUserPriv(Long id) {
-        List<Long> roleIds = roleDao.getRoleIdByUserId(id);
-        String key = String.format(USERKEY, id);
-        Set<String> roleKeys = new HashSet<>(roleIds.size());
-        for (Long roleId : roleIds) {
-            String roleKey = String.format(RoleDao.ROLEKEY, roleId);
-            roleKeys.add(roleKey);
-            if (!redisUtil.hasKey(roleKey)) {
-                roleDao.loadRolePriv(roleId);
+    private ReturnObject loadSingleUser(Long id) {
+        try{
+            //load自身的权限
+            ReturnObject returnObject = roleDao.getRoleIdByUserId(id);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            List<Long> roleIds = (List<Long>)returnObject.getData();
+            String key = String.format(USERKEY, id);
+            Set<String> roleKeys = new HashSet<>(roleIds.size());
+            for (Long roleId : roleIds) {
+                String roleKey = String.format(ROLEKEY, roleId);
+                roleKeys.add(roleKey);
+                if (!redisUtil.hasKey(roleKey)) {
+                    ReturnObject returnObject1 = roleDao.loadRole(roleId);
+                    if(returnObject1.getCode()!=ReturnNo.OK){
+                        return returnObject1;
+                    }
+                }
             }
             redisUtil.unionAndStoreSet(roleKeys, key);
+            redisUtil.addSet(key,0);
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+
+            //load用户组的权限
+            ReturnObject returnObject2 = groupDao.getGroupIdByUserId(id);
+            if(returnObject2.getCode()!=ReturnNo.OK){
+                return returnObject2;
+            }
+            List<Long>groupIds = (List<Long>) returnObject2.getData();
+            List<String> groupKey = new ArrayList<>();
+            if(groupIds.size()<=0||groupIds==null){
+                return new ReturnObject<>(ReturnNo.OK);
+            }
+            for (Long groupId : groupIds) {
+                if (!redisUtil.hasKey(String.format(GROUPKEY, groupId))) {
+                    ReturnObject returnObject4 = groupDao.loadGroup(groupId);
+                    if(returnObject4.getCode()!=ReturnNo.OK){
+                        return returnObject4;
+                    }
+                }
+                groupKey.add(String.format(GROUPKEY, groupId));
+            }
+            redisUtil.unionAndStoreSet(groupKey, key);
+            redisUtil.addSet(key,0);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject<>(ReturnNo.OK);
+        }catch(Exception e){
+            logger.error("loadSingleUserPriv:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        redisUtil.addSet(key, 0);
-        long randTimeout = Common.addRandomTime(timeout);
-        redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
     }
 
 
 
-
     /**
-     * 计算User的权限（包括代理用户的权限，只计算直接代理用户），load到Redis
+     * 计算User的功能角色（包括代理用户的功能角色，只计算直接代理用户），load到Redis
      *
      * @param id userID
      * @return void
@@ -472,29 +533,88 @@ public class UserDao{
      * modifiedBy Ming Qiu 2020/11/3 14:37
      * modified by Ming Qiu 2021-11-21 19:34
      *   将redisTemplate 替换成redisUtil
+     * modified by RenJieZheng 22920192204334
+     *   添加对用户组的处理,添加try catch处理
      */
-    public void loadUserPriv(Long id, String jwt) {
-
-        String key = String.format(USERKEY, id);
-        String aKey = String.format(USERPROXYKEY,  id);
-
-        List<Long> proxyIds = this.getProxyIdsByUserId(id);
-        List<String> proxyUserKey = new ArrayList<>(proxyIds.size());
-        for (Long proxyId : proxyIds) {
-            if (!redisUtil.hasKey(String.format(USERKEY, proxyId))) {
-                logger.debug("loadUserPriv: loading proxy user. proxId = " + proxyId);
-                loadSingleUserPriv(proxyId);
+    public ReturnObject loadUser(Long id) {
+        try{
+            String key = String.format(USERKEY, id);
+            String aKey = String.format(FINALUSERKEY,  id);
+            UserPo userPo = userPoMapper.selectByPrimaryKey(id);
+            if(userPo.getState()==BANED){
+                redisUtil.addSet(key,0);
+                redisUtil.addSet(aKey,0);
+                return new ReturnObject(ReturnNo.OK);
             }
-            proxyUserKey.add(String.format(USERKEY, proxyId));
+            List<Long> proxyIds = this.getProxyIdsByUserId(id);
+            List<String> proxyUserKey = new ArrayList<>(proxyIds.size());
+            for (Long proxyId : proxyIds) {
+                if (!redisUtil.hasKey(String.format(USERKEY, proxyId))) {
+                    logger.debug("loadUserPriv: loading proxy user. proxId = " + proxyId);
+                    ReturnObject returnObject1 = loadSingleUser(proxyId);
+                    if(returnObject1.getCode()!=ReturnNo.OK){
+                        return returnObject1;
+                    }
+                }
+                proxyUserKey.add(String.format(USERKEY, proxyId));
+            }
+            if (!redisUtil.hasKey(key)) {
+                logger.debug("loadUserPriv: loading user. id = " + id);
+                ReturnObject returnObject2 = loadSingleUser(id);
+                if(returnObject2.getCode()!=ReturnNo.OK){
+                    return returnObject2;
+                }
+            }
+            redisUtil.unionAndStoreSet(key, proxyUserKey, aKey);
+            redisUtil.addSet(aKey,0);
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.expire(aKey, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject<>(ReturnNo.OK);
+        }catch(Exception e){
+            logger.error("loadUser:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        if (!redisUtil.hasKey(key)) {
-            logger.debug("loadUserPriv: loading user. id = " + id);
-            loadSingleUserPriv(id);
+
+    }
+
+    /**
+     * 计算User的权限，load到Redis
+     * @param userId
+     * @param jwt
+     * @return
+     * modified by RenJieZheng 22920192204334
+     */
+    public ReturnObject loadUserPriv(Long userId,String jwt){
+        try{
+            ReturnObject returnObject = loadUser(userId);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            String aKey = String.format(FINALUSERKEY,userId);
+            String fKey = String.format(USERPROXYKEY,userId);
+            List<String>roleKeys = new ArrayList<>();
+            Set<Serializable> brKeys = redisUtil.getSet(aKey);
+            for(Serializable brKey:brKeys){
+                //brKey格式为br_%d
+                String brKeyStr = (String)brKey;
+                if(!redisUtil.hasKey(brKeyStr)){
+                    Long roleId = Long.parseLong(brKeyStr.substring(3));
+                    ReturnObject returnObject1 = roleDao.loadBaseRolePriv(roleId);
+                    if(returnObject1.getCode()!=ReturnNo.OK){
+                        return returnObject1;
+                    }
+                }
+                roleKeys.add(brKeyStr);
+            }
+            redisUtil.unionAndStoreSet(roleKeys,fKey);
+            redisUtil.addSet(fKey,jwt);
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.expire(aKey, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject<>(ReturnNo.OK);
+        }catch (Exception e){
+            logger.error("loadUserPriv:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        redisUtil.unionAndStoreSet(key, proxyUserKey, aKey);
-        redisUtil.addSet(aKey, jwt);
-        long randTimeout = Common.addRandomTime(timeout);
-        redisUtil.expire(aKey, randTimeout, TimeUnit.SECONDS);
     }
 
     /**
