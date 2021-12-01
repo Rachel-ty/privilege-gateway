@@ -7,20 +7,21 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * 用户id与用户名
- * @author Xianwei Wang
- **/
+ * Created with IntelliJ IDEA.
+ *
+ * @author BingShuai Liu
+ * @studentId 22920192204245
+ * @date 2021/12/01/12:48
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ApiModel("用户信息视图")
-public class UserSimpleRetVo {
+@ApiModel("代理用户信息视图")
+public class UserProxySimpleRetVo {
     @ApiModelProperty(name = "用户id", value = "id")
     private Long id;
 
     @ApiModelProperty(name = "用户名", value = "name")
     private String userName;
 
-    @ApiModelProperty(name = "签名", value = "sign")
-    private Integer sign;
 }
