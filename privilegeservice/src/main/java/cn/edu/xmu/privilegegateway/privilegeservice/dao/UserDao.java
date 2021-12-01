@@ -5,9 +5,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
@@ -56,6 +54,9 @@ public class UserDao{
     private UserProxyPoMapper userProxyPoMapper;
 
     @Autowired
+    private RoleInheritedPoMapper roleInheritedPoMapper;
+
+    @Autowired
     private UserPoMapper userMapper;
 
     @Autowired
@@ -72,6 +73,7 @@ public class UserDao{
 
     @Autowired
     private BaseCoder baseCoder;
+    final static Collection<String> codeFields = new ArrayList<>();
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
@@ -1139,6 +1141,260 @@ public class UserDao{
             returnObject = new ReturnObject();
         }
         return returnObject;
+    }
+
+    /**
+     * 查看用户的角色
+     *
+     * @author 22920192204289 王文凯
+     * @param userId 用户id
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    public ReturnObject selectRoles(Long userId, Long did, Integer page, Integer pageSize) {
+        try {
+            if (!checkUserDid(userId, did)) {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配"));
+            }
+
+            UserRolePoExample example = new UserRolePoExample();
+            UserRolePoExample.Criteria criteria = example.createCriteria();
+            criteria.andUserIdEqualTo(userId);
+            // 分页查询
+            PageHelper.startPage(page, pageSize);
+            logger.debug("page = " + page + "pageSize = " + pageSize);
+            // 查询用户所有角色
+            List<UserRolePo> userRolePos = userRolePoMapper.selectByExample(example);
+            List<Role> roles = new ArrayList<>(userRolePos.size());
+            for (UserRolePo po : userRolePos) {
+                UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
+                Role role = (Role) Common.cloneVo(rolePoMapper.selectByPrimaryKey(po.getRoleId()), Role.class);
+                if (userRole.getSignature() != null) {
+                    role.setSign((byte)0);
+                } else {
+                    role.setSign((byte)1);
+                }
+                roles.add(role);
+            }
+
+            PageInfo info = PageInfo.of(roles);
+            info.setPageNum(page);
+            info.setPageSize(pageSize);
+            return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
+        } catch (Exception e) {
+            logger.error("other exception : " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        }
+    }
+
+    /**
+     * 取消用户角色
+     * @param userid 用户id
+     * @param roleid 角色id
+     * @return ReturnObject<VoObject>
+     * @author Xianwei Wang
+     * @modifier 张晖婧
+     * */
+    public ReturnObject<VoObject> revokeRole(Long userid, Long roleid,Long did) {
+        User user = getUserById(userid.longValue()).getData();
+        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
+
+        //用户id或角色id不存在
+        if (user == null || rolePo == null) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
+            UserRolePoExample userRolePoExample = new UserRolePoExample();
+            UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
+            criteria.andUserIdEqualTo(userid);
+            criteria.andRoleIdEqualTo(roleid);
+
+            try {
+                int state = userRolePoMapper.deleteByExample(userRolePoExample);
+                if (state == 0) {
+                    return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
+                } else {
+                    return new ReturnObject<>(ReturnNo.OK);
+                }
+            } catch (DataAccessException e) {
+                // 数据库错误
+                logger.error("数据库错误：" + e.getMessage());
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                        String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            } catch (Exception e) {
+                // 属未知错误
+                logger.error("严重错误：" + e.getMessage());
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                        String.format("发生了严重的未知错误：%s", e.getMessage()));
+            }
+
+        } else {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
+    }
+
+    /**
+     * 赋予用户角色
+     * @return ReturnObject
+     * @author 张晖婧
+     * */
+    public ReturnObject<VoObject> assignRole(UserRole userRole,Long did) {
+
+        User user = getUserById(userRole.getUserId().longValue()).getData();
+
+        User create = getUserById(userRole.getCreatorId().longValue()).getData();
+        RolePo rolePo = rolePoMapper.selectByPrimaryKey(userRole.getRoleId());
+
+        //用户id或角色id不存在
+        if (user == null || create == null || rolePo == null) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+
+        if (checkUserDid(userRole.getUserId(), did) && roleDao.checkRoleDid(userRole.getRoleId(), did) || did.equals(0L)) {
+
+            ReturnObject<UserRole> retObj = null;
+
+            UserRolePo userRolePo = (UserRolePo) baseCoder.code_sign(userRole, UserRolePo.class, codeFields, userRoleSignFields, "signature");
+            try {
+                int ret = userRolePoMapper.insertSelective(userRolePo);
+
+                UserRole userRoleBo = (UserRole) Common.cloneVo(userRolePo, UserRole.class);
+                userRoleBo.setSign((byte) 0);
+                //组装Bo
+                userRoleBo.setId(user.getId());
+                userRoleBo.setName(user.getName());
+
+                return new ReturnObject(userRoleBo);
+
+            } catch (DataAccessException e) {
+                // 数据库错误
+                if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
+                    return new ReturnObject<>(ReturnNo.ROLE_RELATION_EXIST, "重复赋予角色");
+                }
+
+                logger.error("数据库错误：" + e.getMessage());
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            } catch (Exception e) {
+                // 属未知错误
+                logger.error("严重错误：" + e.getMessage());
+                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            }
+        } else {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
+    }
+
+    /**
+     * 查看用户的功能角色
+     *
+     * @author 22920192204289 王文凯
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     * ModifiedBy 张晖婧 2021/11/30 22:37
+     */
+    public ReturnObject selectBaseRoles(Long userId, Long did, Integer page, Integer pageSize) {
+        try {
+            if (!checkUserDid(userId, did)) {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配"));
+            }
+
+            UserRolePoExample userRolePoExample = new UserRolePoExample();
+            UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
+            criteria.andUserIdEqualTo(userId);
+
+            // 查询用户所有角色
+            List<UserRolePo> userRolePos = userRolePoMapper.selectByExample(userRolePoExample);
+            Map<Long, Byte> roleIdMap = new HashMap<>((int) (userRolePos.size() / 0.75) + 1);
+            for (UserRolePo po : userRolePos) {
+                UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
+                if (userRole.getSignature() != null) {
+                    roleIdMap.put(po.getRoleId(), (byte) 0);
+                } else {
+                    roleIdMap.put(po.getRoleId(), (byte) 1);
+                }
+            }
+
+            // 筛选baserole=0
+            RolePoExample rolePoExample = new RolePoExample();
+            for (Long roleId : roleIdMap.keySet()) {
+                RolePoExample.Criteria c = rolePoExample.createCriteria();
+                c.andIdEqualTo(roleId);
+                c.andBaseroleEqualTo((byte) 0);
+                rolePoExample.or(c);
+            }
+            // 分页查询
+            PageHelper.startPage(page, pageSize);
+            List<RolePo> rolePos = rolePoMapper.selectByExample(rolePoExample);
+
+            List<Role> roles = new ArrayList<>(rolePos.size());
+            for(RolePo po : rolePos) {
+                Role bo = (Role) Common.cloneVo(po, Role.class);
+                bo.setSign(roleIdMap.get(po.getId()));
+                roles.add(bo);
+            }
+
+            PageInfo info = PageInfo.of(roles);
+            info.setPageNum(page);
+            info.setPageSize(pageSize);
+            return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
+
+        } catch (Exception e) {
+            logger.error("other exception : " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
+
+    /**
+     * 设置角色继承关系
+     * @param createId 创建者id
+     * @param pid 父角色id
+     * @param cid 子角色id
+     * @return ReturnObject<VoObject>
+     * @author 张晖婧
+     * */
+    public ReturnObject<VoObject> createRoleInherited(Long createId,String createName,Long pid, Long cid) {
+        ReturnObject<RoleInherited> retObj = null;
+
+        RolePo prolePo = rolePoMapper.selectByPrimaryKey(pid);
+        RolePo crolePo = rolePoMapper.selectByPrimaryKey(cid);
+        User create = getUserById(createId.longValue()).getData();
+
+        //用户id或角色id不存在
+        if (prolePo == null || create == null || crolePo == null) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+
+        RoleInheritedPo roleInheritedPo=new RoleInheritedPo();
+        roleInheritedPo.setRoleId(pid);
+        roleInheritedPo.setRoleCId(cid);
+        StringBuilder signatureBuilder = Common.concatString("-",
+                roleInheritedPo.getRoleId().toString(),
+                roleInheritedPo.getRoleCId().toString()
+        );
+        String signature = SHA256.getSHA256(signatureBuilder.toString());
+        roleInheritedPo.setSignature(signature);
+
+        try{
+            Common.setPoCreatedFields(roleInheritedPo,createId,createName);
+            int ret = roleInheritedPoMapper.insertSelective(roleInheritedPo);
+            if (ret == 0) {
+                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("新增失败：" + roleInheritedPo.getRoleId())+" "+roleInheritedPo.getRoleCId());
+            } else {
+                return new ReturnObject<>(ReturnNo.OK);
+            }
+        }
+        catch (DataAccessException e) {
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        }
+        catch (Exception e) {
+            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了内部错误：%s", e.getMessage()));
+        }
+        return new ReturnObject<>();
     }
 }
 

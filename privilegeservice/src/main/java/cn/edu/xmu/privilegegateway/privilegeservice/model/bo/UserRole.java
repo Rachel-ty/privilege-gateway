@@ -6,30 +6,41 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRoleRetVo;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Data
+@NoArgsConstructor
 public class UserRole implements VoObject {
     private Long id;
 
-    private User user;
+    private String name;
 
-    private Role role;
+    private Long userId;
 
-    private User creator;
+    private Long roleId;
+
+    private Long creatorId;
+
+    private String creatorName;
 
     private LocalDateTime gmtCreate;
+
+    private Long modifierId;
+
+    private String modifierName;
+
+    private LocalDateTime gmtModified;
+
+    private Byte sign;
 
     private String signature;
 
     private String cacuSignature;
 
-    public UserRole(UserRolePo userRolePo, User user, Role role, User creator){
+    public UserRole(UserRolePo userRolePo, User user, Role role, User creator) {
         this.id = userRolePo.getId();
-        this.user = user;
-        this.role = role;
-        this.creator = creator;
         this.gmtCreate = userRolePo.getGmtCreate();
         this.signature = userRolePo.getSignature();
 
@@ -50,9 +61,6 @@ public class UserRole implements VoObject {
     public Object createVo() {
         UserRoleRetVo userRoleRetVo = new UserRoleRetVo();
         userRoleRetVo.setId(this.id);
-        userRoleRetVo.setUser(this.user.createSimpleVo());
-        userRoleRetVo.setCreator(this.creator.createSimpleVo());
-        userRoleRetVo.setRole(this.role.createSimpleVo());
         userRoleRetVo.setGmtCreate(this.gmtCreate.toString());
 
         return userRoleRetVo;

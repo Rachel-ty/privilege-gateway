@@ -39,6 +39,8 @@ public class PrivilegeControllerTest {
     private static String token;
     private static String pToken;
     private static String adminToken;
+    private static String testToken1;
+
     private static JwtHelper jwtHelper = new JwtHelper();
 
     @Autowired
@@ -49,6 +51,7 @@ public class PrivilegeControllerTest {
         token = jwtHelper.createToken(46L, "lxc", 0L, 1, 36000);
         pToken = jwtHelper.createToken(60L, "pikaas", 0L, 1, 36000);
         adminToken=jwtHelper.createToken(1L, "13088admin", 0L, 1, 36000);
+        testToken1 = jwtHelper.createToken(47L, "user", 2L, 1, 36000);
     }
 
     /**
@@ -392,4 +395,543 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
+    /* -------------------------------------------------------------------------------------------------------------- */
+
+    //获得角色的所有状态
+    @Test
+    @Transactional
+    void getRoleAllStates() throws Exception {
+        String responseString = this.mvc.perform(get("/roles/states")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\": 0,\"data\":[{\"name\":\"正常\",\"code\":0},{\"name\":\"禁用\",\"code\":1}],\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //获得用户的功能角色
+    @Test
+    @Transactional
+    void getBaserolesByUserId() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/users/1/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //在没有权限的情况下获得用户的功能角色
+    @Test
+    @Transactional
+    void getBaserolesByUserIdWithDifDepartId() throws Exception{
+        String responseString = this.mvc.perform(get("/departs/1/users/1/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //获得用户的功能角色但传入的部门id和用户id不匹配
+    @Test
+    @Transactional
+    void getBaserolesByUserIdWithNotMatchedDepartId() throws Exception{
+        String responseString = this.mvc.perform(get("/departs/1/users/1/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //赋予用户角色
+    @Test
+    @Transactional
+    void assignRole() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/1/users/59/roles/87")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(responseString);
+    }
+
+    //赋予用户角色，传入的部门号不匹配
+    @Test
+    @Transactional
+    void assignRoleWithDepartNotMatched() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/2/users/59/roles/87")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //赋予用户重复的角色
+    @Test
+    @Transactional
+    void assignRoleAgain() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/0/users/1/roles/23")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":754,\"errmsg\":\"重复赋予角色\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //取消用户角色
+    @Test
+    @Transactional
+    void revokeRole() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/0/users/1/roles/23")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //取消用户角色，传入的部门号不匹配
+    @Test
+    @Transactional
+    void revokeRoleWithDepartNotMatched() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/1/users/1/roles/23")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //取消不存在的角色
+    @Test
+    @Transactional
+    void revokeRoleNotExist() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/1/users/59/roles/999")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //取消用户未拥有的角色
+    @Test
+    @Transactional
+    void revokeRoleAgain() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/1/users/59/roles/87")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":504,\"errmsg\":\"不存在该用户角色\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //设置角色的继承关系
+    @Test
+    @Transactional
+    void createRoleInherited() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/1/roles/80/childroles/81")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(responseString);
+    }
+
+    //设置角色的继承关系，传入的角色不存在
+    @Test
+    @Transactional
+    void createRoleInheritedWithoutPrivilege() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/1/roles/999/childroles/81")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //重复设置角色的继承关系
+    @Test
+    @Transactional
+    void createRoleInheritedAgain() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/1/roles/23/childroles/80")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":738,\"errmsg\":\"继承关系已存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //要设置的父角色和子角色的部门号不匹配且父角色不是功能角色
+    @Test
+    @Transactional
+    void createRoleInheritedDidNotMatched() throws Exception {
+        String responseString = this.mvc.perform(post("/departs/1/roles/2/childroles/1")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":503,\"errmsg\":\"部门id不匹配：1\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //查询角色的功能角色
+    @Test
+    @Transactional
+    void getBaserolesByRoleId() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/1/roles/87/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":0,\"list\":null},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    //查询角色的功能角色，但url中的did和角色部门不匹配
+    @Test
+    @Transactional
+    void getBaserolesByRoleIdDidNotMatched() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/2/roles/1/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的角色id不在该部门\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 分页查询所有角色
+
+    @Test
+    @Transactional
+    public void selectAllRoles() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/1/roles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":0,\"data\":{\"page\":1,\"pageSize\":10,\"total\":9,\"pages\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":80,\"name\":\"财务\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":81,\"name\":\"客服\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":82,\"name\":\"运营部\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":83,\"name\":\"产品部\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":84,\"name\":\"文案\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":85,\"name\":\"总经办\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":3,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":86,\"name\":\"库管\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":2,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":87,\"name\":\"辅助管理员\",\"descr\":\"一般的管理员\",\"departId\":1,\"gmtCreate\":\"2020-11-03T15:45:20\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void selectAllRoles_unmatchedDid() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/999/roles")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 新增一个角色
+
+    @Test
+    @Transactional
+    public void insertRole() throws Exception {
+        String json = "{\"name\":\"新角色\",\"descr\":\"新角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/1/roles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        System.out.println(responseString);
+    }
+
+    @Test
+    @Transactional
+    public void insertRole_unmatchedDid() throws Exception {
+        String json = "{\"name\":\"新角色\",\"descr\":\"新角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/999/roles")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配：999 can't match 0\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void insertRole_roleExit() throws Exception {
+        String json = "{\"name\":\"辅助管理员\",\"descr\":\"重复角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/1/roles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":736,\"errmsg\":\"角色名在部门内已存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 删除角色
+
+    @Test
+    @Transactional
+    public void deleteRole() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/1/roles/87")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\": 0,\"errmsg\": \"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void deleteRole_unmatchedDid() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/999/roles/87")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void deleteRole_roleNotBelongToDepart() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/2/roles/87")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void deleteRole_IdNotExist() throws Exception {
+        String responseString = this.mvc.perform(delete("/departs/1/roles/999")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 修改角色信息
+
+    @Test
+    @Transactional
+    public void updateRole() throws Exception {
+        String json = "{\"name\":\"辅助管理员辅助管理员\",\"desc\":\"一般的管理员一般的管理员\"}";
+
+        String responseString = this.mvc.perform(put("/departs/1/roles/87")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\": 0,\"errmsg\": \"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void updateRole_unmatchedDid() throws Exception {
+        String json = "{\"name\":\"辅助管理员辅助管理员\",\"desc\":\"一般的管理员一般的管理员\"}";
+
+        String responseString = this.mvc.perform(put("/departs/999/roles/87")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void updateRole_roleNotBelongToDepart() throws Exception {
+        String json = "{\"name\":\"管理员\",\"desc\":\"管理员\"}";
+
+        String responseString = this.mvc.perform(put("/departs/2/roles/87")
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void updateRole_roleExit() throws Exception {
+        String json = "{\"name\":\"管理员\",\"desc\":\"已存在\"}";
+
+        String responseString = this.mvc.perform(put("/departs/1/roles/87")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":736,\"errmsg\":\"角色名在部门内已存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void updateRole_idNotExit() throws Exception {
+        String json = "{\"name\":\"998877\",\"desc\":\"不存在\"}";
+
+        String responseString = this.mvc.perform(put("/departs/1/roles/999")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 查看任意用户的角色
+
+    @Test
+    @Transactional
+    public void selectRoles() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/users/1/roles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void selectRoles_unmatchedDid() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/999/users/1/roles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    @Test
+    @Transactional
+    public void selectRoles_userNotBelongToDepart() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/2/users/1/roles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 查看自己的角色
+
+    @Test
+    @Transactional
+    public void selectSelfRoles() throws Exception {
+        String responseString = this.mvc.perform(get("/self/roles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 查看自己的功能角色
+
+    @Test
+    @Transactional
+    public void selectSelfBaseRoles() throws Exception {
+        String responseString = this.mvc.perform(get("/self/baseroles")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
 }
