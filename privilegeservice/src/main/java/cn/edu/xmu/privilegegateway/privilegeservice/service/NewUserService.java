@@ -114,6 +114,7 @@ public class NewUserService {
                 {
                     return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
                 }
+
                 returnObject = userDao.addUser(newUserPo,loginUser,loginName);
                 newUserDao.physicallyDeleteUser(id);
             }

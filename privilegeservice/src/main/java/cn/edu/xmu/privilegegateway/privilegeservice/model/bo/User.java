@@ -151,6 +151,9 @@ public class User implements VoObject {
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
         this.signature = po.getSignature();
+        StringBuilder signature = Common.concatString("-", po.getUserName(), po.getPassword(),
+                po.getMobile(),po.getEmail(),po.getOpenId(),po.getState().toString(),po.getDepartId().toString(),
+                po.getCreatorId().toString());
         this.cacuSignature = SHA256.getSHA256(signature.toString());
     }
 
@@ -194,16 +197,16 @@ public class User implements VoObject {
      */
     public UserPo createUpdatePo(UserVo vo) {
         String nameEnc = vo.getName() == null ? null : AES.encrypt(vo.getName(), User.AESPASS);
-        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
-        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
+//        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
+//        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
         Byte state = (byte) this.state.code;
 
         UserPo po = new UserPo();
         po.setId(id);
         po.setName(nameEnc);
         po.setAvatar(vo.getAvatar());
-        po.setMobile(mobEnc);
-        po.setEmail(emlEnc);
+//        po.setMobile(mobEnc);
+//        po.setEmail(emlEnc);
         po.setState(state);
 
         po.setGmtCreate(null);
@@ -213,8 +216,8 @@ public class User implements VoObject {
         StringBuilder signature = Common.concatString("-",
                 this.getUserName(),
                 this.getPassword(),
-                mobEnc == null ? AES.encrypt(this.mobile, User.AESPASS) : mobEnc,
-                emlEnc == null ? AES.encrypt(this.email, User.AESPASS) : emlEnc,
+//                mobEnc == null ? AES.encrypt(this.mobile, User.AESPASS) : mobEnc,
+//                emlEnc == null ? AES.encrypt(this.email, User.AESPASS) : emlEnc,
                 this.getOpenId(),
                 state.toString(),
                 this.getDepartId().toString(),

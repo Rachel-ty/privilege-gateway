@@ -2,6 +2,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
@@ -72,6 +73,7 @@ public class UserDao{
 
     @Autowired
     private BaseCoder baseCoder;
+
 
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
@@ -698,6 +700,41 @@ public class UserDao{
     }
 
     /* auth009 */
+    /**
+     * 获得解密后的Po并校验签名
+     *
+     * @param id userID
+     * @return UserPo
+     * createdBy 蒋欣雨 2021/12/1
+     */
+
+    public ReturnObject getUserPoById(Long id) {
+        // 查询密码等资料以计算新签名
+        try
+        {
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
+            // 不修改已被逻辑废弃的账户
+            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
+                logger.info("用户不存在或已被删除：id = " + id);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+
+            userPo=(UserPo) baseCoder.decode_check(userPo,UserPo.class,userCodeFields,userSignFields,"signature");
+            //签名校验失败
+            if (userPo.getSignature()==null)
+            {
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
+            }
+
+            return new ReturnObject<>(userPo);
+        }
+        catch (Exception e) {
+            // 其他 Exception 即属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
 
     /**
      * 根据 id 修改用户信息
@@ -710,30 +747,26 @@ public class UserDao{
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     public ReturnObject<Object> modifyUserByVo(Long did,Long id, UserVo userVo,Long loginUser,String loginName) {
-        // 更新数据库
-        ReturnObject<Object> retObj;
-        int ret;
         if (!checkUserDid(id, did)&&did != Long.valueOf(0)) {
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
+
+        // 更新数据库
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
+            return retObj;
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
+        userPo.setName(userVo.getName());
+        userPo.setAvatar(userVo.getAvatar());
+        userPo.setIdNumber(userVo.getIdNumber());
+        userPo.setPassportNumber(userVo.getPassportNumber());
+        userPo.setLevel(userVo.getLevel());
+        Common.setPoModifiedFields(userPo,loginUser,loginName);
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
+
+        int ret;
         try{
-            // 查询密码等资料以计算新签名
-            UserPo userPo = userMapper.selectByPrimaryKey(id);
-            // 不修改已被逻辑废弃的账户
-            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
-                logger.info("用户不存在或已被删除：id = " + id);
-                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-            }
-            User user=new User(userPo);
-
-            user.setName(userVo.getName());
-            user.setAvatar(userVo.getAvatar());
-            user.setIdNumber(userVo.getIdNumber());
-            user.setPassportNumber(userVo.getPassportNumber());
-            user.setLevel(userVo.getLevel());
-            Common.setPoModifiedFields(user,loginUser,loginName);
-            userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
-
             //更新修改
             ret = userMapper.updateByPrimaryKeySelective(userPo);
             } catch (DataAccessException e) {
@@ -790,32 +823,25 @@ public class UserDao{
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
-     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    private ReturnObject<Object> createUserStateModPo(Long id, User.State state) {
+    private UserPo createUserStateModPo(Long id, User.State state) {
         // 查询密码等资料以计算新签名
-        ReturnObject<Object> retObj;
-        try {
-            UserPo userPo = userMapper.selectByPrimaryKey(id);
-            // 不修改已被逻辑废弃的账户的状态
-            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
-                return null;
-            }
-            userPo.setState(state.getCode().byteValue());
-            return new ReturnObject<>(userPo);
-        }catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        UserPo orig = userMapper.selectByPrimaryKey(id);
+        // 不修改已被逻辑废弃的账户的状态
+        if (orig == null || (orig.getState() != null && User.State.getTypeByCode(orig.getState().intValue()) == User.State.DELETE)) {
+            return null;
         }
-        return retObj;
+
+        // 构造 User 对象以计算签名
+        User user = new User(orig);
+        user.setState(state);
+        // 构造一个全为 null 的 vo 因为其他字段都不用更新
+        UserVo vo = new UserVo();
+
+        return user.createUpdatePo(vo);
     }
+
+
 
     /**
      * 改变用户状态
@@ -829,22 +855,23 @@ public class UserDao{
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     public ReturnObject<Object> changeUserState(Long did,Long id,Long loginUser,String loginName, User.State state) {
-        if (!checkUserDid(id, did) &&did != Long.valueOf(0)) {
+        if (!checkUserDid(id, did)&&did != Long.valueOf(0)) {
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
 
-        UserPo po = (UserPo) createUserStateModPo(id, state).getData();
-        if (po == null) {
-            logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        Common.setPoModifiedFields(po,loginUser,loginName);
-        User user=new User(po);
-        po= (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
-        ReturnObject<Object> retObj;
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
+            return retObj;
+
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
+        userPo.setState(state.getCode().byteValue());
+        Common.setPoModifiedFields(userPo,loginUser,loginName);
+
+        userPo= (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
         int ret;
         try {
-            ret = userMapper.updateByPrimaryKeySelective(po);
+            ret = userMapper.updateByPrimaryKeySelective(userPo);
             if (ret == 0) {
                 logger.info("用户不存在或已被删除：id = " + id);
                 retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
@@ -893,12 +920,14 @@ public class UserDao{
 
         UserPoExample userPoExample1 = new UserPoExample();
         List<UserPo> userPo1 = null;
+        Collection<String> voCodeFields = new ArrayList<>(Arrays.asList("name"));
+        ResetPwdVo vo_coded= (ResetPwdVo) baseCoder.code_sign(vo, ResetPwdVo.class, voCodeFields,null, "signature");
 
         try {
             UserPoExample.Criteria criteria_email = userPoExample1.createCriteria();
-            criteria_email.andEmailEqualTo(AES.encrypt(vo.getName(), User.AESPASS));
+            criteria_email.andEmailEqualTo(vo_coded.getName());
             UserPoExample.Criteria criteria_phone = userPoExample1.createCriteria();
-            criteria_phone.andMobileEqualTo(AES.encrypt(vo.getName(), User.AESPASS));
+            criteria_phone.andMobileEqualTo(vo_coded.getName());
             UserPoExample.Criteria criteria_username = userPoExample1.createCriteria();
             criteria_username.andUserNameEqualTo(vo.getName());
             userPoExample1.or(criteria_phone);
@@ -957,21 +986,21 @@ public class UserDao{
         if (!redisUtil.hasKey(key))
             return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
         Long id = (Long) redisUtil.get(key);
-        UserPo userpo = null;
-        try {
-            userpo = userPoMapper.selectByPrimaryKey(id);
-        } catch (Exception e) {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
-        }
-        User user=new User(userpo);
+
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
+            return retObj;
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
+
         //新密码与原密码相同
-        if (user.getPassword().equals(modifyPwdVo.getNewPassword()))
+        if (userPo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
-        user.setPassword(modifyPwdVo.getNewPassword());
-        userpo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
+        userPo.setPassword(modifyPwdVo.getNewPassword());
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
         //更新数据库
         try {
-            userMapper.updateByPrimaryKeySelective(userpo);
+            userMapper.updateByPrimaryKeySelective(userPo);
         } catch (Exception e) {
             e.printStackTrace();
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
@@ -1010,8 +1039,7 @@ public class UserDao{
         ReturnObject returnObject = null;
         UserPo userPo =(UserPo) Common.cloneVo(po,UserPo.class);
         Common.setPoCreatedFields(userPo,loginUser,loginName);
-        User user=new User(userPo);
-        userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, null,userSignFields, "signature");
 
         try {
             returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
@@ -1051,8 +1079,7 @@ public class UserDao{
             }
             userPo.setDepartId(departId);
             Common.setPoModifiedFields(userPo,loginUser,loginName);
-            User user=new User(userPo);
-            userPo = (UserPo) baseCoder.code_sign(user, UserPo.class, userCodeFields, userSignFields, "signature");
+            userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class,null, userSignFields, "signature");
 
             logger.debug("Update User: " + userId);
             int ret = userPoMapper.updateByPrimaryKeySelective(userPo);

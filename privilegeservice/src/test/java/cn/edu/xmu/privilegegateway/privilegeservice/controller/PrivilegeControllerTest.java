@@ -421,7 +421,8 @@ public class PrivilegeControllerTest {
 
     @Test
     public void testResetPassword() throws Exception {
-
+        Mockito.when(redisUtil.hasKey(Mockito.anyString())).thenReturn(false);
+        Mockito.when(redisUtil.set(Mockito.anyString(),Mockito.any(),Mockito.anyLong())).thenReturn(true);
         String contentJson1="{\"name\":\"minge@163.com\"}";
         String responseString1 = mvc.perform(put("/self/password/reset")
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
@@ -439,7 +440,7 @@ public class PrivilegeControllerTest {
                 "  \"captcha\": \"123456\",\n" +
                 "  \"newPassword\": \"123456\"\n" +
                 "}";
-        Mockito.when(redisUtil.get("cp_123456")).thenReturn(1L);
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(62L);
         Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
         String responseString1 = mvc.perform(put("/self/password")
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
@@ -456,7 +457,7 @@ public class PrivilegeControllerTest {
                 "  \"captcha\": \"123456\",\n" +
                 "  \"newPassword\": \"12345678\"\n" +
                 "}";
-        Mockito.when(redisUtil.get("cp_123456")).thenReturn(1L);
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(62L);
         Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
         String responseString1 = mvc.perform(put("/self/password")
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
@@ -487,7 +488,7 @@ public class PrivilegeControllerTest {
                 "  \"passportNumber\": \"123456\",\n" +
                 "  \"level\": 0\n" +
                 "}";
-        String responseString1 = mvc.perform(put("/departs/0/users/61")
+        String responseString1 = mvc.perform(put("/departs/0/users/62")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -516,7 +517,7 @@ public class PrivilegeControllerTest {
     }
     @Test
     public void testDeleteUser() throws Exception {
-        String responseString1 = mvc.perform(delete("/departs/0/users/61")
+        String responseString1 = mvc.perform(delete("/departs/0/users/62")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -526,14 +527,14 @@ public class PrivilegeControllerTest {
     }
     @Test
     public void testForbidUser() throws Exception {
-        String responseString1 = mvc.perform(put("/departs/0/users/61/forbid")
+        String responseString1 = mvc.perform(put("/departs/0/users/62/forbid")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
-        responseString1 = mvc.perform(put("/departs/0/users/61/release")
+        responseString1 = mvc.perform(put("/departs/0/users/62/release")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
