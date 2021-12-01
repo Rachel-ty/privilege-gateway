@@ -5,6 +5,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxySimpleRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserProxyDao;
@@ -54,8 +55,8 @@ public class UserProxyService {
         UserProxyRetVo userProxyRetVo = (UserProxyRetVo) Common.cloneVo(userProxy, UserProxyRetVo.class);
         ReturnObject<User> user = userDao.getUserById(userProxy.getUserId());
         ReturnObject<User> proxyUser = userDao.getUserById(userProxy.getProxyUserId());
-        userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName(),0));
-        userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName(),0));
+        userProxyRetVo.setUser(new UserProxySimpleRetVo(user.getData().getId(), user.getData().getName()));
+        userProxyRetVo.setProxyUser(new UserProxySimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
         return new ReturnObject(userProxyRetVo);
     }
 
@@ -77,8 +78,8 @@ public class UserProxyService {
             UserProxyRetVo userProxyRetVo = (UserProxyRetVo) Common.cloneVo(userProxy, UserProxyRetVo.class);
             ReturnObject<User> user = userDao.getUserById(userProxy.getUserId());
             ReturnObject<User> proxyUser = userDao.getUserById(userProxy.getProxyUserId());
-            userProxyRetVo.setUser(new UserSimpleRetVo(user.getData().getId(), user.getData().getName(),0));
-            userProxyRetVo.setProxyUser(new UserSimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName(),0));
+            userProxyRetVo.setUser(new UserProxySimpleRetVo(user.getData().getId(), user.getData().getName()));
+            userProxyRetVo.setProxyUser(new UserProxySimpleRetVo(proxyUser.getData().getId(), proxyUser.getData().getName()));
             userProxyRetVos.add(userProxyRetVo);
         }
         data.put("list", userProxyRetVos);
