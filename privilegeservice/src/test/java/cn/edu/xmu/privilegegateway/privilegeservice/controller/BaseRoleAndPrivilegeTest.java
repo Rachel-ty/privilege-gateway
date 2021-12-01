@@ -37,6 +37,7 @@ public class BaseRoleAndPrivilegeTest {
     void init() {
         token = jwtHelper.createToken(29L, "zyu", 0L, 1, 36000);
     }
+    /*获取权限所有状态*/
     @Test
     public void testGetAllPrivileges() throws Exception{
         String responseString = this.mvc.perform(get("/privileges/states")
@@ -45,7 +46,8 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":0,\"data\":[{\"code\":0,\"name\":\"GET\"},{\"code\":1,\"name\":\"POST\"},{\"code\":2,\"name\":\"PUT\"},{\"code\":3,\"name\":\"DELETE\"}],\"errmsg\":\"成功\"}", responseString);
+        String expected="{\"errno\":0,\"data\":[{\"code\":0,\"name\":\"GET\"},{\"code\":1,\"name\":\"POST\"},{\"code\":2,\"name\":\"PUT\"},{\"code\":3,\"name\":\"DELETE\"}],\"errmsg\":\"成功\"}";
+        assertEquals(expected, responseString);
     }
     /*添加功能角色权限*/
     @Test
@@ -71,7 +73,8 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"data\":{\"id\":153,\"name\":\"查看任意用户信息\",\"gmtCreate\":\"2021-11-30 19:21:30.934\",\"gmtModified\":null,\"creator\":{\"id\":29,\"name\":\"zyu\",\"sign\":0},\"modifier\":{\"id\":null,\"name\":null,\"sign\":0},\"sign\":0},\"errmsg\":\"成功\"}", responseString,false);
+        String expected ="{\"errno\":0,\"data\":{\"name\":\"查看任意用户信息\",\"gmtCreate\":\"2021-11-30 19:21:30.934\",\"gmtModified\":null,\"creator\":{\"id\":29,\"name\":\"zyu\",\"sign\":0},\"modifier\":{\"id\":null,\"name\":null,\"sign\":0},\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expected, responseString,false);
     }
     /*删除功能角色权限*/
     @Test
@@ -85,7 +88,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andReturn().getResponse().getContentAsString();
         assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
     }
-    /*删除功能角色权限*/
+    /*删除功能角色权限,成功*/
     @Test
     public void testDelBaseRolePrivs() throws  Exception
     {
@@ -97,7 +100,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andReturn().getResponse().getContentAsString();
         assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString);
     }
-    /*查询权限*/
+    /*查询功能角色权限*/
     @Test
     public void testSelectPrivs() throws  Exception
     {
@@ -112,7 +115,7 @@ public class BaseRoleAndPrivilegeTest {
         String exstr="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/departs/{id}/adminusers/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01 09:52:20.000\",\"gmtModified\":\"2020-11-02 21:51:45.000\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(exstr, responseString,false);
     }
-    /*查询权限 错误did*/
+    /*查询功能角色权限 错误did*/
     @Test
     public void testSelectPrivsWithErrorDid() throws  Exception
     {
@@ -126,7 +129,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
     }
-    /*查询权限 错误baserole*/
+    /*查询功能角色权限 错误baserole*/
     @Test
     public void testSelectPrivsWithErrorRid() throws  Exception
     {

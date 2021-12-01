@@ -19,7 +19,7 @@ public class PrivilegeRetVo {
 
     private String url;
 
-    private Integer requestType;
+    private Byte requestType;
 
     private LocalDateTime gmtCreate;
 

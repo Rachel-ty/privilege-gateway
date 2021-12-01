@@ -68,18 +68,25 @@ public class PrivilegeService {
         return privilegeDao.getPriv(url,requestType,pagenum,pagesize);
     }
     @Transactional(rollbackFor = Exception.class)
+    public ReturnObject changePriv(Long pid,PrivilegeVo vo,Long mid,String mname)
+    {
+        Privilege privilege = (Privilege) Common.cloneVo(vo,Privilege.class);
+        privilege.setId(pid);
+        return privilegeDao.changePriv(privilege,mid,mname);
+    }
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject DelPriv(Long privid)
     {
         return privilegeDao.delPriv(privid);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject ForbidPriv(Long privid)
+    public ReturnObject ForbidPriv(Long privid,Long mid,String mname)
     {
-        return privilegeDao.forbidPriv(privid);
+        return privilegeDao.forbidPriv(privid,mid,mname);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject ReleasePriv(Long pid)
+    public ReturnObject ReleasePriv(Long pid,Long mid,String mname)
     {
-        return privilegeDao.releasePriv(pid);
+        return privilegeDao.releasePriv(pid,mid, mname);
     }
 }

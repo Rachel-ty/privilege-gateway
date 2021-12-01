@@ -3,6 +3,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeSimpleRetVo;
@@ -28,12 +29,12 @@ public class Privilege implements VoObject{
      * 请求类型
      */
     public enum RequestType {
-        GET(0, "GET"),
-        POST(1, "POST"),
-        PUT(2, "PUT"),
-        DELETE(3, "DELETE");
+        GET((byte)0, "GET"),
+        POST((byte)1, "POST"),
+        PUT((byte)2, "PUT"),
+        DELETE((byte)3, "DELETE");
 
-        private static final Map<Integer, RequestType> typeMap;
+        private static final Map<Byte, RequestType> typeMap;
 
         static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值
             typeMap = new HashMap();
@@ -42,10 +43,10 @@ public class Privilege implements VoObject{
             }
         }
 
-        private int code;
+        private Byte code;
         private String description;
 
-        RequestType(int code, String description) {
+        RequestType(Byte code, String description) {
             this.code = code;
             this.description = description;
         }
@@ -54,7 +55,7 @@ public class Privilege implements VoObject{
             return typeMap.get(code);
         }
 
-        public Integer getCode() {
+        public Byte getCode() {
             return code;
         }
 
@@ -103,7 +104,7 @@ public class Privilege implements VoObject{
         this.requestType = RequestType.getTypeByCode(po.getRequestType().intValue());
 
         StringBuilder signature1 = Common.concatString("-", po.getUrl(), po.getRequestType().toString());
-        this.key = signature1.toString();
+        this.key = String.format(PrivilegeDao.PRIVILEGEKEY,url,requestType.getCode());
         signature1.append("-");
         signature1.append(po.getId());
         this.cacuSignature = SHA256.getSHA256(signature1.toString());

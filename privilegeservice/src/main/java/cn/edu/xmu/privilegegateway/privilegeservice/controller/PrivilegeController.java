@@ -278,13 +278,15 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}/forbid")
     public Object ForbidPriv(@PathVariable("did") Long did,
-                             @PathVariable("id") Long pid)
+                             @PathVariable("id") Long pid,
+                             @LoginUser Long modifiedId,
+                             @LoginName String modifiedName)
     {
         if(did!=Long.valueOf(0))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        return privilegeService.ForbidPriv(pid);
+        return privilegeService.ForbidPriv(pid,modifiedId,modifiedName);
     }
     /*解禁权限*/
 
@@ -305,15 +307,18 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 505, message = "操作id不是自己的对象")
     })
+    @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}/release")
     public Object ReleasePriv(@PathVariable("did") Long did,
-                             @PathVariable("id") Long pid)
+                             @PathVariable("id") Long pid,
+                              @LoginUser Long mid,
+                              @LoginName String mname)
     {
         if(did!=Long.valueOf(0))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        return Common.decorateReturnObject(privilegeService.ReleasePriv(pid));
+        return Common.decorateReturnObject(privilegeService.ReleasePriv(pid,mid,mname));
 
     }
 
@@ -468,8 +473,7 @@ public class PrivilegeController {
                              BindingResult bindingResult,
                              @LoginUser Long ModifierId,
                              @LoginName String ModifierName,
-                             @PathVariable("did") Long departId,
-                             HttpServletResponse httpServletResponse){
+                             @PathVariable("did") Long departId){
         /* 处理参数校验错误 */
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
@@ -479,7 +483,7 @@ public class PrivilegeController {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 
-        ReturnObject<VoObject> returnObject = userService.changePriv(id, vo,ModifierId,ModifierName);
+        ReturnObject<VoObject> returnObject = privilegeService.changePriv(id,vo,ModifierId,ModifierName);
         return Common.decorateReturnObject(returnObject);
 
     }
