@@ -1,6 +1,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.imp.SHA256Sign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -23,9 +25,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -61,6 +61,12 @@ public class RoleDao {
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
+    private GroupRolePoMapper groupRolePoMapper;
+
+    @Autowired
+    private RoleInheritedPoMapper roleInheritedPoMapper;
+
+    @Autowired
     private PrivilegeDao privDao;
 
     @Autowired
@@ -69,7 +75,27 @@ public class RoleDao {
     @Autowired
     private RedisUtil redisUtil;
 
-    public final static String ROLEKEY = "r_%d";
+    /**
+     * 用户的redis key：r_id values:set{br_id};
+     */
+    private final static String ROLEKEY = "r_%d";
+
+    /**
+     * 功能用户的redis key:br_id values:set{privId};
+     */
+    private final static String BASEROLEKEY = "br_%d";
+
+    private final static int BANED = 2;
+    @Autowired
+    private BaseCoder baseCoder;
+
+    private SHA256Sign sign = new SHA256Sign();
+
+    final static List<String> newUserRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
+
+    final static List<String> newGroupRoleSignFields = new ArrayList<>(Arrays.asList("roleId", "groupId"));
+
+    final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
     /**
      * 根据角色Id,查询角色的所有权限
@@ -90,6 +116,27 @@ public class RoleDao {
     }
 
     /**
+     * 根据roleId获得继承的roleIds
+     * @param roleId
+     * @return
+     * CreateBy RenJieZheng 22920192204334
+     */
+    public ReturnObject getParentRole(Long roleId){
+        try{
+            RoleInheritedPoExample example = new RoleInheritedPoExample();
+            RoleInheritedPoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleCIdEqualTo(roleId);
+            List<RoleInheritedPo>roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
+            logger.debug("getSuperiorRoleIdsByRoleId: roleId = " + roleId);
+            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature");
+            return new ReturnObject(ret);
+        }catch (Exception e){
+            logger.error("getSuperiorRoleIdsByRoleId: "+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+    }
+
+    /**
      * 将一个角色的所有权限id载入到Redis
      *
      * @param id 角色id
@@ -101,15 +148,80 @@ public class RoleDao {
      *            Ming Qiu 2020-11-07 8:00
      * 集合里强制加“0”
      */
-    public void loadRolePriv(Long id) {
-        List<Long> privIds = this.getPrivIdsByRoleId(id);
-        String key = String.format(ROLEKEY, id);
-        for (Long pId : privIds) {
-            redisUtil.addSet(key, pId);
+    public ReturnObject loadBaseRolePriv(Long id) {
+        try{
+            List<Long> privIds = this.getPrivIdsByRoleId(id);
+            String key = String.format(BASEROLEKEY, id);
+            for (Long pId : privIds) {
+                redisUtil.addSet(key, pId);
+            }
+            long randTimeout = Common.addRandomTime(this.timeout);
+            redisUtil.addSet(key,0);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e){
+            logger.error("loadBaseRolePriv:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        redisUtil.addSet(key,0);
-        long randTimeout = Common.addRandomTime(this.timeout);
-        redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+
+    }
+
+    /**
+     * 将一个角色的功能角色id载入到Redis
+     * @param id roleId
+     * @return
+     * CreateBy RenJieZheng 22920192204334
+     */
+    public ReturnObject loadRole(Long id){
+        try{
+            String key = String.format(ROLEKEY, id);
+            RolePo rolePo = roleMapper.selectByPrimaryKey(id);
+
+            //用户被禁止,则退出
+            if(rolePo.getState()==BANED){
+                //因为有redisUtil.unionAndStoreSet(roleKeys,key);所以被禁止也赋予0
+                redisUtil.addSet(String.format(ROLEKEY,id),0);
+                return new ReturnObject(ReturnNo.OK);
+            }
+
+            //如果是功能角色则加入
+            if(rolePo.getBaserole()==1){
+                String brKey = String.format(BASEROLEKEY,id);
+                redisUtil.addSet(String.format(ROLEKEY,id),brKey);
+                return new ReturnObject(ReturnNo.OK);
+            }
+
+            //如果不是功能角色则继续往上找
+            ReturnObject returnObject1 = getParentRole(id);
+            if(returnObject1.getCode()!= ReturnNo.OK){
+                return returnObject1;
+            }
+            List<RoleInheritedPo>roleInheritedPos = (List<RoleInheritedPo>) returnObject1.getData();
+            //没有获得继承角色则是根角色，退出
+            if(roleInheritedPos.size()<=0){
+                redisUtil.addSet(String.format(ROLEKEY,id),0);
+                return new ReturnObject<>(ReturnNo.OK);
+            }
+            List<String> roleKeys = new ArrayList<>();
+            for(RoleInheritedPo roleInheritedPo:roleInheritedPos){
+                if(!redisUtil.hasKey(String.format(ROLEKEY,roleInheritedPo.getRoleId()))){
+                    ReturnObject returnObject2 = loadRole(roleInheritedPo.getRoleId());
+                    if(returnObject2.getCode()!=ReturnNo.OK){
+                        return returnObject2;
+                    }
+                }
+                roleKeys.add(String.format(ROLEKEY,roleInheritedPo.getRoleId()));
+            }
+            redisUtil.unionAndStoreSet(roleKeys,key);
+            redisUtil.addSet(key,0);
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject<>(ReturnNo.OK);
+        }catch(Exception e){
+            logger.error("loadRole: "+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+
     }
 
     /**
@@ -519,25 +631,52 @@ public class RoleDao {
      * @return 角色id列表
      * createdBy: Ming Qiu 2020/11/3 13:55
      */
-    public List<Long> getRoleIdByUserId(Long id) {
-        UserRolePoExample example = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserIdEqualTo(id);
-        List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
-        logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
-        List<Long> retIds = new ArrayList<>(userRolePoList.size());
-        for (UserRolePo po : userRolePoList) {
-            StringBuilder signature = Common.concatString("-",
-                    po.getUserId().toString(), po.getRoleId().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-
-            if (newSignature.equals(po.getSignature())) {
+    public ReturnObject getRoleIdByUserId(Long id) {
+        try{
+            UserRolePoExample example = new UserRolePoExample();
+            UserRolePoExample.Criteria criteria = example.createCriteria();
+            criteria.andUserIdEqualTo(id);
+            List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
+            logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
+            List<Long> retIds = new ArrayList<>();
+            for (UserRolePo po : userRolePoList) {
+                if (!sign.check(po,newUserRoleSignFields,"signature")) {
+                    logger.error("getRoleIdByUserId: 签名错误(auth_user_role): id =" + po.getId());
+                }
                 retIds.add(po.getRoleId());
-                logger.debug("getRoleIdByUserId: userId = " + po.getUserId() + " roleId = " + po.getRoleId());
-            } else {
-                logger.error("getRoleIdByUserId: 签名错误(auth_user_role): id =" + po.getId());
             }
+            return new ReturnObject(retIds);
+        }catch(Exception e){
+            logger.error("getRoleIdByUserId:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-        return retIds;
+    }
+
+
+    /**
+     * 由Group Id 获得 Role Id 列表
+     * @param id: Group id
+     * @return Role Id 列表
+     * created by RenJie Zheng 22920192204334
+     */
+    public ReturnObject getRoleIdsByGroupId(Long id) {
+        try{
+            GroupRolePoExample example = new GroupRolePoExample();
+            GroupRolePoExample.Criteria criteria = example.createCriteria();
+            criteria.andGroupIdEqualTo(id);
+            List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
+            logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
+            List<Long> retIds = new ArrayList<>();
+            for (GroupRolePo po : groupRolePoList) {
+                if (!sign.check(po,newGroupRoleSignFields,"signature")) {
+                    logger.error("getRoleIdByUserId: 签名错误(auth_group_role): id =" + po.getId());
+                }
+                retIds.add(po.getRoleId());
+            }
+            return new ReturnObject(retIds);
+        }catch (Exception e){
+            logger.error("getRoleIdsByGroupId:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
     }
 }
