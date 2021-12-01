@@ -8,6 +8,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
