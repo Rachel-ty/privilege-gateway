@@ -101,16 +101,6 @@ public class User implements VoObject {
 
     private Long creatorId;
 
-    private Long modifierId;
-
-    private String creatorName;
-
-    private String modifierName;
-
-    private String idNumber;
-
-    private String passportNumber;
-
     private String signature;
 
     private String cacuSignature;
@@ -122,7 +112,7 @@ public class User implements VoObject {
     public User(UserPo po){
         this.id = po.getId();
         this.userName = po.getUserName();
-        this.password = AES.decrypt(po.getPassword(),AESPASS);
+        this.password =po.getPassword();
         this.mobile = AES.decrypt(po.getMobile(),AESPASS);
         if (null != po.getMobileVerified()) {
             this.mobileVerified = po.getMobileVerified() == 1;
@@ -133,9 +123,6 @@ public class User implements VoObject {
             this.emailVerified = po.getEmailVerified() == 1;
         }
         this.name = AES.decrypt(po.getName(), AESPASS);
-        this.idNumber = AES.decrypt(po.getIdNumber(), AESPASS);
-        this.passportNumber = AES.decrypt(po.getPassportNumber(), AESPASS);
-        this.level=po.getLevel();
         this.avatar = po.getAvatar();
         this.lastLoginTime = po.getLastLoginTime();
         this.lastLoginIp = po.getLastLoginIp();
@@ -145,12 +132,10 @@ public class User implements VoObject {
         }
         this.departId = po.getDepartId();
         this.creatorId = po.getCreatorId();
-        this.creatorName=po.getCreatorName();
-        this.modifierId=po.getModifierId();
-        this.modifierName=po.getModifierName();
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
         this.signature = po.getSignature();
+
         StringBuilder signature = Common.concatString("-", po.getUserName(), po.getPassword(),
                 po.getMobile(),po.getEmail(),po.getOpenId(),po.getState().toString(),po.getDepartId().toString(),
                 po.getCreatorId().toString());
@@ -197,16 +182,16 @@ public class User implements VoObject {
      */
     public UserPo createUpdatePo(UserVo vo) {
         String nameEnc = vo.getName() == null ? null : AES.encrypt(vo.getName(), User.AESPASS);
-//        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
-//        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
+        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
+        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
         Byte state = (byte) this.state.code;
 
         UserPo po = new UserPo();
         po.setId(id);
         po.setName(nameEnc);
         po.setAvatar(vo.getAvatar());
-//        po.setMobile(mobEnc);
-//        po.setEmail(emlEnc);
+        po.setMobile(mobEnc);
+        po.setEmail(emlEnc);
         po.setState(state);
 
         po.setGmtCreate(null);
@@ -216,8 +201,8 @@ public class User implements VoObject {
         StringBuilder signature = Common.concatString("-",
                 this.getUserName(),
                 this.getPassword(),
-//                mobEnc == null ? AES.encrypt(this.mobile, User.AESPASS) : mobEnc,
-//                emlEnc == null ? AES.encrypt(this.email, User.AESPASS) : emlEnc,
+                mobEnc == null ? AES.encrypt(this.mobile, User.AESPASS) : mobEnc,
+                emlEnc == null ? AES.encrypt(this.email, User.AESPASS) : emlEnc,
                 this.getOpenId(),
                 state.toString(),
                 this.getDepartId().toString(),
