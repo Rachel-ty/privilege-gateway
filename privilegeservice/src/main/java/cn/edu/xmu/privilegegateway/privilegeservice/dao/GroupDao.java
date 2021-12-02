@@ -211,4 +211,15 @@ public class GroupDao {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
     }
+
+    /**
+     * 组的影响力分析
+     * 任务3-5
+     * 删除和禁用某个权限时，删除所有影响的group和user的redisKey
+     * @param groupId 组id
+     * @return 影响的group和user的redisKey
+     */
+    public List<String> groupImpact(Long groupId){
+        return null;
+    }
 }
