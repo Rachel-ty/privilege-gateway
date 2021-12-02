@@ -26,6 +26,8 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -99,20 +101,12 @@ public class UserDao{
 //    @Autowired
 //    private JavaMailSender mailSender;
 
-    /**
-     * 用户的redis key： u_id
-     *
-     */
-    private final static String USERKEY = "u_%d";
 
     /**
      * 最终用户的redis key: up_id
      */
     private final static String USERPROXYKEY = "up_%d";
-    /**
-     * 用户ip的redis key: ip_id
-     */
-    private final static String IPKEY = "ip_%s";
+
     /**
      * 验证码的redis key: cp_id
      */
@@ -729,7 +723,7 @@ public class UserDao{
             //签名校验失败
             if (userPo.getSignature()==null)
             {
-                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY,userPo);
             }
 
             return new ReturnObject<>(userPo);
@@ -741,6 +735,81 @@ public class UserDao{
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }
+
+    /**
+     * createdBy 蒋欣雨 2021/12/1
+     * 将source中对应字段copy至target对象其他字段不变，若source中字段为null说明不修改
+     */
+    public Object copyVo(Object source, Object target) {
+        Class sourceClass = source.getClass();
+        Class targetClass = target.getClass();
+        try {
+            Field[] sourceFields = sourceClass.getDeclaredFields();
+            for (Field sourceField : sourceFields)
+            {
+                sourceField.setAccessible(true);
+                //若修改的字段为空，则说明不修改该字段
+                if(sourceField.get(source)==null)
+                    continue;
+                Field  targetField=null;
+                try{
+                 targetField= targetClass.getDeclaredField(sourceField.getName());
+                }
+                catch (NoSuchFieldException e)
+                {
+                    continue;
+                }
+
+                //静态和Final不能拷贝
+                int mod = targetField.getModifiers();
+                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
+                    continue;
+                }
+                targetField.setAccessible(true);
+
+                Class<?> sourceFieldType = sourceField.getType();
+                Class<?> targetFieldType = targetField.getType();
+                //属性名相同，类型相同，直接克隆
+                if (targetFieldType.equals(sourceFieldType))
+                {
+                    Object newObject = sourceField.get(source);
+                    targetField.set(target, newObject);
+                }
+                //属性名相同，类型不同
+                else
+                {
+                    boolean sourceFieldIsIntegerOrByteAndTargetFieldIsEnum=("Integer".equals(sourceFieldType.getSimpleName())||"Byte".equals(sourceFieldType.getSimpleName()))&&targetFieldType.isEnum();
+                    boolean targetFieldIsIntegerOrByteAndSourceFieldIsEnum=("Integer".equals(targetFieldType.getSimpleName())||"Byte".equals(targetFieldType.getSimpleName()))&&sourceFieldType.isEnum();
+                    //整形或Byte转枚举
+                    if(sourceFieldIsIntegerOrByteAndTargetFieldIsEnum)
+                    {
+                        Object newObj=sourceField.get(source);
+                        if("Byte".equals(sourceFieldType.getSimpleName()))
+                        {
+                            newObj=((Byte)newObj).intValue();
+                        }
+                        Object[] enumer=targetFieldType.getEnumConstants();
+                        targetField.set(target,enumer[(int) newObj]);
+                    }
+                    //枚举转整形或Byte
+                    else if(targetFieldIsIntegerOrByteAndSourceFieldIsEnum)
+                    {
+                        Object value= ((Enum)sourceField.get(source)).ordinal();
+                        if("Byte".equals(targetFieldType.getSimpleName()))
+                        {
+                            value = ((Integer) value).byteValue();
+                        }
+                        targetField.set(target,value);
+                    }
+
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.toString());
+        }
+        return target;
+    }
+
 
     /**
      * 根据 id 修改用户信息
@@ -763,11 +832,7 @@ public class UserDao{
             return retObj;
         // 查询密码等资料以计算新签名
         UserPo userPo =(UserPo) retObj.getData();
-        userPo.setName(userVo.getName());
-        userPo.setAvatar(userVo.getAvatar());
-        userPo.setIdNumber(userVo.getIdNumber());
-        userPo.setPassportNumber(userVo.getPassportNumber());
-        userPo.setLevel(userVo.getLevel());
+        userPo=(UserPo) copyVo(userVo,userPo);
         Common.setPoModifiedFields(userPo,loginUser,loginName);
         userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
 
@@ -906,21 +971,12 @@ public class UserDao{
     /**
      * auth002: 用户重置密码
      * @param vo 重置密码对象
-     * @param ip 请求ip地址
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> resetPassword(ResetPwdVo vo, String ip) {
+    public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
 
-        //防止重复请求验证码
-        String key = String.format(IPKEY, ip);
-        if (redisUtil.hasKey(key))
-            return new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
-        else {
-            //1 min中内不能重复请求
-            redisUtil.set(key, ip, 60L);
-        }
 
         //验证邮箱、手机号
 
@@ -955,7 +1011,7 @@ public class UserDao{
             captcha = RandomCaptcha.getRandomString(6);
 
         String id = userPo1.get(0).getId().toString();
-        key =  String.format(CAPTCHAKEY, captcha);
+        String key =  String.format(CAPTCHAKEY, captcha);
         redisUtil.set(key, id, 5*60L);
 
 

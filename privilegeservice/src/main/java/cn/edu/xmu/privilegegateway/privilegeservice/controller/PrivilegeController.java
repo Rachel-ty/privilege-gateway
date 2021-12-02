@@ -566,16 +566,8 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/departs/{did}/users/{id}")
-    public Object modifyUserInfo(@PathVariable Long did,@PathVariable Long id, @Validated @RequestBody ModifyUserVo vo, BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
-        }
-        // 校验前端数据
-        Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (returnObject != null) {
-            logger.info("incorrect data received while modifyUserInfo id = " + id);
-            return returnObject;
-        }
+    public Object modifyUserInfo(@PathVariable Long did,@PathVariable Long id,@RequestBody ModifyUserVo vo,@LoginUser Long loginUser,@LoginName String loginName) {
+        logger.debug("modifyUserInfo: id = "+ id +" vo = " + vo);
         ReturnObject returnObj = userService.modifyUserInfo(did,id, vo,loginUser,loginName);
         return Common.decorateReturnObject(returnObj);
     }
@@ -600,9 +592,7 @@ public class PrivilegeController {
     @Audit(departName = "departs") // 需要认证
     @DeleteMapping("/departs/{did}/users/{id}")
     public Object deleteUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("deleteUser: id = "+ id);
-        }
+        logger.debug("deleteUser: id = "+ id);
         ReturnObject returnObject = userService.deleteUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
@@ -627,9 +617,8 @@ public class PrivilegeController {
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/departs/{did}/users/{id}/forbid")
     public Object forbidUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("forbidUser: id = "+ id);
-        }
+
+        logger.debug("forbidUser: id = "+ id);
         ReturnObject returnObject = userService.forbidUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
@@ -654,9 +643,8 @@ public class PrivilegeController {
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/departs/{did}/users/{id}/release")
     public Object releaseUser(@PathVariable Long did,@PathVariable Long id,@LoginUser Long loginUser,@LoginName String loginName) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("releaseUser: id = "+ id);
-        }
+
+        logger.debug("releaseUser: id = "+ id);
         ReturnObject returnObject = userService.releaseUser(did,id,loginUser,loginName);
         return Common.decorateReturnObject(returnObject);
     }
@@ -946,7 +934,6 @@ public class PrivilegeController {
      * auth002: 用户重置密码
      * @param vo 重置密码对象
      * @param httpServletResponse HttpResponse
-     * @param httpServletRequest HttpRequest
      * @param bindingResult 校验信息
      * @return Object
      * @author 24320182203311 杨铭
@@ -960,19 +947,16 @@ public class PrivilegeController {
     })
     @PutMapping("self/password/reset")
     @ResponseBody
-    public Object resetPassword(@RequestBody ResetPwdVo vo,BindingResult bindingResult
-            , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest) {
-        if (logger.isDebugEnabled()) {
+    public Object resetPassword(@Validated @RequestBody ResetPwdVo vo,BindingResult bindingResult
+            , HttpServletResponse httpServletResponse) {
             logger.debug("resetPassword");
-        }
         /* 处理参数校验错误 */
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
             return o;
         }
 
-        String ip = IpUtil.getIpAddr(httpServletRequest);
-        ReturnObject returnObject = userService.resetPassword(vo,ip);
+        ReturnObject returnObject = userService.resetPassword(vo);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -994,9 +978,9 @@ public class PrivilegeController {
     @PutMapping("/self/password")
     @ResponseBody
     public Object modifyPassword(@RequestBody ModifyPwdVo vo) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("modifyPassword");
-        }
+
+        logger.debug("modifyPassword");
+
         ReturnObject returnObject = userService.modifyPassword(vo);
         return Common.decorateReturnObject(returnObject);
     }
@@ -1224,17 +1208,11 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/departs/{did}/users/{id}/approve")
-    public Object approveUser(@PathVariable Long did,@PathVariable Long id,@RequestBody ApproveConclusionVo vo,BindingResult bindingResult,@LoginUser Long loginUser,@LoginName String loginName) {
+    public Object approveUser(@PathVariable Long did,@PathVariable Long id,@RequestBody ApproveConclusionVo vo,@LoginUser Long loginUser,@LoginName String loginName) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("approveUser: did = "+ did+" userid: id = "+ id+" opinion: "+vo);
-        }
-        // 校验前端数据
-        Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (returnObject != null) {
-            logger.info("incorrect data received while approveUser id = " + id);
-            return returnObject;
-        }
+
+        logger.debug("approveUser: did = "+ did+" userid: id = "+ id+" opinion: "+vo);
+
         ReturnObject returnObj = newUserService.approveUser(vo,did,id,loginUser,loginName);;
         return Common.decorateReturnObject(returnObj);
     }

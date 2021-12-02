@@ -3,6 +3,9 @@ package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
 import org.apache.http.entity.ContentType;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import org.apache.http.entity.ContentType;
@@ -25,6 +28,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,6 +40,7 @@ import java.lang.*;
 import java.nio.charset.StandardCharsets;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import javax.servlet.http.HttpServletRequest;
 
 
@@ -431,6 +436,14 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, false);
+         contentJson1="{\"name\":\"\"}";
+        responseString1 = mvc.perform(put("/self/password/reset")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+         expectString1 = "{\"errno\":503,\"errmsg\":\"不能为空;\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
 
     }
     @Test
@@ -448,6 +461,15 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":741,\"errmsg\":\"不能与旧密码相同\"}}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(false);
+        responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        expectString1 = "{\"errno\":700,\"errmsg\":\"用户名不存在或者密码错误\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
     }
     @Test
@@ -594,4 +616,29 @@ public class PrivilegeControllerTest {
     }
 
 
+    //copyVo的test
+    @Test
+    void copyVotest() {
+        ModifyUserVo userVo=new ModifyUserVo();
+        userVo.setIdNumber("123");
+        userVo.setPassportNumber("99999999");
+        userVo.setName("name");
+
+        UserPo userPo = new UserPo();
+        userPo.setId(1L);
+        userPo.setLevel(0);
+        userPo.setIdNumber("1111");
+        userPo.setName("oldname");
+        userPo.setEmail("111");
+        userPo.setMobile("111");
+        UserPo newUserPo=(UserPo) userDao.copyVo(userVo,userPo);
+        assertEquals(newUserPo.getId(),userPo.getId());
+        assertEquals(newUserPo.getLevel(),userPo.getLevel());
+        assertEquals(newUserPo.getPassportNumber(),userVo.getPassportNumber());
+        assertEquals(newUserPo.getIdNumber(),userVo.getIdNumber());
+        assertEquals(newUserPo.getName(),userVo.getName());
+        assertEquals(newUserPo.getEmail(),userPo.getEmail());
+        assertEquals(newUserPo.getMobile(),userPo.getMobile());
+
+    }
 }

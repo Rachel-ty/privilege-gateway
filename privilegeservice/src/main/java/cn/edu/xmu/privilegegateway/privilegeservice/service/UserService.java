@@ -410,6 +410,34 @@ public class UserService {
     public ReturnObject<Object> modifyUserInfo(Long did,Long id, ModifyUserVo vo,Long loginUser,String loginName) {
             return userDao.modifyUserByVo(did,id, vo,loginUser,loginName);
     }
+    /**
+     * auth009 业务: 将用户踢出
+     * @param id 用户 id
+     * @return 返回对象 ReturnObject
+     * created by 22920192204219 蒋欣雨 at 2021/12/2
+     */
+    @Transactional
+    public void kickOutUser(Long id) {
+
+        String key =  String.format(USERPROXYKEY, id);
+        logger.debug("login: key = "+ key);
+        if(redisUtil.hasKey(key)){
+            Set<Serializable > set = redisUtil.getSet(key);
+            redisUtil.del(key);
+            /* 将旧JWT加入需要踢出的集合 */
+            String jwt = null;
+            for (Serializable str : set) {
+                /* 找出JWT */
+                if((str.toString()).length() > 8){
+                    jwt =  str.toString();
+                    break;
+                }
+            }
+            logger.debug("login: oldJwt" + jwt);
+            this.banJwt(jwt);
+        }
+    }
+
 
     /**
      * auth009 业务: 根据 id 删除任意用户
@@ -425,26 +453,10 @@ public class UserService {
 
             // 注：逻辑删除
             ReturnObject ret=userDao.changeUserState(did,id,loginUser,loginName ,User.State.DELETE);
-
-            String key =  String.format(USERPROXYKEY, id);
-            logger.debug("login: key = "+ key);
-            if(redisUtil.hasKey(key)){
-                Set<Serializable > set = redisUtil.getSet(key);
-                redisUtil.del(key);
-                /* 将旧JWT加入需要踢出的集合 */
-                String jwt = null;
-                for (Serializable str : set) {
-                    /* 找出JWT */
-                    if((str.toString()).length() > 8){
-                        jwt =  str.toString();
-                        break;
-                    }
-                }
-                logger.debug("login: oldJwt" + jwt);
-                this.banJwt(jwt);
-            }
+            kickOutUser(id);
             return ret;
     }
+
 
     /**
      * auth009 业务: 根据 id 禁止任意用户登录
@@ -459,23 +471,7 @@ public class UserService {
     public ReturnObject<Object> forbidUser(Long did,Long id,Long loginUser,String loginName) {
 
             ReturnObject ret=userDao.changeUserState(did,id,loginUser,loginName, User.State.FORBID);
-            String key =  String.format(USERPROXYKEY, id);
-            logger.debug("login: key = "+ key);
-            if(redisUtil.hasKey(key)){
-                Set<Serializable > set = redisUtil.getSet(key);
-                redisUtil.del(key);
-                /* 将旧JWT加入需要踢出的集合 */
-                String jwt = null;
-                for (Serializable str : set) {
-                    /* 找出JWT */
-                    if((str.toString()).length() > 8){
-                        jwt =  str.toString();
-                        break;
-                    }
-                }
-                logger.debug("login: oldJwt" + jwt);
-                this.banJwt(jwt);
-            }
+            kickOutUser(id);
             return ret;
     }
 
@@ -545,13 +541,12 @@ public class UserService {
         /**
      * auth002: 用户重置密码
      * @param vo 重置密码对象
-     * @param ip 请求ip地址
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
      */
     @Transactional
-    public ReturnObject<Object> resetPassword(ResetPwdVo vo, String ip) {
-        return userDao.resetPassword(vo,ip);
+    public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
+        return userDao.resetPassword(vo);
     }
 
     /**
