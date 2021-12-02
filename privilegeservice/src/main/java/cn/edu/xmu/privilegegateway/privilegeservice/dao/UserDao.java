@@ -489,8 +489,6 @@ public class UserDao{
                 redisUtil.unionAndStoreSet(roleKeys, key);
             }
             redisUtil.addSet(key,0);
-            long randTimeout = Common.addRandomTime(timeout);
-            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
 
             //load用户组的权限
             ReturnObject returnObject2 = groupDao.getGroupIdByUserId(id);
@@ -498,7 +496,7 @@ public class UserDao{
                 return returnObject2;
             }
             List<Long>groupIds = (List<Long>) returnObject2.getData();
-            List<String> groupKey = new ArrayList<>();
+            Set<String> groupKeys = new HashSet<>();
             if(groupIds.size()<=0||groupIds==null){
                 return new ReturnObject<>(ReturnNo.OK);
             }
@@ -509,12 +507,13 @@ public class UserDao{
                         return returnObject4;
                     }
                 }
-                groupKey.add(String.format(GROUPKEY, groupId));
+                groupKeys.add(String.format(GROUPKEY, groupId));
             }
-            if(groupKey.size()>0){
-                redisUtil.unionAndStoreSet(groupKey, key);
+            if(groupKeys.size()>0){
+                redisUtil.unionAndStoreSet(groupKeys, key);
             }
             redisUtil.addSet(key,0);
+            long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
             return new ReturnObject<>(ReturnNo.OK);
         }catch(Exception e){
@@ -552,7 +551,7 @@ public class UserDao{
                 return returnObject;
             }
             List<Long> proxyIds = (List<Long>) returnObject.getData();
-            List<String> proxyUserKey = new ArrayList<>(proxyIds.size());
+            Set<String> proxyUserKey = new HashSet<>();
             for (Long proxyId : proxyIds) {
                 if (!redisUtil.hasKey(String.format(USERKEY, proxyId))) {
                     logger.debug("loadUserPriv: loading proxy user. proxId = " + proxyId);
@@ -597,7 +596,7 @@ public class UserDao{
             }
             String aKey = String.format(FINALUSERKEY,userId);
             String fKey = String.format(USERPROXYKEY,userId);
-            List<String>roleKeys = new ArrayList<>();
+            Set<String>roleKeys = new HashSet<>();
             Set<Serializable> brKeys = redisUtil.getSet(aKey);
 
             for(Serializable brKey:brKeys){
@@ -616,9 +615,8 @@ public class UserDao{
                 }
                 roleKeys.add(brKeyStr);
             }
-            ReturnObject returnObject1 = roleDao.loadBaseRolePriv(23L);
-            if(returnObject1.getCode()!=ReturnNo.OK){
-                return returnObject1;
+            if(roleKeys.size()>0){
+                redisUtil.unionAndStoreSet(roleKeys,fKey);
             }
             redisUtil.addSet(fKey,jwt);
             long randTimeout = Common.addRandomTime(timeout);
