@@ -665,9 +665,9 @@ public class RoleDao {
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
             List<Long> retIds = new ArrayList<>();
-            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature");
+            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature");
             List<Long> retIds = new ArrayList<>();
-            for (UserRolePo po : userRolePosDecoded) {
+            for (GroupRolePo po : groupRolePosDecoded) {
                 retIds.add(po.getRoleId());
             }
             return new ReturnObject(retIds);
