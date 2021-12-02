@@ -19,14 +19,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 角色访问类
@@ -75,6 +80,7 @@ public class RoleDao {
     public final static String ROLEKEY = "r_%d";
 
 
+    private final static String JudgePIDByKey= "cn/edu/xmu/privilegegateway/privilegeservice/lua/JudgePIDByKey.lua";
     public final static Byte ISBASEROLE=1;
     public final static Byte NOTBASEROLE=0;
     public final static Byte FORBIDEN=1;
@@ -496,26 +502,23 @@ public class RoleDao {
             Set<Long> PrividSet=new HashSet<Long>();
             List<BasePrivilegeRetVo> voList=new ArrayList<BasePrivilegeRetVo>();
             List<PrivilegePo> polist=new ArrayList<>();
-            List<RolePrivilegePo> rolePrivilegePos =new ArrayList<>();
+            List<Long> Privs=new ArrayList<>();
             if(redisUtil.hasKey(key))
             {
+
                 var ret=redisUtil.getSet(key);
                 for(Serializable r:ret)
                 {
-                    Long newr=Long.valueOf((String) r);
-                    PrividSet.add(newr);
+                    Privs.add(Long.valueOf((Integer)r));
                 }
             }
             else {
-                RolePrivilegePoExample example = new RolePrivilegePoExample();
-                RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-                criteria.andRoleIdEqualTo(rid);
-                rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
-                for(RolePrivilegePo po:rolePrivilegePos)
+                Privs=getPrivIdsByRoleId(rid);
+                for(Long pid:Privs)
                     {
-                        PrividSet.add(po.getPrivilegeId());
+                        PrividSet.add(pid);
                         String bkey=String.format(BASEROLEKEY,rid);
-                        redisUtil.addSet(key,po.getPrivilegeId());
+                        redisUtil.addSet(key,pid);
                     }
 
             }
@@ -563,13 +566,16 @@ public class RoleDao {
             if(rolePo==null||rolePo.getBaserole()==NOTBASEROLE)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             String Prikey=String.format(BASEROLEKEY,vo.getRoleId());
+            DefaultRedisScript script = new DefaultRedisScript<>();
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(JudgePIDByKey)));
+            script.setResultType(Long.class);
+            List<String> keys = Stream.of(Prikey).collect(Collectors.toList());
             if(redisUtil.hasKey(Prikey))
             {
-                Set<Serializable>ret =redisUtil.getSet(Prikey);
-                for(Serializable r:ret)
+                Long ret=(Long)redisUtil.executeScript(script,keys,vo.getPrivilegeId());
+                if(ret==Long.valueOf(1))
                 {
-                    if(vo.getPrivilegeId()==(Long)r)
-                        return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+                    return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
                 }
             }
             PrivilegePo privilegePo=privDao.findPrivPo(vo.getPrivilegeId());

@@ -7,7 +7,6 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
@@ -20,19 +19,21 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import org.apache.ibatis.annotations.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.*;
-
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 /**
  * 权限DAO
  * @author Ming Qiu
@@ -58,14 +59,13 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    private final static String PRIVILEGESET_PATH="cn/edu/xmu/privilegegateway/privilegeservice/lua/SetPrivilege.lua";
+    private final static String GETPID_PATH= "cn/edu/xmu/privilegegateway/privilegeservice/lua/JudgePIDByKey.lua";
     public final static String PRIVILEGEKEY = "P_%s_%d";
-    public final static String HASHKEY="Priv";
     public final static Collection<String> codeFields = new ArrayList<>();
     public final static List<String> signFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
     //功能角色
-    public final static String BASEROLEKEY="br_%d";
-    public final static Collection<String> RPcodeFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
-    public final static List<String> RPsignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
     public final static Byte MODIFIED=1;
@@ -87,11 +87,14 @@ public class PrivilegeDao implements InitializingBean {
     public void afterPropertiesSet() throws Exception {
         PrivilegePoExample example = new PrivilegePoExample();
         List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
+        DefaultRedisScript script = new DefaultRedisScript<>();
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
         for (PrivilegePo po : privilegePos){
             Privilege priv = new Privilege(po);
             if (priv.authetic()) {
                 logger.debug("afterPropertiesSet: key = " + priv.getKey() + " p = " + priv);
-                redisUtil.addSet(priv.getKey(),priv.getId());
+                List<String> keys = Stream.of(priv.getKey()).collect(Collectors.toList());
+                redisUtil.executeScript(script,keys,priv.getId());
             }else{
                 logger.debug("afterPropertiesSet: id = " + priv.getId()+ ",Sign = "+priv.getSignature()+". cacuSign="+priv.getCacuSignature());
                 logger.error("afterPropertiesSet: Wrong Signature(auth_privilege): id = " + priv.getId());
@@ -121,11 +124,11 @@ public class PrivilegeDao implements InitializingBean {
      * @return id Privilege id
      * createdBy: Ming Qiu 2020-11-01 23:44
      */
-    public Long getPrivIdByKey(String url, Privilege.RequestType requestType){
-        String key=String.format(PRIVILEGEKEY,url,requestType.getCode());
+    public Long getPrivIdByKey(String url, Byte requestType){
+        String key=String.format(PRIVILEGEKEY,url,requestType);
         if(redisUtil.hasKey(key))
         {
-            return (Long)redisUtil.get(key);
+            return Long.valueOf((Integer)redisUtil.get(key));
         }
         return null;
     }
@@ -227,7 +230,10 @@ public class PrivilegeDao implements InitializingBean {
             PrivilegePo newPo =(PrivilegePo) coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
             Common.setPoModifiedFields(newPo,mid,mname);
             this.poMapper.updateByPrimaryKeySelective(newPo);
-            redisUtil.addSet(key, newPo.getId());
+            DefaultRedisScript script = new DefaultRedisScript<>();
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
+            List<String> keys = Stream.of(key).collect(Collectors.toList());
+            redisUtil.executeScript(script,keys,newPo.getId());
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
@@ -258,7 +264,10 @@ public class PrivilegeDao implements InitializingBean {
                 PrivilegePo po=(PrivilegePo)coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
                 Common.setPoCreatedFields(po,creatorid,creatorname);
                 int ret=poMapper.insertSelective(po);
-                redisUtil.addSet(key,po.getId());
+                DefaultRedisScript script = new DefaultRedisScript<>();
+                script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
+                List<String> keys = Stream.of(key).collect(Collectors.toList());
+                redisUtil.executeScript(script,keys,po.getId());
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
                 if(retVo!=null)
                 {
@@ -286,16 +295,10 @@ public class PrivilegeDao implements InitializingBean {
     public ReturnObject getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
     {
         try {
-            String key=String.format(PRIVILEGEKEY,url,type);
             List<PrivilegePo> polist =new ArrayList<>();
-            if(redisUtil.hasKey(key))
-            {
-                Set<Serializable> pids=redisUtil.getSet(key);
-                for(Serializable pid:pids)
-                {
-                    polist.add(poMapper.selectByPrimaryKey(Long.valueOf((Integer)pid)));
-                }
-            }
+            Long pid=getPrivIdByKey(url,type);
+            if(pid!=null)
+                polist.add(poMapper.selectByPrimaryKey(pid));
             else {
                 PrivilegePoExample example = new PrivilegePoExample();
                 PrivilegePoExample.Criteria criteria = example.createCriteria();
@@ -384,10 +387,10 @@ public class PrivilegeDao implements InitializingBean {
             String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
             if(redisUtil.hasKey(key))
                 redisUtil.del(key);
-            List<RolePrivilegePo> pos=selectByPrivid(pid);
-            for(RolePrivilegePo rolePrivilegePo:pos)
+            List<Long> pos=GetRoleIdByPrivId(pid);
+            for(Long roleid:pos)
             {
-                String rpkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
+                String rpkey=String.format(RoleDao.BASEROLEKEY,roleid);
                 redisUtil.del(rpkey);
             }
             return new ReturnObject(ReturnNo.OK);
@@ -415,11 +418,14 @@ public class PrivilegeDao implements InitializingBean {
             Common.setPoModifiedFields(po,mid,mname);
             poMapper.updateByPrimaryKeySelective(po);
             String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
-            redisUtil.addSet(key,pid);
-            List<RolePrivilegePo> pos=selectByPrivid(pid);
-            for(RolePrivilegePo rolePrivilegePo:pos)
+            DefaultRedisScript script = new DefaultRedisScript<>();
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
+            List<String> keys = Stream.of(key).collect(Collectors.toList());
+            redisUtil.executeScript(script,keys,pid);
+            List<Long> pos=GetRoleIdByPrivId(pid);
+            for(Long roleid:pos)
             {
-                String rpkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
+                String rpkey=String.format(RoleDao.BASEROLEKEY,roleid);
                 redisUtil.addSet(rpkey,pid);
             }
             return new ReturnObject(ReturnNo.OK);
@@ -441,6 +447,27 @@ public class PrivilegeDao implements InitializingBean {
             {
                 RolePrivilegePo newpo=(RolePrivilegePo) coder.code_sign(po,RolePrivilegePo.class,codeFields,signFields,"signature");
                 newpos.add(po);
+            }
+            return newpos;
+        }catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    public List<Long> GetRoleIdByPrivId(Long Privid)
+    {
+        try
+        {
+            RolePrivilegePoExample example=new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+            criteria.andPrivilegeIdEqualTo(Privid);
+            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
+            List<Long> newpos=new ArrayList<>(pos.size());
+            for(RolePrivilegePo po:pos)
+            {
+                RolePrivilegePo newpo=(RolePrivilegePo) coder.code_sign(po,RolePrivilegePo.class,codeFields,signFields,"signature");
+                newpos.add(newpo.getRoleId());
             }
             return newpos;
         }catch (Exception e)
