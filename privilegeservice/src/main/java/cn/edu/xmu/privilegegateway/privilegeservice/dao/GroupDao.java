@@ -84,11 +84,9 @@ public class GroupDao {
             criteria.andUserIdEqualTo(id);
             List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + userGroupPoList.size());
+            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature");
             List<Long> retIds = new ArrayList<>();
-            for (UserGroupPo po : userGroupPoList) {
-                if (!sign.check(po,newGroupSignFields,"signature")) {
-                    logger.error("getGroupIdByUserId: 签名错误(auth_user_group): id =" + po.getId());
-                }
+            for (UserGroupPo po : userGroupPosDecoded) {
                 retIds.add(po.getGroupId());
             }
             return new ReturnObject<>(retIds);
@@ -143,7 +141,9 @@ public class GroupDao {
                 }
                 roleKeys.add(roleKey);
             }
-            redisUtil.unionAndStoreSet(roleKeys, gKey);
+            if(roleKeys.size()>0){
+                redisUtil.unionAndStoreSet(roleKeys, gKey);
+            }
             redisUtil.addSet(gKey,0);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(gKey, randTimeout, TimeUnit.SECONDS);
@@ -167,7 +167,7 @@ public class GroupDao {
             GroupPo groupPo = groupPoMapper.selectByPrimaryKey(groupId);
 
             //用户组被禁止
-            if(groupPo.getState()==BANED){
+            if(groupPo.getState()!=null&&groupPo.getState()==BANED){
                 redisUtil.addSet(gKey,0);
                 return new ReturnObject();
             }
@@ -201,7 +201,9 @@ public class GroupDao {
                 }
                 pKeys.add(String.format(GROUPKEY,groupRelationPo.getGroupPId()));
             }
-            redisUtil.unionAndStoreSet(pKeys,gKey);
+            if(pKeys.size()>0){
+                redisUtil.unionAndStoreSet(pKeys,gKey);
+            }
             redisUtil.addSet(gKey,0);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(gKey, randTimeout, TimeUnit.SECONDS);

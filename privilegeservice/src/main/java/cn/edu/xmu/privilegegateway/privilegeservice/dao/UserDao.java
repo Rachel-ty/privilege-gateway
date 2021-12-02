@@ -488,7 +488,9 @@ public class UserDao{
                     }
                 }
             }
-            redisUtil.unionAndStoreSet(roleKeys, key);
+            if(roleKeys.size()>0){
+                redisUtil.unionAndStoreSet(roleKeys, key);
+            }
             redisUtil.addSet(key,0);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
@@ -512,7 +514,9 @@ public class UserDao{
                 }
                 groupKey.add(String.format(GROUPKEY, groupId));
             }
-            redisUtil.unionAndStoreSet(groupKey, key);
+            if(groupKey.size()>0){
+                redisUtil.unionAndStoreSet(groupKey, key);
+            }
             redisUtil.addSet(key,0);
             redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
             return new ReturnObject<>(ReturnNo.OK);
@@ -541,12 +545,16 @@ public class UserDao{
             String key = String.format(USERKEY, id);
             String aKey = String.format(FINALUSERKEY,  id);
             UserPo userPo = userPoMapper.selectByPrimaryKey(id);
-            if(userPo.getState()==BANED){
+            if(userPo.getState()!=null&&userPo.getState()==BANED){
                 redisUtil.addSet(key,0);
                 redisUtil.addSet(aKey,0);
                 return new ReturnObject(ReturnNo.OK);
             }
-            List<Long> proxyIds = this.getProxyIdsByUserId(id);
+            ReturnObject returnObject = getProxyIdsByUserId(id);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            List<Long> proxyIds = (List<Long>) returnObject.getData();
             List<String> proxyUserKey = new ArrayList<>(proxyIds.size());
             for (Long proxyId : proxyIds) {
                 if (!redisUtil.hasKey(String.format(USERKEY, proxyId))) {
@@ -594,9 +602,14 @@ public class UserDao{
             String fKey = String.format(USERPROXYKEY,userId);
             List<String>roleKeys = new ArrayList<>();
             Set<Serializable> brKeys = redisUtil.getSet(aKey);
+
             for(Serializable brKey:brKeys){
+                if(brKey.equals(0)){
+                    continue;
+                }
                 //brKey格式为br_%d
                 String brKeyStr = (String)brKey;
+
                 if(!redisUtil.hasKey(brKeyStr)){
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
                     ReturnObject returnObject1 = roleDao.loadBaseRolePriv(roleId);
@@ -606,7 +619,10 @@ public class UserDao{
                 }
                 roleKeys.add(brKeyStr);
             }
-            redisUtil.unionAndStoreSet(roleKeys,fKey);
+            ReturnObject returnObject1 = roleDao.loadBaseRolePriv(23L);
+            if(returnObject1.getCode()!=ReturnNo.OK){
+                return returnObject1;
+            }
             redisUtil.addSet(fKey,jwt);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(aKey, randTimeout, TimeUnit.SECONDS);
@@ -624,45 +640,38 @@ public class UserDao{
      * @return 被代理的用户id
      * createdBy Ming Qiu 14:37
      */
-    private List<Long> getProxyIdsByUserId(Long id) {
-        UserProxyPoExample example = new UserProxyPoExample();
-        //查询当前所有有效的被代理用户
-        UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserIdEqualTo(id);
-        criteria.andValidEqualTo((byte) 1);
-        List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
-        List<Long> retIds = new ArrayList<>(userProxyPos.size());
-        LocalDateTime now = LocalDateTime.now();
-        for (UserProxyPo po : userProxyPos) {
-            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
-                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-            UserProxyPo newPo = null;
-
-            if (newSignature.equals(po.getSignature())) {
+    private ReturnObject getProxyIdsByUserId(Long id) {
+        try{
+            UserProxyPoExample example = new UserProxyPoExample();
+            //查询当前所有有效的被代理用户
+            UserProxyPoExample.Criteria criteria = example.createCriteria();
+            criteria.andUserIdEqualTo(id);
+            criteria.andValidEqualTo((byte) 1);
+            List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
+            List<Long> retIds = new ArrayList<>(userProxyPos.size());
+            LocalDateTime now = LocalDateTime.now();
+            for (UserProxyPo po : userProxyPos) {
+                UserProxyPo newPo = (UserProxyPo) baseCoder.decode_check(po,UserProxyPo.class,null,userProxySignFields,"signatrue");
+                if (newPo.getSignature()==null) {
+                    logger.error("getProxyIdsByUserId: Wrong Signature(auth_user_proxy): id =" + po.getId());
+                }
                 if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
-                    //在有效期内
+                    //在有效期内才加进来
                     retIds.add(po.getProxyUserId());
                     logger.debug("getProxyIdsByUserId: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
                 } else {
                     //代理过期了，但标志位依然是有效
-                    newPo = newPo == null ? new UserProxyPo() : newPo;
                     newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserId().toString(),
-                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
-                    newSignature = SHA256.getSHA256(signature.toString());
-                    newPo.setSignature(newSignature);
+                    logger.debug("getProxyIdsByUserId: writing back.. po =" + newPo);
+                    userProxyPoMapper.updateByPrimaryKeySelective(newPo);
                 }
-            } else {
-                logger.error("getProxyIdsByUserId: Wrong Signature(auth_user_proxy): id =" + po.getId());
             }
-
-            if (null != newPo) {
-                logger.debug("getProxyIdsByUserId: writing back.. po =" + newPo);
-                userProxyPoMapper.updateByPrimaryKeySelective(newPo);
-            }
+            return new ReturnObject(retIds);
+        }catch (Exception e){
+            logger.error("getProxyIdsByUserId:" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        return retIds;
+
     }
 
     public void initialize() throws Exception {

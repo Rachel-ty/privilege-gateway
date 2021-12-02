@@ -1,0 +1,14 @@
+2021-12-01 20:00:39.713 [main] INFO  c.e.x.p.annotation.AnnotationApplication - Starting AnnotationApplication using Java 11.0.11 on 郑仁杰的电脑 with PID 8876 (F:\桌面文件\privilege\annotation\target\test-classes started by DELL in F:\桌面文件\privilege)
+2021-12-01 20:00:39.713 [main] INFO  c.e.x.p.annotation.AnnotationApplication - No active profile set, falling back to default profiles: default
+2021-12-01 20:00:40.882 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Multiple Spring Data modules found, entering strict repository configuration mode!
+2021-12-01 20:00:40.898 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2021-12-01 20:00:41.218 [main] INFO  o.s.d.r.config.RepositoryConfigurationDelegate - Finished Spring Data repository scanning in 20 ms. Found 0 Redis repository interfaces.
+2021-12-01 20:00:42.649 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat initialized with port(s): 8081 (http)
+2021-12-01 20:00:42.665 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8081"]
+2021-12-01 20:00:42.680 [main] INFO  org.apache.catalina.core.StandardService - Starting service [Tomcat]
+2021-12-01 20:00:42.680 [main] INFO  org.apache.catalina.core.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.54]
+2021-12-01 20:00:42.920 [main] INFO  o.a.c.core.ContainerBase.[Tomcat].[localhost].[/] - Initializing Spring embedded WebApplicationContext
+2021-12-01 20:00:42.920 [main] INFO  o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 3129 ms
+2021-12-01 20:00:44.751 [main] INFO  org.apache.coyote.http11.Http11NioProtocol - Starting ProtocolHandler ["http-nio-8081"]
+2021-12-01 20:00:44.782 [main] INFO  o.s.boot.web.embedded.tomcat.TomcatWebServer - Tomcat started on port(s): 8081 (http) with context path ''
+2021-12-01 20:00:44.798 [main] INFO  c.e.x.p.annotation.AnnotationApplication - Started AnnotationApplication in 6.031 seconds (JVM running for 10.923)
