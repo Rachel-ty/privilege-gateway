@@ -44,10 +44,17 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
-    public final static String SINGLEUSERKEY="u_%d";
-    public final static String PROXYUSERKEY="f_%d";
-    public final static String USERKEY="up_%d";
+    public final static String FUSERKEY="f_%d";
+    /**
+     * 用户的redis key： u_id, 集合里为base role
+     *
+     */
+    private final static String USERKEY = "u_%d";
 
+    /**
+     * 最终用户的redis key: up_id 集合里为
+     */
+    private final static String USERPROXYKEY = "up_%d";
 
 
     @Autowired
