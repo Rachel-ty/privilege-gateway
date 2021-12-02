@@ -42,8 +42,6 @@ public class GroupDao {
     @Autowired
     private BaseCoder baseCoder;
 
-    private SHA256Sign sign = new SHA256Sign();
-
     final static List<String> newGroupSignFields = new ArrayList<>(Arrays.asList("groupPId", "groupSId"));
 
     final static List<String> newUserGroupSignFields = new ArrayList<>(Arrays.asList("userId", "groupId"));

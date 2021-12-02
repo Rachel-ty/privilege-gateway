@@ -76,7 +76,6 @@ public class UserDao{
 
     @Autowired
     private BaseCoder baseCoder;
-    private SHA256Sign sign = new SHA256Sign();
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",

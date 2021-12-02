@@ -92,8 +92,6 @@ public class RoleDao {
     @Autowired
     private BaseCoder baseCoder;
 
-    private SHA256Sign sign = new SHA256Sign();
-
     final static List<String> newUserRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
 
     final static List<String> newGroupRoleSignFields = new ArrayList<>(Arrays.asList("roleId", "groupId"));
