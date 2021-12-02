@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
  * @author BingShuai Liu
  * @studentId 22920192204245
  * @date 2021/12/01/12:48
+ * modified by xiuchen lang
  */
 @Data
 @AllArgsConstructor
@@ -22,6 +23,6 @@ public class UserProxySimpleRetVo {
     private Long id;
 
     @ApiModelProperty(name = "用户名", value = "name")
-    private String userName;
+    private String name;
 
 }
