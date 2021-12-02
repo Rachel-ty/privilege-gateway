@@ -1,14 +1,18 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import org.apache.http.entity.ContentType;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -17,15 +21,16 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.lang.*;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 /**
@@ -40,7 +45,11 @@ public class PrivilegeControllerTest {
     private static String pToken;
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
-
+    public final static String ROLEKEY = "r_%d";
+    @MockBean
+    public static RoleDao roleDao;
+    @MockBean
+    public static RedisUtil redisUtil;
     @Autowired
     private MockMvc mvc;
 
@@ -392,4 +401,17 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
+    @Test
+    public void roleImp() throws JSONException {
+        List list=new ArrayList();
+        list.add(String.format(ROLEKEY,1L));
+        list.add(String.format(ROLEKEY,2L));
+        list.add(String.format(ROLEKEY,3L));
+        list.add(String.format(ROLEKEY,4L));
+        list.add(String.format(ROLEKEY,5L));
+        list.add(String.format(ROLEKEY,6L));
+        String except=list.toString();
+        String result=roleDao.roleImpact(1L).toString();
+        JSONAssert.assertEquals(except, result, true);
+    }
 }

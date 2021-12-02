@@ -1,16 +1,16 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -567,6 +567,7 @@ public class RoleDao {
     }
     public void digui(Long roleId, List<String> resultList){
         GroupRolePoExample example1=new GroupRolePoExample();
+        redisUtil.del(String.format(ROLEKEY,roleId));
         GroupRolePoExample.Criteria criteria1=example1.createCriteria();
         criteria1.andRoleIdEqualTo(roleId);
         List<GroupRolePo> gList=groupRolePoMapper.selectByExample(example1);
@@ -585,8 +586,10 @@ public class RoleDao {
         criteria.andRoleIdEqualTo(roleId);
         List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
         for(RoleInheritedPo roleInheritedPo:roleList){
-            resultList.add(String.format(ROLEKEY,roleInheritedPo.getRoleCId()));
-            digui(roleInheritedPo.getRoleCId(),resultList);
+            if(!resultList.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
+                resultList.add(String.format(ROLEKEY,roleInheritedPo.getRoleCId()));
+                digui(roleInheritedPo.getRoleCId(),resultList);
+            }
         }
     }
 }
