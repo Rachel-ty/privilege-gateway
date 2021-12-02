@@ -316,6 +316,8 @@ public class UserService {
 
     /**
      * 禁止持有特定令牌的用户登录
+     * 任务3-8
+     * 修改成lua脚本
      * @param jwt JWT令牌
      */
     private void banJwt(String jwt){

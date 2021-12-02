@@ -1,18 +1,16 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserSimpleRetVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -25,7 +23,9 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -757,5 +757,17 @@ public class RoleDao {
         info.setPageNum(page);
         info.setPageSize(pageSize);
         return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
+    }
+
+    /**
+     * 角色的影响力分析
+     * 任务3-6
+     * 删除和禁用，修改角色的继承关系时，删除所有影响的rediskey
+     *
+     * @param roleId 角色id
+     * @return 影响的role，group和user的redisKey
+     */
+    public List<String> roleImpact(Long roleId){
+        return null;
     }
 }
