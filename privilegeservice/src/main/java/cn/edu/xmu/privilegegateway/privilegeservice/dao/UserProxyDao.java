@@ -1,15 +1,15 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserProxyPoExample;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyRetVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -35,9 +35,10 @@ public class UserProxyDao {
     @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
+
     @Autowired
-    private UserPoMapper userPoMapper;
+    private UserDao userDao;
+
     @Autowired
     private BaseCoder baseCoder;
     final static List<String> signFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
@@ -48,15 +49,19 @@ public class UserProxyDao {
             if (isExistProxy(bo)) {
                 return new ReturnObject<>(ReturnNo.USERPROXY_CONFLICT);
             }
-            //防止填写部门错误
-            UserPo user = userPoMapper.selectByPrimaryKey(bo.getUserId());
-            UserPo proxyUser = userPoMapper.selectByPrimaryKey(bo.getProxyUserId());
-            if (user == null || proxyUser == null) {
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            ReturnObject<User> user = userDao.getUserById(bo.getUserId());
+            ReturnObject<User> proxyUser = userDao.getUserById(bo.getProxyUserId());
+            if (user.getCode()!=ReturnNo.OK){
+                return user;
             }
-            if (!(user.getDepartId().equals(proxyUser.getDepartId()))) {
+            if(proxyUser.getCode()!=ReturnNo.OK){
+                return proxyUser;
+            }
+            if (!(user.getData().getDepartId().equals(proxyUser.getData().getDepartId()))) {
                 return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
             }
+            bo.setUserName(user.getData().getName());
+            bo.setProxyUserName(proxyUser.getData().getName());
             bo.setValid((byte) 0);
             UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, codeFields, signFields, "signature");
             userProxyPoMapper.insert(userProxyPo);
@@ -100,16 +105,16 @@ public class UserProxyDao {
         try {
             List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
             PageInfo pageInfo = new PageInfo<>(results);
-            ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), UserProxy.class);
+            ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), UserProxyRetVo.class);
             Map<String,Object> data = (Map<String, Object>) pageRetVo.getData();
-            List<UserProxy> list = (List<UserProxy>) data.get("list");
+            List<UserProxyRetVo> list = (List<UserProxyRetVo>) data.get("list");
             boolean flag=true;
-            for (UserProxy userProxy : list) {
-                UserProxy u = (UserProxy) baseCoder.decode_check(userProxy,null, codeFields, signFields, "signature");
+            for(int i=0;i<list.size();i++){
+                UserProxyPo u = (UserProxyPo) baseCoder.decode_check(results.get(i),null, codeFields, signFields, "signature");
                 if (u.getSignature()!=null) {
-                    userProxy.setSign((byte)0);
+                    list.get(i).setSign((byte)0);
                 }else {
-                    userProxy.setSign((byte)1);
+                    list.get(i).setSign((byte)1);
                     flag=false;
                 }
             }
