@@ -138,7 +138,7 @@ CREATE TABLE `auth_privilege` (
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',
   `state` tinyint DEFAULT '0',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `auth_privilege_name_url_request_type_uindex` (`name`,`url`,`request_type`)
+  UNIQUE KEY `auth_privilege_url_request_type_uindex` (`url`,`request_type`)
 ) ENGINE=InnoDB AUTO_INCREMENT=125 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -336,4 +336,4 @@ CREATE TABLE `auth_user_role` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2021-11-28 16:12:32
+-- Dump completed on 2021-12-02 21:36:52
