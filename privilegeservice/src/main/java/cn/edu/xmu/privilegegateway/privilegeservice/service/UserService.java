@@ -16,7 +16,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -323,66 +326,20 @@ public class UserService {
      * 修改成lua脚本
      * @param jwt JWT令牌
      */
-    private void banJwt(String jwt){
+    private void banJwt(String jwt) {
         String[] banSetName = {"BanJwt_0", "BanJwt_1"};
-        long bannIndex = 0;
-        if (!redisTemplate.hasKey("banIndex")){
-            redisTemplate.opsForValue().set("banIndex", Long.valueOf(0));
-        } else {
-            logger.debug("banJwt: banIndex = " +redisTemplate.opsForValue().get("banIndex"));
-            bannIndex = Long.parseLong(redisTemplate.opsForValue().get("banIndex").toString());
-        }
-        logger.debug("banJwt: banIndex = " + bannIndex);
-        String currentSetName = banSetName[(int) (bannIndex % banSetName.length)];
-        logger.debug("banJwt: currentSetName = " + currentSetName);
-        if(!redisTemplate.hasKey(currentSetName)) {
-            // 新建
-            logger.debug("banJwt: create ban set" + currentSetName);
-            redisTemplate.opsForSet().add(currentSetName, jwt);
-            redisTemplate.expire(currentSetName,jwtExpireTime * 2,TimeUnit.SECONDS);
-        }else{
-            //准备向其中添加元素
-            if(redisTemplate.getExpire(currentSetName, TimeUnit.SECONDS) > jwtExpireTime) {
-                // 有效期还长，直接加入
-                logger.debug("banJwt: add to exist ban set" + currentSetName);
-                redisTemplate.opsForSet().add(currentSetName, jwt);
-            } else {
-                // 有效期不够JWT的过期时间，准备用第二集合，让第一个集合自然过期
-                // 分步式加锁
-                logger.debug("banJwt: switch to next ban set" + currentSetName);
-                long newBanIndex = bannIndex;
-                while (newBanIndex == bannIndex &&
-                        !redisTemplate.opsForValue().setIfAbsent("banIndexLocker","nouse", lockerExpireTime, TimeUnit.SECONDS)){
-                    //如果BanIndex没被其他线程改变，且锁获取不到
-                    try {
-                        Thread.sleep(10);
-                        //重新获得新的BanIndex
-                        newBanIndex = (Long) redisTemplate.opsForValue().get("banIndex");
-                    }catch (InterruptedException e){
-                        logger.error("banJwt: 锁等待被打断");
-                    }
-                    catch (IllegalArgumentException e){
+        String banIndexKey = "banIndex";
+        String scriptPath = "ban-jwt.lua";
 
-                    }
-                }
-                if (newBanIndex == bannIndex) {
-                    //切换ban set
-                    bannIndex = redisTemplate.opsForValue().increment("banIndex");
-                }else{
-                    //已经被其他线程改变
-                    bannIndex = newBanIndex;
-                }
+        DefaultRedisScript<Void> script = new DefaultRedisScript<>();
 
-                currentSetName = banSetName[(int) (bannIndex % banSetName.length)];
-                //启用之前，不管有没有，先删除一下，应该是没有，保险起见
-                redisTemplate.delete(currentSetName);
-                logger.debug("banJwt: next ban set =" + currentSetName);
-                redisTemplate.opsForSet().add(currentSetName, jwt);
-                redisTemplate.expire(currentSetName,jwtExpireTime * 2,TimeUnit.SECONDS);
-                // 解锁
-                redisTemplate.delete("banIndexLocker");
-            }
-        }
+        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+        script.setResultType(Void.class);
+
+        List<String> keyList = new ArrayList<>(List.of(banSetName));
+        keyList.add(banIndexKey);
+
+        redisTemplate.execute(script, keyList, banSetName.length, jwt, jwtExpireTime);
     }
 
 
