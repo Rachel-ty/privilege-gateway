@@ -1152,7 +1152,24 @@ public class UserDao{
      * @return 影响user的redisKey
      */
     public List<String> userImpact(Long userId){
-        return null;
+        UserProxyPoExample example = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = example.createCriteria();
+        criteria.andProxyUserIdEqualTo(userId);
+        List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
+        List<String> keys = new ArrayList<>();
+        List<Long> uIds= new ArrayList<>();
+        uIds.add(userId);
+        for (UserProxyPo userProxyPo : userProxyPos){
+            uIds.add(userProxyPo.getUserId());
+        }
+        for (Long uId : uIds){
+            String key = String.format(USERKEY,uId);
+            if(redisUtil.hasKey(key)){
+                keys.add(key);
+                redisUtil.del(key);
+            }
+        }
+        return keys;
     }
 }
 

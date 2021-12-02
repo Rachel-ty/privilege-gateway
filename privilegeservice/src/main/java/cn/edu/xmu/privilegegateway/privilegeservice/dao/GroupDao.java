@@ -1,5 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPoExample;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
@@ -22,6 +26,14 @@ public class GroupDao {
     private UserGroupPoMapper userGroupPoMapper;
 
     public final static String GROUPKEY="g_%d";
+
+    private final static String USERKEY = "u_%d";
+
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
+    private GroupRelationPoMapper groupRelationPoMapper;
 
 
     /**
@@ -61,6 +73,50 @@ public class GroupDao {
      * @return 影响的group和user的redisKey
      */
     public List<String> groupImpact(Long groupId){
-        return null;
+        List<String> keys = new ArrayList<>();
+        List<Long> groupIds = new ArrayList<>();
+        List<Long> userIds =new ArrayList<>();
+        getAllGroups(groupId,groupIds);
+        groupIds.add(groupId);
+        for (Long gId: groupIds){
+            String gKey= String.format(GROUPKEY,gId);
+            if(redisUtil.hasKey(gKey)){
+                keys.add(gKey);
+                redisUtil.del(gKey);
+            }
+            UserGroupPoExample example1 = new UserGroupPoExample();
+            UserGroupPoExample.Criteria criteria1 = example1.createCriteria();
+            criteria1.andGroupIdEqualTo(gId);
+            List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
+            for (UserGroupPo userGroupPo: userGroupPos){
+                if (!userIds.contains(userGroupPo.getUserId())){
+                    userIds.add(userGroupPo.getUserId());
+                }
+            }
+        }
+        for(Long uId:userIds){
+            String uKey = String.format(USERKEY,uId);
+            if(redisUtil.hasKey(uKey)){
+                keys.add(uKey);
+                redisUtil.del(uKey);
+            }
+        }
+        return keys;
     }
+
+    public void getAllGroups(Long groupId,List<Long> groupIds){
+        GroupRelationPoExample example = new GroupRelationPoExample();
+        GroupRelationPoExample.Criteria criteria = example.createCriteria();
+        criteria.andGroupPIdEqualTo(groupId);
+        List<GroupRelationPo> groupRelationPos = groupRelationPoMapper.selectByExample(example);
+        if(groupRelationPos==null||groupRelationPos.size()==0){
+            return;
+        }else{
+            for (GroupRelationPo groupRelationPo : groupRelationPos){
+                groupIds.add(groupRelationPo.getGroupSId());
+                getAllGroups(groupRelationPo.getGroupSId(),groupIds);
+            }
+        }
+    }
+
 }
