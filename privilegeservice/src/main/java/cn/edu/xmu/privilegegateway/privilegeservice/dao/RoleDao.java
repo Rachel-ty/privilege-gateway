@@ -43,6 +43,12 @@ public class RoleDao {
     private long timeout;
 
     @Autowired
+    private GroupDao groupDao;
+
+    @Autowired
+    private UserDao userDao;
+
+    @Autowired
     private RolePoMapper roleMapper;
 
     @Autowired
@@ -61,11 +67,15 @@ public class RoleDao {
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
+    private RoleInheritedPoMapper roleInheritedPoMapper;
+
+    @Autowired
     private PrivilegeDao privDao;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
-
+    @Autowired
+    private GroupRolePoMapper groupRolePoMapper;
     @Autowired
     private RedisUtil redisUtil;
 
@@ -550,6 +560,33 @@ public class RoleDao {
      * @return 影响的role，group和user的redisKey
      */
     public List<String> roleImpact(Long roleId){
-        return null;
+        List<String> impactList=new ArrayList<String>();
+        impactList.add(String.format(ROLEKEY,roleId));
+        digui(roleId,impactList);
+        return impactList;
+    }
+    public void digui(Long roleId, List<String> resultList){
+        GroupRolePoExample example1=new GroupRolePoExample();
+        GroupRolePoExample.Criteria criteria1=example1.createCriteria();
+        criteria1.andRoleIdEqualTo(roleId);
+        List<GroupRolePo> gList=groupRolePoMapper.selectByExample(example1);
+        for(GroupRolePo groupRolePo:gList){
+            resultList.addAll(groupDao.groupImpact(groupRolePo.getGroupId()));
+        }
+        UserRolePoExample example2=new UserRolePoExample();
+        UserRolePoExample.Criteria criteria2=example2.createCriteria();
+        criteria2.andRoleIdEqualTo(roleId);
+        List<UserRolePo> uList=userRolePoMapper.selectByExample(example2);
+        for(UserRolePo userRolePo:uList){
+            resultList.addAll(userDao.userImpact(userRolePo.getUserId()));
+        }
+        RoleInheritedPoExample example=new RoleInheritedPoExample();
+        RoleInheritedPoExample.Criteria criteria=example.createCriteria();
+        criteria.andRoleIdEqualTo(roleId);
+        List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
+        for(RoleInheritedPo roleInheritedPo:roleList){
+            resultList.add(String.format(ROLEKEY,roleInheritedPo.getRoleCId()));
+            digui(roleInheritedPo.getRoleCId(),resultList);
+        }
     }
 }
