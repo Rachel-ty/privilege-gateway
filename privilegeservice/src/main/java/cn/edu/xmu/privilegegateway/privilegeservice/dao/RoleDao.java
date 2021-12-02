@@ -493,7 +493,7 @@ public class RoleDao {
             }
             String key=String.format(BASEROLEKEY,rid);
             PageHelper.startPage(pagenum, pagesize);
-            Set<Long> PrividSet=new HashSet<>();
+            Set<Long> PrividSet=new HashSet<Long>();
             List<BasePrivilegeRetVo> voList=new ArrayList<BasePrivilegeRetVo>();
             List<PrivilegePo> polist=new ArrayList<>();
             List<RolePrivilegePo> rolePrivilegePos =new ArrayList<>();
@@ -502,7 +502,7 @@ public class RoleDao {
                 var ret=redisUtil.getSet(key);
                 for(Serializable r:ret)
                 {
-                    Long newr=(Long)r;
+                    Long newr=Long.valueOf((String) r);
                     PrividSet.add(newr);
                 }
             }
@@ -512,7 +512,12 @@ public class RoleDao {
                 criteria.andRoleIdEqualTo(rid);
                 rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
                 for(RolePrivilegePo po:rolePrivilegePos)
-                    PrividSet.add(po.getPrivilegeId());
+                    {
+                        PrividSet.add(po.getPrivilegeId());
+                        String bkey=String.format(BASEROLEKEY,rid);
+                        redisUtil.addSet(key,po.getPrivilegeId());
+                    }
+
             }
 
             for (Long pid : PrividSet) {
@@ -557,6 +562,16 @@ public class RoleDao {
             RolePo rolePo=roleMapper.selectByPrimaryKey(vo.getRoleId());
             if(rolePo==null||rolePo.getBaserole()==NOTBASEROLE)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            String Prikey=String.format(BASEROLEKEY,vo.getRoleId());
+            if(redisUtil.hasKey(Prikey))
+            {
+                Set<Serializable>ret =redisUtil.getSet(Prikey);
+                for(Serializable r:ret)
+                {
+                    if(vo.getPrivilegeId()==(Long)r)
+                        return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+                }
+            }
             PrivilegePo privilegePo=privDao.findPrivPo(vo.getPrivilegeId());
             if(privilegePo==null||privilegePo.getState()==FORBIDEN)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);

@@ -31,10 +31,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * 权限DAO
@@ -63,7 +60,7 @@ public class PrivilegeDao implements InitializingBean {
     private RedisUtil redisUtil;
     public final static String PRIVILEGEKEY = "P_%s_%d";
     public final static String HASHKEY="Priv";
-    public final static Collection<String> codeFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
+    public final static Collection<String> codeFields = new ArrayList<>();
     public final static List<String> signFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
     //功能角色
     public final static String BASEROLEKEY="br_%d";
@@ -71,6 +68,8 @@ public class PrivilegeDao implements InitializingBean {
     public final static List<String> RPsignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
+    public final static Byte MODIFIED=1;
+    public final static Byte OK=0;
 
     /**
      * 将权限载入到本地缓存中
@@ -145,7 +144,8 @@ public class PrivilegeDao implements InitializingBean {
     public PrivilegePo findPrivPo(Long id)
     {
         PrivilegePo po = poMapper.selectByPrimaryKey(id);
-        PrivilegePo priv =(PrivilegePo) coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
+
+        PrivilegePo priv =(PrivilegePo) coder.decode_check(po,null,codeFields,signFields,"signature");
         return priv;
     }
     /**
@@ -190,7 +190,7 @@ public class PrivilegeDao implements InitializingBean {
     /**
      * 修改权限
      * @modifiedBy 24320182203266
-     * modifieb by zhangyu
+     * modified by zhangyu
      */
     /**
      *
@@ -227,6 +227,7 @@ public class PrivilegeDao implements InitializingBean {
             PrivilegePo newPo =(PrivilegePo) coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
             Common.setPoModifiedFields(newPo,mid,mname);
             this.poMapper.updateByPrimaryKeySelective(newPo);
+            redisUtil.addSet(key, newPo.getId());
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
@@ -241,6 +242,7 @@ public class PrivilegeDao implements InitializingBean {
      *
      */
     /**
+     * 新增权限
      * @author: zhangyu
      * @param vo
      * @param creatorid
@@ -250,15 +252,20 @@ public class PrivilegeDao implements InitializingBean {
     public ReturnObject addPriv(PrivilegeVo vo,Long creatorid,String creatorname)
     {
         try {
+                String key=String.format(PRIVILEGEKEY,vo.getUrl(),vo.getRequestType());
+                if(redisUtil.hasKey(key))
+                    return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
                 PrivilegePo po=(PrivilegePo)coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
                 Common.setPoCreatedFields(po,creatorid,creatorname);
                 int ret=poMapper.insertSelective(po);
-                String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
                 redisUtil.addSet(key,po.getId());
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
-                retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
-                retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
-                retVo.setSign(0);
+                if(retVo!=null)
+                {
+                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
+                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
+                    retVo.setSign(0);
+                }
                 return new ReturnObject(retVo);
         }catch (Exception e)
         {
@@ -279,30 +286,39 @@ public class PrivilegeDao implements InitializingBean {
     public ReturnObject getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
     {
         try {
-
-            PrivilegePoExample example=new PrivilegePoExample();
-            PrivilegePoExample.Criteria criteria=example.createCriteria();
-            criteria.andUrlEqualTo(url);
-            criteria.andRequestTypeEqualTo(type);
-
-            List<PrivilegePo> polist = poMapper.selectByExample(example);
+            String key=String.format(PRIVILEGEKEY,url,type);
+            List<PrivilegePo> polist =new ArrayList<>();
+            if(redisUtil.hasKey(key))
+            {
+                Set<Serializable> pids=redisUtil.getSet(key);
+                for(Serializable pid:pids)
+                {
+                    polist.add(poMapper.selectByPrimaryKey(Long.valueOf((Integer)pid)));
+                }
+            }
+            else {
+                PrivilegePoExample example = new PrivilegePoExample();
+                PrivilegePoExample.Criteria criteria = example.createCriteria();
+                criteria.andUrlEqualTo(url);
+                criteria.andRequestTypeEqualTo(type);
+                polist = poMapper.selectByExample(example);
+            }
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             PageHelper.startPage(pagenum, pagesize);
             for(PrivilegePo po:polist)
             {
-                PrivilegeRetVo retVo=(PrivilegeRetVo)coder.decode_check(po,PrivilegeRetVo.class,codeFields,signFields,"signature");
+                PrivilegePo newpo=(PrivilegePo)coder.decode_check(po,null,codeFields,signFields,"signature");
+                int sign=OK;
+                if(newpo.getSignature()==null)
+                {
+                    sign=MODIFIED;
+                }
+                PrivilegeRetVo retVo=(PrivilegeRetVo) Common.cloneVo(newpo,PrivilegeRetVo.class);
                 if(retVo!=null)
                 {
-                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
-                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
-                    retVo.setSign(0);
-                }
-                else
-                {
-                    retVo=(PrivilegeRetVo) Common.cloneVo(po,PrivilegeRetVo.class);
-                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),1));
-                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),1));
-                    retVo.setSign(1);
+                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),sign));
+                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),sign));
+                    retVo.setSign(sign);
                 }
                 vo.add(retVo);
             }

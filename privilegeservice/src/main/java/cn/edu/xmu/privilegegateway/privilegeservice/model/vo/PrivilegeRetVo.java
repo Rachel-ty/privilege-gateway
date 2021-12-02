@@ -1,7 +1,9 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
  * @date Created in 2020/11/3 23:34
  **/
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class PrivilegeRetVo {
 
     private Long id;
