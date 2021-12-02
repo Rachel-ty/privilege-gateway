@@ -194,40 +194,31 @@ public class PrivilegeDao implements InitializingBean {
      * @param mname
      * @return
      */
-    public ReturnObject changePriv(Privilege bo,Long mid,String mname){
+    public ReturnObject changePriv(Privilege bo){
         try {
-            /* 验证数据是否重复 */
-            String key=String.format(PRIVILEGEKEY,bo.getUrl(),bo.getRequestType().getCode());
-            if(redisUtil.hasKey(key))
+            PrivilegePo po=poMapper.selectByPrimaryKey(bo.getId());
+            if(po==null)
             {
-                return new ReturnObject(ReturnNo.URL_SAME, "URL和RequestType不得与已有的数据重复");
+                return new ReturnObject(ReturnNo.OK);
             }
-            else {
-                PrivilegePoExample example = new PrivilegePoExample();
-                PrivilegePoExample.Criteria criteria = example.createCriteria();
-                criteria.andRequestTypeEqualTo(bo.getRequestType().getCode()).andUrlEqualTo(bo.getUrl());
-                if (!poMapper.selectByExample(example).isEmpty()) {
-                    return new ReturnObject(ReturnNo.URL_SAME, "URL和RequestType不得与已有的数据重复");
-                }
+            PrivilegePo newpo=(PrivilegePo) coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
+            if(bo.getUrl()==null)
+            {
+                bo.setUrl(newpo.getUrl());
             }
-            /*验证数据*/
-            PrivilegePo po = this.poMapper.selectByPrimaryKey(bo.getId());
-            if (po == null)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            PrivilegePo ret = (PrivilegePo)coder.decode_check(po, PrivilegePo.class, PrivilegeDao.codeFields, PrivilegeDao.signFields, "signature");
-            if (ret.getSignature()== null) {
-                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY, "该权限可能被篡改，请联系管理员处理");
+            if(bo.getRequestType()==null)
+            {
+                bo.setRequestType(Privilege.RequestType.getTypeByCode(newpo.getRequestType()));
             }
-            /* 开始更新 */
-            PrivilegePo newPo =(PrivilegePo) coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
-            Common.setPoModifiedFields(newPo,mid,mname);
-            this.poMapper.updateByPrimaryKeySelective(newPo);
-            DefaultRedisScript script = new DefaultRedisScript<>();
-            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
-            List<String> keys = Stream.of(key).collect(Collectors.toList());
-            redisUtil.executeScript(script,keys,newPo.getId());
+            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
+            poMapper.updateByPrimaryKeySelective(updatepo);
+            privilegeImpact(po.getId());
             return new ReturnObject(ReturnNo.OK);
-        }catch (Exception e)
+        }catch (DuplicateFormatFlagsException e)
+        {
+            return new ReturnObject(ReturnNo.URL_SAME);
+        }
+        catch (Exception e)
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
@@ -287,19 +278,14 @@ public class PrivilegeDao implements InitializingBean {
     public ReturnObject getPriv(String url ,Byte type,Integer pagenum,Integer pagesize)
     {
         try {
-            List<PrivilegePo> polist =new ArrayList<>();
-            Long pid=getPrivIdByKey(url,type);
-            if(pid!=null)
-                polist.add(poMapper.selectByPrimaryKey(pid));
-            else {
-                PrivilegePoExample example = new PrivilegePoExample();
-                PrivilegePoExample.Criteria criteria = example.createCriteria();
-                criteria.andUrlEqualTo(url);
-                criteria.andRequestTypeEqualTo(type);
-                polist = poMapper.selectByExample(example);
-            }
-            List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             PageHelper.startPage(pagenum, pagesize);
+            List<PrivilegePo> polist =new ArrayList<>();
+            PrivilegePoExample example = new PrivilegePoExample();
+            PrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andUrlEqualTo(url);
+            criteria.andRequestTypeEqualTo(type);
+            polist = poMapper.selectByExample(example);
+            List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             for(PrivilegePo po:polist)
             {
                 PrivilegePo newpo=(PrivilegePo)coder.decode_check(po,null,codeFields,signFields,"signature");
@@ -338,136 +324,21 @@ public class PrivilegeDao implements InitializingBean {
         {
             PrivilegePo po=poMapper.selectByPrimaryKey(pid);
             if(po==null)
+            {
                 return new ReturnObject(ReturnNo.OK);
+            }
             String privkey=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
             if(redisUtil.hasKey(privkey))
             {
                 redisUtil.del(privkey);
             }
-            List<RolePrivilegePo> rolePrivilegePos=selectByPrivid(pid);
-            for(RolePrivilegePo rolePrivilegePo:rolePrivilegePos)
-            {
-                String brkey=String.format(RoleDao.BASEROLEKEY,rolePrivilegePo.getRoleId());
-                redisUtil.del(brkey);
-                rolePrivilegePoMapper.deleteByPrimaryKey(rolePrivilegePo.getId());
-            }
+            privilegeImpact(pid);
+            return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("删除权限失败",e.getMessage()));
         }
-        return new ReturnObject(ReturnNo.OK);
     }
-    /*禁用权限*/
-
-    /**
-     * @author zhangyu
-     * @param pid
-     * @return
-     */
-
-    public ReturnObject forbidPriv(Long pid,Long mid,String mname)
-    {
-        try {
-            //判断是否为空
-            PrivilegePo po = poMapper.selectByPrimaryKey(pid);
-            if(po==null)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            po.setState(FORBIDEN);
-            Common.setPoModifiedFields(po,mid,mname);
-            poMapper.updateByPrimaryKey(po);
-            //清除对应的redis缓存
-            String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
-            if(redisUtil.hasKey(key))
-                redisUtil.del(key);
-            List<Long> pos=GetRoleIdByPrivId(pid);
-            for(Long roleid:pos)
-            {
-                String rpkey=String.format(RoleDao.BASEROLEKEY,roleid);
-                redisUtil.del(rpkey);
-            }
-            return new ReturnObject(ReturnNo.OK);
-        }catch (Exception e)
-        {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
-        }
-    }
-
-    /**
-     * 解禁权限
-     * @author zhangyu
-     * @param pid
-     * @return
-     */
-    public ReturnObject releasePriv(Long pid,Long mid,String mname)
-    {
-        try
-        {
-            //判断是否为空
-            PrivilegePo po = poMapper.selectByPrimaryKey(pid);
-            if(po==null)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            po.setState(NORMAL);
-            Common.setPoModifiedFields(po,mid,mname);
-            poMapper.updateByPrimaryKeySelective(po);
-            String key=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
-            DefaultRedisScript script = new DefaultRedisScript<>();
-            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
-            List<String> keys = Stream.of(key).collect(Collectors.toList());
-            redisUtil.executeScript(script,keys,pid);
-            List<Long> pos=GetRoleIdByPrivId(pid);
-            for(Long roleid:pos)
-            {
-                String rpkey=String.format(RoleDao.BASEROLEKEY,roleid);
-                redisUtil.addSet(rpkey,pid);
-            }
-            return new ReturnObject(ReturnNo.OK);
-        }catch (Exception e)
-        {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,String.format("读取数据库错误",e.getMessage()));
-        }
-    }
-    public List<RolePrivilegePo> selectByPrivid(Long Privid)
-    {
-        try
-        {
-            RolePrivilegePoExample example=new RolePrivilegePoExample();
-            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
-            criteria.andPrivilegeIdEqualTo(Privid);
-            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
-            List<RolePrivilegePo> newpos=new ArrayList<>(pos.size());
-            for(RolePrivilegePo po:pos)
-            {
-                RolePrivilegePo newpo=(RolePrivilegePo) coder.code_sign(po,RolePrivilegePo.class,codeFields,signFields,"signature");
-                newpos.add(po);
-            }
-            return newpos;
-        }catch (Exception e)
-        {
-            return null;
-        }
-    }
-
-    public List<Long> GetRoleIdByPrivId(Long Privid)
-    {
-        try
-        {
-            RolePrivilegePoExample example=new RolePrivilegePoExample();
-            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
-            criteria.andPrivilegeIdEqualTo(Privid);
-            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
-            List<Long> newpos=new ArrayList<>(pos.size());
-            for(RolePrivilegePo po:pos)
-            {
-                RolePrivilegePo newpo=(RolePrivilegePo) coder.code_sign(po,RolePrivilegePo.class,codeFields,signFields,"signature");
-                newpos.add(newpo.getRoleId());
-            }
-            return newpos;
-        }catch (Exception e)
-        {
-            return null;
-        }
-    }
-
     /**
      * 权限的影响力分析
      * 任务3-7

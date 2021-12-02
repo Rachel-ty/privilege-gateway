@@ -30,6 +30,9 @@ import java.util.Map;
 public class PrivilegeService {
     @Autowired
     PrivilegeDao privilegeDao;
+
+    public final static Byte FORBIDEN=1;
+    public final static Byte NORMAL=0;
     public ReturnObject getPrivilegeStates()
     {
         List<Map<String,Object>> stateList;
@@ -68,11 +71,13 @@ public class PrivilegeService {
         return privilegeDao.getPriv(url,requestType,pagenum,pagesize);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject changePriv(Long pid,PrivilegeVo vo,Long mid,String mname)
+    public ReturnObject changePriv(Long privilegeId,PrivilegeVo vo,Long modifierId,String modifierName)
     {
         Privilege privilege = (Privilege) Common.cloneVo(vo,Privilege.class);
-        privilege.setId(pid);
-        return privilegeDao.changePriv(privilege,mid,mname);
+        privilege.setId(privilegeId);
+        Common.setPoModifiedFields(privilege,modifierId,modifierName);
+        privilege.setState(NORMAL);
+        return privilegeDao.changePriv(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject DelPriv(Long privid)
@@ -80,13 +85,21 @@ public class PrivilegeService {
         return privilegeDao.delPriv(privid);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject ForbidPriv(Long privid,Long mid,String mname)
+    public ReturnObject ForbidPriv(Long privilegeId,Long modifierId,String modifierName)
     {
-        return privilegeDao.forbidPriv(privid,mid,mname);
+        Privilege privilege=new Privilege();
+        privilege.setId(privilegeId);
+        Common.setPoModifiedFields(privilege,modifierId,modifierName);
+        privilege.setState(FORBIDEN);
+        return privilegeDao.changePriv(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject ReleasePriv(Long pid,Long mid,String mname)
+    public ReturnObject ReleasePriv(Long privilegeId,Long modifierId,String modifierName)
     {
-        return privilegeDao.releasePriv(pid,mid, mname);
+        Privilege privilege=new Privilege();
+        privilege.setId(privilegeId);
+        Common.setPoModifiedFields(privilege,modifierId,modifierName);
+        privilege.setState(NORMAL);
+        return privilegeDao.changePriv(privilege);
     }
 }

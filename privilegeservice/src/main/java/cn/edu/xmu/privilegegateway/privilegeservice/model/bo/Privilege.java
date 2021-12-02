@@ -89,6 +89,17 @@ public class Privilege implements VoObject{
      */
     private String cacuSignature;
 
+    private Byte sign;
+
+    private Long creatorId;
+
+    private Long modifierId;
+
+    private String creatorName;
+
+    private String modifierName;
+    private Byte state;
+
     /**
      * 构造函数
      *
