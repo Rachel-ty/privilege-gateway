@@ -21,6 +21,8 @@ public class GroupDao {
     @Autowired
     private UserGroupPoMapper userGroupPoMapper;
 
+    public final static String GROUPKEY="g_%d";
+
 
     /**
      * 获得用户的组id
@@ -49,5 +51,16 @@ public class GroupDao {
             }
         }
         return retIds;
+    }
+
+    /**
+     * 组的影响力分析
+     * 任务3-5
+     * 删除和禁用某个权限时，删除所有影响的group和user的redisKey
+     * @param groupId 组id
+     * @return 影响的group和user的redisKey
+     */
+    public List<String> groupImpact(Long groupId){
+        return null;
     }
 }
