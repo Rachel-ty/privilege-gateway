@@ -2,9 +2,12 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
@@ -34,9 +37,13 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private PrivilegePoMapper poMapper;
+    @Autowired
+    private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+    @Autowired
+    private RoleDao roleDao;
 
 
     /**
@@ -192,7 +199,29 @@ public class PrivilegeDao implements InitializingBean {
      * @return 影响的role，group和user的redisKey
      */
     public List<String> privilegeImpact(Long privId){
-        return null;
+        List<Long> roleIdList =findRoleId(privId);
+        List<String>  resultList=new ArrayList<>();
+        for (Long roleId : roleIdList) {
+            List<String> roleImpact=roleDao.roleImpact(roleId);
+            for (String s : roleImpact) {
+                if(!resultList.contains(s)){
+                    resultList.add(s);
+                }
+            }
+        }
+        return resultList;
+    }
+
+    public List<Long> findRoleId(Long privId) {
+        RolePrivilegePoExample example = new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+        criteria.andPrivilegeIdEqualTo(privId);
+        List<RolePrivilegePo> gList = rolePrivilegePoMapper.selectByExample(example);
+        List<Long> resultList = new ArrayList<>();
+        for (RolePrivilegePo po : gList) {
+            resultList.add(po.getRoleId());
+        }
+        return resultList;
     }
 
 }
