@@ -602,7 +602,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"部门id不匹配：1\"}";
+        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
@@ -931,7 +931,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 }
