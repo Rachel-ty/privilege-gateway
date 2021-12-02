@@ -638,11 +638,9 @@ public class RoleDao {
             criteria.andUserIdEqualTo(id);
             List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
+            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature");
             List<Long> retIds = new ArrayList<>();
-            for (UserRolePo po : userRolePoList) {
-                if (!sign.check(po,newUserRoleSignFields,"signature")) {
-                    logger.error("getRoleIdByUserId: 签名错误(auth_user_role): id =" + po.getId());
-                }
+            for (UserRolePo po : userRolePosDecoded) {
                 retIds.add(po.getRoleId());
             }
             return new ReturnObject(retIds);
@@ -667,10 +665,9 @@ public class RoleDao {
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
             List<Long> retIds = new ArrayList<>();
-            for (GroupRolePo po : groupRolePoList) {
-                if (!sign.check(po,newGroupRoleSignFields,"signature")) {
-                    logger.error("getRoleIdByUserId: 签名错误(auth_group_role): id =" + po.getId());
-                }
+            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature");
+            List<Long> retIds = new ArrayList<>();
+            for (UserRolePo po : userRolePosDecoded) {
                 retIds.add(po.getRoleId());
             }
             return new ReturnObject(retIds);

@@ -84,11 +84,9 @@ public class GroupDao {
             criteria.andUserIdEqualTo(id);
             List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + userGroupPoList.size());
+            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature");
             List<Long> retIds = new ArrayList<>();
-            for (UserGroupPo po : userGroupPoList) {
-                if (!sign.check(po,newGroupSignFields,"signature")) {
-                    logger.error("getGroupIdByUserId: 签名错误(auth_user_group): id =" + po.getId());
-                }
+            for (UserGroupPo po : userGroupPosDecoded) {
                 retIds.add(po.getGroupId());
             }
             return new ReturnObject<>(retIds);
