@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
  * @author RenJieZheng 22920192204334
  * @date 2021/11/30
  */
-public class ListDecode {
+public class ListDecodeTest {
     private BaseCoder coder = new AESCoder(new SHA256Sign(), "OOAD2020-11-01");
 
     @Test

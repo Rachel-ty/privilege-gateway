@@ -7,6 +7,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -86,6 +87,8 @@ public class RoleDao {
     private final static String BASEROLEKEY = "br_%d";
 
     private final static int BANED = 2;
+
+    private final static int BASEROLE = 1;
     @Autowired
     private BaseCoder baseCoder;
 
@@ -95,6 +98,8 @@ public class RoleDao {
 
     final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
+    final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -103,7 +108,11 @@ public class RoleDao {
      */
     public List<Privilege> findPrivsByRoleId(Long id) {
         //getPrivIdsByRoleId已经进行role的签名校验
-        List<Long> privIds = this.getPrivIdsByRoleId(id);
+        ReturnObject returnObject = getPrivIdsByRoleId(id);
+        if(returnObject.getCode()!=ReturnNo.OK){
+            return null;
+        }
+        List<Long> privIds = (List<Long>) returnObject.getData();
         List<Privilege> privileges = new ArrayList<>();
         for(Long privId: privIds) {
             Privilege po = this.privDao.findPriv(privId);
@@ -148,7 +157,11 @@ public class RoleDao {
      */
     public ReturnObject loadBaseRolePriv(Long id) {
         try{
-            List<Long> privIds = this.getPrivIdsByRoleId(id);
+            ReturnObject returnObject = getPrivIdsByRoleId(id);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            List<Long> privIds = (List<Long>) returnObject.getData();
             String key = String.format(BASEROLEKEY, id);
             for (Long pId : privIds) {
                 redisUtil.addSet(key, pId);
@@ -176,14 +189,15 @@ public class RoleDao {
             RolePo rolePo = roleMapper.selectByPrimaryKey(id);
 
             //用户被禁止,则退出
-            if(rolePo.getState()==BANED){
+            if(rolePo!=null&&rolePo.getState()!=null&&rolePo.getState()==BANED){
                 //因为有redisUtil.unionAndStoreSet(roleKeys,key);所以被禁止也赋予0
                 redisUtil.addSet(String.format(ROLEKEY,id),0);
                 return new ReturnObject(ReturnNo.OK);
             }
 
+
             //如果是功能角色则加入
-            if(rolePo.getBaserole()==1){
+            if(rolePo.getBaserole()==BASEROLE){
                 String brKey = String.format(BASEROLEKEY,id);
                 redisUtil.addSet(String.format(ROLEKEY,id),brKey);
                 return new ReturnObject(ReturnNo.OK);
@@ -210,7 +224,9 @@ public class RoleDao {
                 }
                 roleKeys.add(String.format(ROLEKEY,roleInheritedPo.getRoleId()));
             }
-            redisUtil.unionAndStoreSet(roleKeys,key);
+            if(roleKeys.size()>0){
+                redisUtil.unionAndStoreSet(roleKeys,key);
+            }
             redisUtil.addSet(key,0);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
@@ -229,25 +245,26 @@ public class RoleDao {
      * @return Privilege Id 列表
      * created by Ming Qiu in 2020/11/3 11:48
      */
-    private List<Long> getPrivIdsByRoleId(Long id) {
-        RolePrivilegePoExample example = new RolePrivilegePoExample();
-        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-        criteria.andRoleIdEqualTo(id);
-        List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
-        List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
-        for (RolePrivilegePo po : rolePrivilegePos) {
-            StringBuilder signature = Common.concatString("-", po.getRoleId().toString(),
-                    po.getPrivilegeId().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-
-            if (newSignature.equals(po.getSignature())) {
+    private ReturnObject getPrivIdsByRoleId(Long id) {
+        try{
+            RolePrivilegePoExample example = new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleIdEqualTo(id);
+            List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
+            List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
+            for (RolePrivilegePo po : rolePrivilegePos) {
+                RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.decode_check(po,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+                if (newPo.getSignature()==null) {
+                    logger.debug("getPrivIdsBByRoleId: roleId = " + po.getRoleId() + " privId = " + po.getPrivilegeId());
+                }
                 retIds.add(po.getPrivilegeId());
-                logger.debug("getPrivIdsBByRoleId: roleId = " + po.getRoleId() + " privId = " + po.getPrivilegeId());
-            } else {
-                logger.info("getPrivIdsBByRoleId: Wrong Signature(auth_role_privilege): id =" + po.getId());
             }
+            return new ReturnObject(retIds);
+        }catch(Exception e){
+            logger.error("getPrivIdsBByRoleId: "+e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
-        return retIds;
+
     }
 
     public void initialize() throws Exception {
@@ -596,7 +613,11 @@ public class RoleDao {
         }
         RolePrivilege e = new RolePrivilege();
 
-        List<Long> privids = getPrivIdsByRoleId(id);
+        ReturnObject returnObject = getPrivIdsByRoleId(id);
+        if(returnObject.getCode()!=ReturnNo.OK){
+            return null;
+        }
+        List<Long> privids = (List<Long>) returnObject.getData();
 
         for(Long pid: privids){
             example.clear();
@@ -662,7 +683,6 @@ public class RoleDao {
             criteria.andGroupIdEqualTo(id);
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
-            List<Long> retIds = new ArrayList<>();
             List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature");
             List<Long> retIds = new ArrayList<>();
             for (GroupRolePo po : groupRolePosDecoded) {
