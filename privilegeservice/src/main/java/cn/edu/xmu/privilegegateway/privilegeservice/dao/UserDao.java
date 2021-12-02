@@ -45,6 +45,18 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
+    public final static String FUSERKEY="f_%d";
+    /**
+     * 用户的redis key： u_id, 集合里为base role
+     *
+     */
+    private final static String USERKEY = "u_%d";
+
+    /**
+     * 最终用户的redis key: up_id 集合里为
+     */
+    private final static String USERPROXYKEY = "up_%d";
+
 
     @Autowired
     private UserRolePoMapper userRolePoMapper;
@@ -89,16 +101,7 @@ public class UserDao{
 //    @Autowired
 //    private JavaMailSender mailSender;
 
-    /**
-     * 用户的redis key： u_id
-     *
-     */
-    private final static String USERKEY = "u_%d";
 
-    /**
-     * 最终用户的redis key: up_id
-     */
-    private final static String USERPROXYKEY = "up_%d";
 
     /**
      * @author yue hao
@@ -1139,6 +1142,17 @@ public class UserDao{
             returnObject = new ReturnObject();
         }
         return returnObject;
+    }
+
+    /**
+     * 用户的影响力分析
+     * 任务3-5
+     * 删除和禁用某个权限时，删除所有影响的user的redisKey
+     * @param userId 用户id
+     * @return 影响user的redisKey
+     */
+    public List<String> userImpact(Long userId){
+        return null;
     }
 }
 

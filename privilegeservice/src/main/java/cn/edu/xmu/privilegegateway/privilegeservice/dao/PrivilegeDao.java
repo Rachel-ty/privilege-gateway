@@ -80,21 +80,16 @@ public class PrivilegeDao implements InitializingBean {
      *            将签名的认证改到Privilege对象中去完成
      *            Ming Qiu 2020-12-03 9:44
      *            将缓存放到redis中
-     *
-     * modified by zhangyu
      */
     @Override
     public void afterPropertiesSet() throws Exception {
         PrivilegePoExample example = new PrivilegePoExample();
         List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
-        DefaultRedisScript script = new DefaultRedisScript<>();
-        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
         for (PrivilegePo po : privilegePos){
             Privilege priv = new Privilege(po);
             if (priv.authetic()) {
                 logger.debug("afterPropertiesSet: key = " + priv.getKey() + " p = " + priv);
-                List<String> keys = Stream.of(priv.getKey()).collect(Collectors.toList());
-                redisUtil.executeScript(script,keys,priv.getId());
+                redisTemplate.opsForHash().putIfAbsent("Priv", priv.getKey(), priv.getId());
             }else{
                 logger.debug("afterPropertiesSet: id = " + priv.getId()+ ",Sign = "+priv.getSignature()+". cacuSign="+priv.getCacuSignature());
                 logger.error("afterPropertiesSet: Wrong Signature(auth_privilege): id = " + priv.getId());
@@ -124,13 +119,12 @@ public class PrivilegeDao implements InitializingBean {
      * @return id Privilege id
      * createdBy: Ming Qiu 2020-11-01 23:44
      */
-    public Long getPrivIdByKey(String url, Byte requestType){
-        String key=String.format(PRIVILEGEKEY,url,requestType);
-        if(redisUtil.hasKey(key))
-        {
-            return Long.valueOf((Integer)redisUtil.get(key));
-        }
-        return null;
+    public Long getPrivIdByKey(String url, Privilege.RequestType requestType){
+        StringBuffer key = new StringBuffer(url);
+        key.append("-");
+        key.append(requestType.getCode());
+        logger.info("getPrivIdByKey: key = "+key.toString());
+        return (Long) this.redisTemplate.opsForHash().get("Priv", key.toString());
     }
 
     /**
@@ -141,15 +135,14 @@ public class PrivilegeDao implements InitializingBean {
      */
     public Privilege findPriv(Long id){
         PrivilegePo po = poMapper.selectByPrimaryKey(id);
-        Privilege priv =(Privilege) coder.decode_check(po,Privilege.class,codeFields,signFields,"signature");
-        return priv;
-    }
-    public PrivilegePo findPrivPo(Long id)
-    {
-        PrivilegePo po = poMapper.selectByPrimaryKey(id);
-
-        PrivilegePo priv =(PrivilegePo) coder.decode_check(po,null,codeFields,signFields,"signature");
-        return priv;
+        Privilege priv = new Privilege(po);
+        if (priv.authetic()) {
+            return priv;
+        }
+        else {
+            logger.error("findPriv: Wrong Signature(auth_privilege): id =" + po.getId());
+            return null;
+        }
     }
     /**
      * 查询所有权限
@@ -157,7 +150,7 @@ public class PrivilegeDao implements InitializingBean {
      * @param pageSize : 每页数量
      * @return 权限列表
      */
-    public ReturnObject findAllPrivs(Integer page, Integer pageSize){
+    public ReturnObject<PageInfo<VoObject>> findAllPrivs(Integer page, Integer pageSize){
         PrivilegePoExample example = new PrivilegePoExample();
         PrivilegePoExample.Criteria criteria = example.createCriteria();
         PageHelper.startPage(page, pageSize);
@@ -186,8 +179,7 @@ public class PrivilegeDao implements InitializingBean {
         privPage.setPageNum(privPoPage.getPageNum());
         privPage.setPageSize(privPoPage.getPageSize());
         privPage.setTotal(privPoPage.getTotal());
-        ReturnObject returnObject=new ReturnObject(privPage);
-        return Common.getPageRetVo(returnObject, PrivilegeRetVo.class);
+        return new ReturnObject<>(privPage);
     }
 
     /**
@@ -474,6 +466,17 @@ public class PrivilegeDao implements InitializingBean {
         {
             return null;
         }
+    }
+
+    /**
+     * 权限的影响力分析
+     * 任务3-7
+     * 删除和禁用某个权限时，删除所以影响的role，group和user的redisKey
+     * @param privId 权限id
+     * @return 影响的role，group和user的redisKey
+     */
+    public List<String> privilegeImpact(Long privId){
+        return null;
     }
 
 }
