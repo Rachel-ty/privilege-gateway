@@ -38,6 +38,7 @@ public class PrivilegeDao implements InitializingBean {
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
+
     /**
      * 将权限载入到本地缓存中
      * 如果未初始化，则初始话数据中的数据
@@ -181,6 +182,17 @@ public class PrivilegeDao implements InitializingBean {
 
         this.poMapper.updateByPrimaryKeySelective(newPo);
         return new ReturnObject();
+    }
+
+    /**
+     * 权限的影响力分析
+     * 任务3-7
+     * 删除和禁用某个权限时，删除所以影响的role，group和user的redisKey
+     * @param privId 权限id
+     * @return 影响的role，group和user的redisKey
+     */
+    public List<String> privilegeImpact(Long privId){
+        return null;
     }
 
 }

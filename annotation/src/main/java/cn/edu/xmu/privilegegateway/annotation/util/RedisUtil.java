@@ -2,6 +2,7 @@ package cn.edu.xmu.privilegegateway.annotation.util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -227,6 +228,19 @@ public class RedisUtil {
     public long rightPushAllList(String key, Serializable... values){
         return redisTemplate.opsForList().rightPushAll(key, values);
     }
+
+
+    /**
+     * 执行脚本
+     * @param script
+     * @param keyList
+     * @param values
+     * @return
+     */
+    public Object executeScript(DefaultRedisScript script,List<String> keyList, Object... values){
+        return redisTemplate.execute(script,keyList,values);
+    }
+
 
 
 }
