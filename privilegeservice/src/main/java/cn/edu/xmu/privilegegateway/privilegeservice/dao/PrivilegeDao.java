@@ -301,15 +301,15 @@ public class PrivilegeDao implements InitializingBean {
             criteria.andRequestTypeEqualTo(type);
             List<PrivilegePo> polist = poMapper.selectByExample(example);
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
-            for(PrivilegePo po:polist)
+            List<PrivilegePo> newpolist=Common.listDecode(polist,PrivilegePo.class,coder,codeFields,signFields,"signature");
+            for(PrivilegePo po:newpolist)
             {
-                PrivilegePo newpo=(PrivilegePo)coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
                 int sign=OK;
-                if(newpo.getSignature()==null)
+                if(po.getSignature()==null)
                 {
                     sign=MODIFIED;
                 }
-                PrivilegeRetVo retVo=(PrivilegeRetVo) Common.cloneVo(newpo,PrivilegeRetVo.class);
+                PrivilegeRetVo retVo=(PrivilegeRetVo) Common.cloneVo(po,PrivilegeRetVo.class);
                 retVo.setSign(sign);
                 vo.add(retVo);
             }
@@ -342,7 +342,11 @@ public class PrivilegeDao implements InitializingBean {
             {
                 redisUtil.del(privkey);
             }
-            privilegeImpact(pid);
+            List<String> keys=privilegeImpact(pid);
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {

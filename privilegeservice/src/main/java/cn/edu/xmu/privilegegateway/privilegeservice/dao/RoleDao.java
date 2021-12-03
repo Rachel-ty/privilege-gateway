@@ -775,19 +775,20 @@ public class RoleDao {
             RolePrivilegePoExample.Criteria criteria=example.createCriteria();
             criteria.andRoleIdEqualTo(rid);
             List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
+            //解密List
+            List<RolePrivilegePo> newpos=Common.listDecode(pos,RolePrivilegePo.class,baseCoder,codeFields,signFields,"signature");
             List<BaseRolePrivilegeRetVo> volist=new ArrayList<>();
-            for(RolePrivilegePo po:pos)
+            for(RolePrivilegePo po:newpos)
             {
-                RolePrivilegePo newpo=(RolePrivilegePo) coder.decode_check(po,null,codeFields,signFields,"signature");
                 //查询对应的权限信息
                 Privilege privilege=privDao.findPriv(po.getPrivilegeId());
-                BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo)Common.cloneVo(newpo,BaseRolePrivilegeRetVo.class);
+                BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo)Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
                 Integer sign=OK;
                 if(privilege.getSignature()==null)
                 {
                    sign=MODIFIED;
                 }
-                if(newpo.getSignature()==null)
+                if(po.getSignature()==null)
                 {
                     sign=MODIFIED;
                 }
@@ -829,17 +830,21 @@ public class RoleDao {
             Common.setPoModifiedFields(rolePrivilegePo,creatorid,creatorname);
             Privilege privilege=privDao.findPriv(privilegeid);
             if(privilege==null)
+            {
                 return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+            }
             RolePrivilegePo newpo=(RolePrivilegePo)coder.code_sign(rolePrivilegePo,RolePrivilegePo.class,codeFields,signFields,"signature");
             rolePrivilegePoMapper.insertSelective(newpo);
             RolePrivilegePo retpo=rolePrivilegePoMapper.selectByPrimaryKey(newpo.getId());
             RolePrivilegePo newretpo=(RolePrivilegePo) coder.decode_check(retpo,RolePrivilegePo.class,codeFields,signFields,"signature");
             BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo) Common.cloneVo(newretpo,BaseRolePrivilegeRetVo.class);
             Integer sign=0;
+            //判断关系是否篡改
             if(newretpo.getSignature()==null)
             {
                 sign=MODIFIED;
             }
+            //判断权限是否篡改
             if(privilege.getSign().equals(MODIFIED))
             {
                 sign=MODIFIED;
