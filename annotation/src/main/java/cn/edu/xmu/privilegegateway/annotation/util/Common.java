@@ -17,6 +17,7 @@
 package cn.edu.xmu.privilegegateway.annotation.util;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -563,6 +564,42 @@ public class Common {
             return false;
         }
         return true;
+    }
+
+    /**
+     * list级解密
+     * @param srcList 原list
+     * @param tgtClass 目标对象类型
+     * @param baseCoder 解密签名校验对象
+     * @param codeFields 加密属性
+     * @param signFields 签名属性 null代表不检验签名
+     * @param signTarget 签名字段 null代表不检验签名
+     * @return 投影后对象
+     * @author RenJieZheng 22920192204334
+     */
+    public static List listDecode(List srcList, Class tgtClass, BaseCoder baseCoder,
+                                  Collection<String> codeFields, List<String>  signFields, String signTarget) {
+        try{
+            List<Object>tgt = new ArrayList<>();
+            //baseCoder不为空表示要进行解密和签名校验
+            if(baseCoder!=null){
+                Field field = tgtClass.getDeclaredField(signTarget);
+                field.setAccessible(true);
+                for(Object obj:srcList){
+                    Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
+                    if (field.get(object)==null) {
+                        logger.error("listDecode: 签名错误(auth_user_group):"+obj.toString());
+                    }
+                    tgt.add(object);
+                }
+            }else{
+                return null;
+            }
+            return tgt;
+        }catch(Exception e){
+            logger.error("listDecode:"+e.getMessage());
+            return null;
+        }
     }
 
 }

@@ -6,6 +6,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ApproveConclusionVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ConclusionVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -92,6 +93,40 @@ public class NewUserService {
         }
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(newUsers);
         return new ReturnObject(proxyRetVoPageInfo);
+    }
+
+    /**
+     * 管理员审核用户
+     * @param id
+     * @param approve
+     * @return ReturnObject
+     * @author 24320182203227 Li Zihan
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    @Transactional
+    public ReturnObject approveUser(ApproveConclusionVo approve, Long did, Long id, Long loginUser, String loginName) {
+
+        ReturnObject returnObject = null;
+        if ((newUserDao.checkUserDid(id, did) || did == Long.valueOf(0))) {
+            if (approve.getApprove()) {
+                NewUserPo newUserPo = newUserDao.findNewUserById(id);
+                if(newUserPo==null)
+                {
+                    return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+                }
+
+                returnObject = userDao.addUser(newUserPo,loginUser,loginName);
+                newUserDao.physicallyDeleteUser(id);
+            }
+            else {
+                returnObject=newUserDao.physicallyDeleteUser(id);
+            }
+        }
+        else {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+        return returnObject;
+
     }
 
 }
