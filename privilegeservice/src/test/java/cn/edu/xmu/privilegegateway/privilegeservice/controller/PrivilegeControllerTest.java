@@ -1,18 +1,14 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import org.apache.http.entity.ContentType;
-import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -25,6 +21,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -399,6 +399,78 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"data\":\"pikaas\",\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    @Test
+    public void loadUserPrivilege() throws Exception {
+        JwtHelper jwtHelper = new JwtHelper();
+        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 3600);
+
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+    }
+
+    @Test
+    public void login() throws Exception {
+        LoginVo loginVo = new LoginVo();
+        loginVo.setUserName("13088admin");
+        loginVo.setPassword("123456");
+        String json = JacksonUtil.toJson(loginVo);
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+        LoginVo loginVo1 = new LoginVo();
+        loginVo1.setUserName("13088admin");
+        loginVo1.setPassword("1234567");
+        String json1 = JacksonUtil.toJson(loginVo1);
+        //密码错误
+        responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json1))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        expectedString = "{\n" +
+                "\"errno\": 700,\n" +
+                "\"errmsg\": \"用户名不存在或者密码错误\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+    }
+
+    @Test
+    public void logout() throws Exception{
+        JwtHelper jwtHelper = new JwtHelper();
+        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 3600);
+
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
     }
 
     @Test

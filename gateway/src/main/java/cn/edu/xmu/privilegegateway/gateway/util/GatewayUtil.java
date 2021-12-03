@@ -1,6 +1,6 @@
-package cn.edu.xmu.privilegegateway.annotation.gateway.util;
+package cn.edu.xmu.privilegegateway.gateway.util;
 
-import cn.edu.xmu.privilegegateway.annotation.gateway.microservice.IGatewayService;
+import cn.edu.xmu.privilegegateway.gateway.microservice.PrivilegeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,7 +27,7 @@ public class GatewayUtil {
      * dubbo远程调用
      */
     @Resource
-    private IGatewayService iGatewayService;
+    private PrivilegeService privilegeService;
 
     @Autowired
     private RedisTemplate redisTemplate;
@@ -37,39 +37,15 @@ public class GatewayUtil {
      */
     public static RedisTemplate redis;
 
-    public static IGatewayService gatewayService;
+    public static PrivilegeService gatewayService;
 
     public static Map<String, Integer> gatewayPrivList;
 
-    @Value("${privilegegateway.jwtExpire:3600}")
-    private static Integer jwtExpireTime = 3600;
-
-    @Value("${privilegegateway.refreshJwtTime:60}")
-    private static Integer refreshJwtTime = 60;
 
     /**
      * 存放在redis中的url权限的key
      */
     private final String urlKeyName = "Priv";
-
-    @PostConstruct
-    public void getRedisTemplate(){
-        redis = this.redisTemplate;
-        log.info("初始化-------redisTemplate----");
-        gatewayService = this.iGatewayService;
-        log.info("初始化-------GatewayService----");
-        gatewayPrivList = this.redisTemplate.opsForHash().entries(urlKeyName);
-        log.info("初始化-------gatewayPrivList----");
-    }
-
-    public static String getUrlPrivByKey(String urlKeyName) {
-        Set<String> allKeySet = gatewayPrivList.keySet();
-        if (allKeySet.contains(urlKeyName)) {
-            return gatewayPrivList.get(urlKeyName).toString();
-        } else {
-            return null;
-        }
-    }
 
     public static Integer getJwtExpireTime() {
         return jwtExpireTime;

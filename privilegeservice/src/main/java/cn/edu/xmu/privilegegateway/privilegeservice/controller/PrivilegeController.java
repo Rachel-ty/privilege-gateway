@@ -671,7 +671,7 @@ public class PrivilegeController {
      * @author 24320182203266
      */
     @ApiOperation(value = "登录")
-    @PostMapping("adminusers/login")
+    @PostMapping("login")
     public Object login(@Validated @RequestBody LoginVo loginVo, BindingResult bindingResult
             , HttpServletResponse httpServletResponse, HttpServletRequest httpServletRequest){
         /* 处理参数校验错误 */
@@ -681,14 +681,7 @@ public class PrivilegeController {
         }
 
         String ip = IpUtil.getIpAddr(httpServletRequest);
-        ReturnObject<String> jwt = userService.login(loginVo.getUserName(), loginVo.getPassword(), ip);
-
-        if(jwt.getData() == null){
-            return ResponseUtil.fail(jwt.getCode(), jwt.getErrmsg());
-        }else{
-            httpServletResponse.setStatus(HttpStatus.CREATED.value());
-            return ResponseUtil.ok(jwt.getData());
-        }
+        return Common.decorateReturnObject(userService.login(loginVo.getUserName(), loginVo.getPassword(), ip));
     }
 
     /**
@@ -699,16 +692,24 @@ public class PrivilegeController {
      */
     @ApiOperation(value = "注销")
     @Audit
-    @GetMapping("adminusers/logout")
+    @GetMapping("logout")
     public Object logout(@LoginUser Long userId){
 
         logger.debug("logout: userId = "+userId);
-        ReturnObject<Boolean> success = userService.Logout(userId);
-        if (success.getData() == null)  {
-            return ResponseUtil.fail(success.getCode(), success.getErrmsg());
-        }else {
-            return ResponseUtil.ok();
-        }
+        return Common.decorateReturnObject(userService.Logout(userId));
+    }
+
+    /**
+     * 内部api-将某个用户的权限信息装载到Redis中
+     * @param id: 用户 id
+     * @return Object 装载的用户id
+     * @author RenJie Zheng 22920192204334
+     */
+    @Audit
+    @PutMapping("internal/users/{id}/privileges/load")
+    public InternalReturnObject loadUserPrivilege(@PathVariable Long id,HttpServletRequest httpServletRequest){
+        String jwt = httpServletRequest.getHeader("authorization");
+        return userService.loadUserPrivilege(id,jwt);
     }
 
     /**
@@ -1232,6 +1233,28 @@ public class PrivilegeController {
                               @LoginName String loginUserName){
         ReturnObject ret =userService.showUserName(id);
         return Common.decorateReturnObject(ret);
+    }
+
+
+    /***
+     * 将用户权限装载到Redis
+     * @param userid 用户id
+     * @return
+     */
+    @ApiOperation(value = "将用户权限装载到Redis")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="用户id", required = true, dataType="Integer", paramType="path"),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @Audit
+     @PutMapping("/internal/users/{userid}/load")
+    public Object loadUserPriv(@PathVariable Long userid, HttpServletRequest request){
+        String token = request.getHeader("authorization");
+        return Common.decorateReturnObject(userService.loadUserPriv(userid, token));
     }
 
 }
