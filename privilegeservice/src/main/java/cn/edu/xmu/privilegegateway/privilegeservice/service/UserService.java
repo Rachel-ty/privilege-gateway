@@ -771,11 +771,6 @@ public class UserService {
 
         ReturnObject returnObject = userDao.assignRole(userRole, did);
 
-        if (returnObject.getCode() != ReturnNo.OK) {
-            return returnObject;
-        }
-        UserRole userRoleBo = (UserRole) returnObject.getData();
-        UserRoleSimpleRetVo userRoleRetVo = (UserRoleSimpleRetVo) Common.cloneVo(userRoleBo, UserRoleSimpleRetVo.class);
-        return new ReturnObject(userRoleRetVo);
+        return Common.getRetVo(returnObject,UserRoleSimpleRetVo.class);
     }
 }

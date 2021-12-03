@@ -193,7 +193,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString1 = "{\"errno\":0,\"data\":{\"total\":5,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":1,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":47,\"name\":null},\"beginDate\":\"2020-10-03T18:51:42.000\",\"endDate\":\"2021-11-03T18:51:52.000\",\"valid\":1,\"gmtCreate\":\"2020-11-03T18:52:00.000\",\"gmtModified\":null,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":2,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":46,\"name\":null},\"beginDate\":\"2020-05-03T18:52:25.000\",\"endDate\":\"2020-10-03T18:52:31.000\",\"valid\":1,\"gmtCreate\":\"2020-11-03T18:52:37.000\",\"gmtModified\":null,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":3,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":48,\"name\":null},\"beginDate\":\"2021-12-03T18:53:01.000\",\"endDate\":\"2022-11-03T18:53:19.000\",\"valid\":1,\"gmtCreate\":\"2020-11-03T18:53:39.000\",\"gmtModified\":null,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":4,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":50,\"name\":null},\"beginDate\":\"2020-11-01T18:53:59.000\",\"endDate\":\"2020-12-03T18:54:07.000\",\"valid\":0,\"gmtCreate\":\"2020-11-03T18:54:17.000\",\"gmtModified\":null,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":5,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":51,\"name\":null},\"beginDate\":\"2020-05-03T18:54:29.000\",\"endDate\":\"2020-07-03T18:54:37.000\",\"valid\":1,\"gmtCreate\":\"2020-11-03T18:54:42.000\",\"gmtModified\":null,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
+        String expectString1 = "{\"errno\":0,\"data\":{\"total\":5,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":1,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":47,\"name\":null},\"beginDate\":\"2020-10-03T18:51:42.000\",\"endDate\":\"2021-11-03T18:51:52.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":2,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":46,\"name\":null},\"beginDate\":\"2020-05-03T18:52:25.000\",\"endDate\":\"2020-10-03T18:52:31.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":3,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":48,\"name\":null},\"beginDate\":\"2021-12-03T18:53:01.000\",\"endDate\":\"2022-11-03T18:53:19.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":4,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":50,\"name\":null},\"beginDate\":\"2020-11-01T18:53:59.000\",\"endDate\":\"2020-12-03T18:54:07.000\",\"valid\":0,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":5,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":51,\"name\":null},\"beginDate\":\"2020-05-03T18:54:29.000\",\"endDate\":\"2020-07-03T18:54:37.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
 
         String responseString2 = mvc.perform(get("/departs/0/proxies?aid=49&bid=56").header("authorization", token)
@@ -287,7 +287,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -336,7 +336,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0}]}}";
+        String expectString = "{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0}]}}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -366,7 +366,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":4,\"userName\":\"pikaas3\",\"mobile\":\"1234567892\",\"email\":\"1234567892@qq.com\",\"name\":\"刘冰帅\",\"avatar\":null,\"openId\":null,\"departId\":0,\"password\":\"LLl123456!\",\"creatorId\":null,\"gmtCreate\":\"2021-11-29T09:07:09\",\"modifierId\":null,\"gmtModified\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"signature\":\"35047662112df1a91ff02e3b9bad048000e918d485ce8ef8411696e6fa8a1362\",\"creatorName\":null,\"modifierName\":null,\"level\":1},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":4,\"userName\":\"pikaas3\",\"mobile\":\"1234567892\",\"email\":\"1234567892@qq.com\",\"name\":\"刘冰帅\",\"avatar\":null,\"openId\":null,\"departId\":0,\"password\":\"LLl123456!\",\"creatorId\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"signature\":\"35047662112df1a91ff02e3b9bad048000e918d485ce8ef8411696e6fa8a1362\",\"creatorName\":null,\"modifierName\":null,\"level\":1},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
 
     }
@@ -379,7 +379,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -422,8 +422,8 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "";
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     //在没有权限的情况下获得用户的功能角色
@@ -464,7 +464,8 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(responseString);
+        String expectString = "{\"errno\":0,\"data\":{\"id\":87,\"name\":\"辅助管理员\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     //赋予用户角色，传入的部门号不匹配
@@ -530,10 +531,10 @@ public class PrivilegeControllerTest {
         String responseString = this.mvc.perform(delete("/departs/1/users/59/roles/999")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
-                .andExpect(status().isNotFound())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
@@ -561,7 +562,8 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(responseString);
+        String expectString = "{\"errno\":0,\"data\":{\"id\":81,\"name\":\"客服\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     //设置角色的继承关系，传入的角色不存在
@@ -588,7 +590,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":738,\"errmsg\":\"继承关系已存在\"}";
+        String expectString = "{\"errno\":754,\"errmsg\":\"重复继承角色\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
@@ -599,7 +601,7 @@ public class PrivilegeControllerTest {
         String responseString = this.mvc.perform(post("/departs/1/roles/2/childroles/1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
@@ -646,8 +648,8 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"page\":1,\"pageSize\":10,\"total\":9,\"pages\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":80,\"name\":\"财务\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":81,\"name\":\"客服\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":82,\"name\":\"运营部\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":83,\"name\":\"产品部\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":84,\"name\":\"文案\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":85,\"name\":\"总经办\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":3,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":86,\"name\":\"库管\",\"descr\":null,\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24\",\"gmtModified\":\"2020-11-01T09:48:24\",\"creator\":{\"id\":2,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}},{\"id\":87,\"name\":\"辅助管理员\",\"descr\":\"一般的管理员\",\"departId\":1,\"gmtCreate\":\"2020-11-03T15:45:20\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null}}]},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        expectString="{\"errno\":0,\"data\":{\"total\":8,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":80,\"name\":\"财务\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":81,\"name\":\"客服\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":82,\"name\":\"运营部\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":83,\"name\":\"产品部\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":84,\"name\":\"文案\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":85,\"name\":\"总经办\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":3,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":86,\"name\":\"库管\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":2,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},{\"id\":87,\"name\":\"辅助管理员\",\"descr\":\"一般的管理员\",\"departId\":1,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     @Test
@@ -677,7 +679,8 @@ public class PrivilegeControllerTest {
                 .content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(responseString);
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null}},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     @Test
@@ -693,7 +696,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配：999 can't match 0\"}";
+        expectString = "{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
@@ -830,7 +833,7 @@ public class PrivilegeControllerTest {
     public void updateRole_roleExit() throws Exception {
         String json = "{\"name\":\"管理员\",\"desc\":\"已存在\"}";
 
-        String responseString = this.mvc.perform(put("/departs/1/roles/87")
+        String responseString = this.mvc.perform(put("/departs/0/roles/23")
                 .header("authorization", adminToken)
                 .contentType("application/json;charset=UTF-8")
                 .content(json))
@@ -871,8 +874,8 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     @Test
@@ -915,8 +918,8 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":1,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     // 查看自己的功能角色
@@ -931,7 +934,22 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"gmtCreate\":\"2020-11-01T09:48:24.000\",\"gmtModified\":\"2020-11-01T09:48:24.000\",\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    //查询父角色
+    @Test
+    @Transactional
+    public void selectParentRoles() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/1/roles/80/parents")
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":23,\"name\":\"管理员\",\"descr\":\"超级管理员，所有权限都有\",\"departId\":0,\"creator\":{\"id\":0,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 }

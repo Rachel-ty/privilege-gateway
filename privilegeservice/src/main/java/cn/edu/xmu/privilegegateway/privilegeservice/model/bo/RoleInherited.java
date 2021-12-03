@@ -18,7 +18,7 @@ public class RoleInherited {
 
     private Long roleCId;
 
-    private String Signature;
+    private String signature;
 
     private Long creatorId;
 

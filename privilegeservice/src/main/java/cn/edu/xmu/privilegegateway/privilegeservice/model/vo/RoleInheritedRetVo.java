@@ -25,10 +25,10 @@ public class RoleInheritedRetVo {
     private LocalDateTime gmtModified;
 
     @ApiModelProperty(value = "创建人")
-    private UserSimpleRetVo creator;
+    private UserSimpleWithoutSignRetVo creator;
 
     @ApiModelProperty(value = "修改人")
-    private UserSimpleRetVo modifier;
+    private UserSimpleWithoutSignRetVo modifier;
 
     @ApiModelProperty(value = "角色继承签名标记")
     private Byte sign;

@@ -1,16 +1,17 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -23,9 +24,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -83,6 +82,7 @@ public class RoleDao {
     };
 
     public final static String ROLEKEY = "r_%d";
+    public final static String BASEROLEKEY = "br_%d";
 
     final static Collection<String> codeFields = new ArrayList<>();
     final static List<String> roleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
@@ -213,14 +213,15 @@ public class RoleDao {
             List<RolePo> pos = roleMapper.selectByExample(example);
 
             PageInfo info = PageInfo.of(pos);
-            ReturnObject retObj = Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
-
-            return new ReturnObject<>(retObj);
+            info.setPageNum(page);
+            info.setPageSize(pageSize);
+            return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
         } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
     }
+
 
     /**
      * 增加一个角色
@@ -645,71 +646,50 @@ public class RoleDao {
     /**
      * auth014: 查询角色的功能角色
      * @param did: 部门 id
-     * @param id: 用户 id
+     * @param id: 角色 id
      * @return Object
      * @author 22920192204320 张晖婧
      */
     public ReturnObject findBaserolesByRoleId(Long did, Long id, Integer page, Integer pageSize) {
         if (!checkRoleDid(id, did))
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE, "操作的角色id不在该部门");
-        RoleInheritedPoExample example = new RoleInheritedPoExample();
-        RoleInheritedPoExample.Criteria criteria = example.createCriteria();
-        criteria.andRoleCIdEqualTo(id);
-
-        logger.debug("page = " + page + "pageSize = " + pageSize);
         try {
-            // 查询角色所有父角色
-            List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
-            if (roleInheritedPos.size() == 0) {
-                Map<String, Object> data = new HashMap<String, Object>();
-                data.put("page", 0);
-                data.put("pageSize", pageSize);
-                data.put("total", 0);
-                data.put("pages", 0);
-                data.put("list", null);
-                return new ReturnObject(data);
+            Set set = redisUtil.getSet(String.format(BASEROLEKEY, id));
+            if (set == null) {
+                ReturnObject retObj = loadRole(id);
+                if (retObj.getCode() != ReturnNo.OK) {
+                    return retObj;
+                }
+                set = redisUtil.getSet(String.format(BASEROLEKEY, id));
             }
 
-            Map<Long, Byte> roleIdMap = new HashMap<>((int) (roleInheritedPos.size() / 0.75) + 1);
-            for (RoleInheritedPo po : roleInheritedPos) {
-                RoleInherited roleInherited = (RoleInherited) baseCoder.decode_check(po, RoleInherited.class, codeFields, roleInheritedSignFields, "signature");
-                if (roleInherited.getSignature() != null) {
-                    roleIdMap.put(po.getRoleId(), (byte) 0);
-                } else {
-                    roleIdMap.put(po.getRoleId(), (byte) 1);
+            List<String> baseroleKeyIds = new ArrayList(set);
+            List<RolePo> pageBaseroles=new ArrayList<>();
+            int lastIndex = page * pageSize - 1;;
+            //如果数量不足
+            if (baseroleKeyIds.size() < (page - 1) * pageSize) {
+                lastIndex=-1;
+            } else {
+                if (baseroleKeyIds.size() < page * pageSize) {
+                    lastIndex = baseroleKeyIds.size() - 1;
                 }
             }
 
-            // 筛选baserole=0
-            RolePoExample rolePoExample = new RolePoExample();
-            for (Long roleId : roleIdMap.keySet()) {
-                RolePoExample.Criteria c = rolePoExample.createCriteria();
-                c.andIdEqualTo(roleId);
-                c.andBaseroleEqualTo((byte) 0);
-                rolePoExample.or(c);
-            }
-            // 分页查询
-            PageHelper.startPage(page, pageSize);
-            List<RolePo> rolePos = roleMapper.selectByExample(rolePoExample);
-
-            List<Role> roles = new ArrayList<>(rolePos.size());
-            for (RolePo po : rolePos) {
-                Role bo = (Role) Common.cloneVo(po, Role.class);
-                bo.setSign(roleIdMap.get(po.getId()));
-                roles.add(bo);
+            for(int i=(page - 1) * pageSize;i<=lastIndex;i++){
+                //去掉"br_"
+                RolePo rolePo=roleMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
+                pageBaseroles.add(rolePo);
             }
 
-            PageInfo info = PageInfo.of(roles);
+            PageInfo info = PageInfo.of(pageBaseroles);
             info.setPageNum(page);
             info.setPageSize(pageSize);
+
             return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
-        } catch (DataAccessException e) {
-            logger.error("selectAllRole: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+
         } catch (Exception e) {
-            // 其他Exception错误
             logger.error("other exception : " + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
     /**
@@ -726,17 +706,9 @@ public class RoleDao {
         RoleInheritedPoExample.Criteria criteria = example.createCriteria();
         criteria.andRoleCIdEqualTo(id);
 
+        PageHelper.startPage(page,pageSize);
         // 查询角色所有父角色id
         List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
-        if (roleInheritedPos.size() == 0) {
-            Map<String, Object> data = new HashMap<String, Object>();
-            data.put("page", 0);
-            data.put("pageSize", pageSize);
-            data.put("total", 0);
-            data.put("pages", 0);
-            data.put("list", null);
-            return new ReturnObject(data);
-        }
 
         List<RoleRetVo> roleRetVos = new ArrayList<>(roleInheritedPos.size());
         for (RoleInheritedPo po : roleInheritedPos) {
@@ -757,6 +729,11 @@ public class RoleDao {
         info.setPageNum(page);
         info.setPageSize(pageSize);
         return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
+    }
+
+    //todo
+    public ReturnObject loadRole(Long id){
+        return null;
     }
 
     /**

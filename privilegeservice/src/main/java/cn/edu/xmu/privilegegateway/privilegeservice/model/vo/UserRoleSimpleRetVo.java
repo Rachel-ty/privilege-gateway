@@ -19,10 +19,10 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ApiModel
 public class UserRoleSimpleRetVo {
-    @ApiModelProperty(name = "用户id", value = "id")
+    @ApiModelProperty(name = "角色id", value = "id")
     private Long id;
 
-    @ApiModelProperty(name = "用户名", value = "name")
+    @ApiModelProperty(name = "角色名", value = "name")
     private String name;
 
     @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
@@ -34,10 +34,10 @@ public class UserRoleSimpleRetVo {
     private LocalDateTime gmtModified;
 
     @ApiModelProperty(value = "创建人")
-    private UserSimpleRetVo creator;
+    private UserSimpleWithoutSignRetVo creator;
 
     @ApiModelProperty(value = "修改人")
-    private UserSimpleRetVo modifier;
+    private UserSimpleWithoutSignRetVo modifier;
 
     @ApiModelProperty(value = "用户角色签名标记")
     private Byte sign;
