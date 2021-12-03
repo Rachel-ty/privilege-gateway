@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
@@ -5,12 +21,17 @@ import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -24,6 +45,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -41,6 +64,33 @@ public class UserDao{
 
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
 
+    /**
+     * 用户的redis key： u_id values:set{br_id};
+     *
+     */
+    private final static String USERKEY = "u_%d";
+
+    /**
+     * 最终用户的redis key: up_id  values: set{priv_id}
+     */
+    private final static String USERPROXYKEY = "up_%d";
+
+    /**
+     * 最终用户的redis key: fu_id values: set{br_id};
+     */
+    private final static String FINALUSERKEY = "fu_%d";
+    /**
+     * 用户组的redis key： g_id values:set{br_id};
+     *
+     */
+    private final static String GROUPKEY = "g_%d";
+
+    /**
+     * 用户的redis key：r_id values:set{br_id};
+     */
+    private final static String ROLEKEY = "r_%d";
+
+
     // 用户在Redis中的过期时间，而不是JWT的有效期
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
@@ -52,6 +102,7 @@ public class UserDao{
      * 最终用户的redis key: up_id 集合里为
      */
     private final static String USERPROXYKEY = "up_%d";
+    public final static String FUSERKEY="f_%d";
 
 
     @Autowired
@@ -83,14 +134,17 @@ public class UserDao{
 
     @Autowired
     private BaseCoder baseCoder;
+
+
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
             "passportNumber"));
-    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
-            "passportNumber"));
-    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
-            "passportNumber"));
+    //user表需要加密的全部字段
+    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
+    //user表校验的所有字段
+    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
+
     final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
     final static Collection<String> userProxyCodeFields = new ArrayList<>();
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
@@ -119,6 +173,11 @@ public class UserDao{
     private final static String ROLEKEY = "r_%d";
 
     private final static int BANED = 2;
+
+    /**
+     * 验证码的redis key: cp_id
+     */
+    private final static String CAPTCHAKEY = "cp_%s";
 
     /**
      * @author yue hao
@@ -165,7 +224,7 @@ public class UserDao{
         criteria.andUserNameEqualTo(userName);
         List<UserPo> users = null;
         try {
-            users = userPoMapper.selectByExample(example);
+            users = userMapper.selectByExample(example);
         } catch (DataAccessException e) {
             StringBuilder message = new StringBuilder().append("getUserByName: ").append(e.getMessage());
             logger.error(message.toString());
@@ -198,7 +257,7 @@ public class UserDao{
         userPo.setId(userId);
         userPo.setLastLoginIp(IPAddr);
         userPo.setLastLoginTime(date);
-        if (userPoMapper.updateByPrimaryKeySelective(userPo) == 1) {
+        if (userMapper.updateByPrimaryKeySelective(userPo) == 1) {
             return true;
         } else {
             return false;
@@ -454,7 +513,6 @@ public class UserDao{
         return true;
     }
 
-
     /**
      * 计算User自己的权限，load到Redis
      *
@@ -546,7 +604,7 @@ public class UserDao{
         try{
             String key = String.format(USERKEY, id);
             String aKey = String.format(FINALUSERKEY,  id);
-            UserPo userPo = userPoMapper.selectByPrimaryKey(id);
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
             if(userPo.getState()!=null&&userPo.getState()==BANED){
                 redisUtil.addSet(key,0);
                 redisUtil.addSet(aKey,0);
@@ -772,7 +830,7 @@ public class UserDao{
         criteria.andIdEqualTo(Id);
 
         logger.debug("findUserById: Id =" + Id);
-        UserPo userPo = userPoMapper.selectByPrimaryKey(Id);
+        UserPo userPo = userMapper.selectByPrimaryKey(Id);
 
         return userPo;
     }
@@ -791,7 +849,7 @@ public class UserDao{
         criteria.andDepartIdEqualTo(did);
 
         logger.debug("findUserByIdAndDid: Id =" + id + " did = " + did);
-        UserPo userPo = userPoMapper.selectByPrimaryKey(id);
+        UserPo userPo = userMapper.selectByPrimaryKey(id);
 
         return userPo;
     }
@@ -810,7 +868,7 @@ public class UserDao{
         if(!mobileAES.isBlank())
             criteria.andMobileEqualTo(mobileAES);
 
-        List<UserPo> users = userPoMapper.selectByExample(example);
+        List<UserPo> users = userMapper.selectByExample(example);
 
         logger.debug("findUserById: retUsers = "+users);
 
@@ -818,6 +876,116 @@ public class UserDao{
     }
 
     /* auth009 */
+    /**
+     * 获得解密后的Po并校验签名
+     *
+     * @param id userID
+     * @return UserPo
+     * createdBy 蒋欣雨 2021/12/1
+     */
+
+    public ReturnObject getUserPoById(Long id) {
+        // 查询密码等资料以计算新签名
+        try
+        {
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
+            // 不修改已被逻辑废弃的账户
+            if (userPo == null || (userPo.getState() != null && User.State.getTypeByCode(userPo.getState().intValue()) == User.State.DELETE)) {
+                logger.info("用户不存在或已被删除：id = " + id);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+
+            userPo=(UserPo) baseCoder.decode_check(userPo,UserPo.class,userCodeFields,userSignFields,"signature");
+            //签名校验失败
+            if (userPo.getSignature()==null)
+            {
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY,userPo);
+            }
+
+            return new ReturnObject<>(userPo);
+        }
+        catch (Exception e) {
+            // 其他 Exception 即属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+        }
+    }
+
+    /**
+     * createdBy 蒋欣雨 2021/12/1
+     * 将source中对应字段copy至target对象其他字段不变，若source中字段为null说明不修改
+     */
+    public Object copyVo(Object source, Object target) {
+        Class sourceClass = source.getClass();
+        Class targetClass = target.getClass();
+        try {
+            Field[] sourceFields = sourceClass.getDeclaredFields();
+            for (Field sourceField : sourceFields)
+            {
+                sourceField.setAccessible(true);
+                //若修改的字段为空，则说明不修改该字段
+                if(sourceField.get(source)==null)
+                    continue;
+                Field  targetField=null;
+                try{
+                 targetField= targetClass.getDeclaredField(sourceField.getName());
+                }
+                catch (NoSuchFieldException e)
+                {
+                    continue;
+                }
+
+                //静态和Final不能拷贝
+                int mod = targetField.getModifiers();
+                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
+                    continue;
+                }
+                targetField.setAccessible(true);
+
+                Class<?> sourceFieldType = sourceField.getType();
+                Class<?> targetFieldType = targetField.getType();
+                //属性名相同，类型相同，直接克隆
+                if (targetFieldType.equals(sourceFieldType))
+                {
+                    Object newObject = sourceField.get(source);
+                    targetField.set(target, newObject);
+                }
+                //属性名相同，类型不同
+                else
+                {
+                    boolean sourceFieldIsIntegerOrByteAndTargetFieldIsEnum=("Integer".equals(sourceFieldType.getSimpleName())||"Byte".equals(sourceFieldType.getSimpleName()))&&targetFieldType.isEnum();
+                    boolean targetFieldIsIntegerOrByteAndSourceFieldIsEnum=("Integer".equals(targetFieldType.getSimpleName())||"Byte".equals(targetFieldType.getSimpleName()))&&sourceFieldType.isEnum();
+                    //整形或Byte转枚举
+                    if(sourceFieldIsIntegerOrByteAndTargetFieldIsEnum)
+                    {
+                        Object newObj=sourceField.get(source);
+                        if("Byte".equals(sourceFieldType.getSimpleName()))
+                        {
+                            newObj=((Byte)newObj).intValue();
+                        }
+                        Object[] enumer=targetFieldType.getEnumConstants();
+                        targetField.set(target,enumer[(int) newObj]);
+                    }
+                    //枚举转整形或Byte
+                    else if(targetFieldIsIntegerOrByteAndSourceFieldIsEnum)
+                    {
+                        Object value= ((Enum)sourceField.get(source)).ordinal();
+                        if("Byte".equals(targetFieldType.getSimpleName()))
+                        {
+                            value = ((Integer) value).byteValue();
+                        }
+                        targetField.set(target,value);
+                    }
+
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.toString());
+        }
+        return target;
+    }
+
 
     /**
      * 根据 id 修改用户信息
@@ -827,48 +995,33 @@ public class UserDao{
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> modifyUserByVo(Long id, UserVo userVo) {
-        // 查询密码等资料以计算新签名
-        UserPo orig = userMapper.selectByPrimaryKey(id);
-        // 不修改已被逻辑废弃的账户
-        if (orig == null || (orig.getState() != null && User.State.getTypeByCode(orig.getState().intValue()) == User.State.DELETE)) {
-            logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
-        // 构造 User 对象以计算签名
-        User user = new User(orig);
-        UserPo po = user.createUpdatePo(userVo);
-
-        // 将更改的联系方式 (如发生变化) 的已验证字段改为 false
-        if (userVo.getEmail() != null && !userVo.getEmail().equals(user.getEmail())) {
-            po.setEmailVerified((byte) 0);
-        }
-        if (userVo.getMobile() != null && !userVo.getMobile().equals(user.getMobile())) {
-            po.setMobileVerified((byte) 0);
+    public ReturnObject<Object> modifyUserByVo(Long did, Long id, ModifyUserVo userVo, Long loginUser, String loginName) {
+        if (!checkUserDid(id, did)&&did != Long.valueOf(0)) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
 
         // 更新数据库
-        ReturnObject<Object> retObj;
-        int ret;
-        try {
-            ret = userMapper.updateByPrimaryKeySelective(po);
-        } catch (DataAccessException e) {
-            // 如果发生 Exception，判断是邮箱还是啥重复错误
-            if (Objects.requireNonNull(e.getMessage()).contains("auth_user.auth_user_mobile_uindex")) {
-                logger.info("电话重复：" + userVo.getMobile());
-                retObj = new ReturnObject<>(ReturnNo.MOBILE_REGISTERED);
-            } else if (e.getMessage().contains("auth_user.auth_user_email_uindex")) {
-                logger.info("邮箱重复：" + userVo.getEmail());
-                retObj = new ReturnObject<>(ReturnNo.EMAIL_REGISTERED);
-            } else {
-                // 其他情况属未知错误
-                logger.error("数据库错误：" + e.getMessage());
-                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                        String.format("发生了严重的数据库错误：%s", e.getMessage()));
-            }
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
             return retObj;
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
+        userPo=(UserPo) copyVo(userVo,userPo);
+        Common.setPoModifiedFields(userPo,loginUser,loginName);
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
+
+        int ret;
+        try{
+            //更新修改
+            ret = userMapper.updateByPrimaryKeySelective(userPo);
+            } catch (DataAccessException e) {
+                    // 其他情况属未知错误
+                    logger.error("数据库错误：" + e.getMessage());
+                    retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                            String.format("发生了严重的数据库错误：%s", e.getMessage()));
+                return retObj;
         } catch (Exception e) {
             // 其他 Exception 即属未知错误
             logger.error("严重错误：" + e.getMessage());
@@ -935,6 +1088,8 @@ public class UserDao{
         return user.createUpdatePo(vo);
     }
 
+
+
     /**
      * 改变用户状态
      *
@@ -944,18 +1099,26 @@ public class UserDao{
      * @author 19720182203919 李涵
      * Created at 2020/11/4 20:30
      * Modified by 19720182203919 李涵 at 2020/11/5 10:42
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> changeUserState(Long id, User.State state) {
-        UserPo po = createUserStateModPo(id, state);
-        if (po == null) {
-            logger.info("用户不存在或已被删除：id = " + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+    public ReturnObject<Object> changeUserState(Long did,Long id,Long loginUser,String loginName, User.State state) {
+        if (!checkUserDid(id, did)&&did != Long.valueOf(0)) {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
 
-        ReturnObject<Object> retObj;
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
+            return retObj;
+
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
+        userPo.setState(state.getCode().byteValue());
+        Common.setPoModifiedFields(userPo,loginUser,loginName);
+
+        userPo= (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
         int ret;
         try {
-            ret = userMapper.updateByPrimaryKeySelective(po);
+            ret = userMapper.updateByPrimaryKeySelective(userPo);
             if (ret == 0) {
                 logger.info("用户不存在或已被删除：id = " + id);
                 retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
@@ -984,48 +1147,48 @@ public class UserDao{
     /**
      * auth002: 用户重置密码
      * @param vo 重置密码对象
-     * @param ip 请求ip地址
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> resetPassword(ResetPwdVo vo, String ip) {
+    public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
 
-        //防止重复请求验证码
-        if(redisTemplate.hasKey("ip_"+ip))
-            return new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
-        else {
-            //1 min中内不能重复请求
-            redisTemplate.opsForValue().set("ip_"+ip,ip);
-            redisTemplate.expire("ip_" + ip, 60*1000, TimeUnit.MILLISECONDS);
-        }
 
         //验证邮箱、手机号
+
         UserPoExample userPoExample1 = new UserPoExample();
-        UserPoExample.Criteria criteria = userPoExample1.createCriteria();
-        criteria.andMobileEqualTo(AES.encrypt(vo.getMobile(),User.AESPASS));
         List<UserPo> userPo1 = null;
+        Collection<String> voCodeFields = new ArrayList<>(Arrays.asList("name"));
+        ResetPwdVo vo_coded= (ResetPwdVo) baseCoder.code_sign(vo, ResetPwdVo.class, voCodeFields,null, "signature");
+
         try {
+            UserPoExample.Criteria criteria_email = userPoExample1.createCriteria();
+            criteria_email.andEmailEqualTo(vo_coded.getName());
+            UserPoExample.Criteria criteria_phone = userPoExample1.createCriteria();
+            criteria_phone.andMobileEqualTo(vo_coded.getName());
+            UserPoExample.Criteria criteria_username = userPoExample1.createCriteria();
+            criteria_username.andUserNameEqualTo(vo.getName());
+            userPoExample1.or(criteria_phone);
+            userPoExample1.or(criteria_username);
             userPo1 = userMapper.selectByExample(userPoExample1);
-        }catch (Exception e) {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+            if (userPo1.isEmpty()) {
+             return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
+            }
+
+        } catch (Exception e) {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
-        if(userPo1.isEmpty())
-            return new ReturnObject<>(ReturnNo.MOBILE_WRONG);
-        else if(!userPo1.get(0).getEmail().equals(AES.encrypt(vo.getEmail(), User.AESPASS)))
-            return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
+
 
 
         //随机生成验证码
         String captcha = RandomCaptcha.getRandomString(6);
-        while(redisTemplate.hasKey(captcha))
+        while (redisUtil.hasKey(captcha))
             captcha = RandomCaptcha.getRandomString(6);
 
         String id = userPo1.get(0).getId().toString();
-        String key = "cp_" + captcha;
-        //key:验证码,value:id存入redis
-        redisTemplate.opsForValue().set(key,id);
-        //五分钟后过期
-        redisTemplate.expire("cp_" + captcha, 5*60*1000, TimeUnit.MILLISECONDS);
+        String key =  String.format(CAPTCHAKEY, captcha);
+        redisUtil.set(key, id, 5*60L);
 
 
 //        //发送邮件(请在配置文件application.properties填写密钥)
@@ -1041,7 +1204,7 @@ public class UserDao{
 //            return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
 //        }
 
-        return new ReturnObject<>(ReturnNo.OK);
+        return new ReturnObject<>(captcha);
     }
 
     /**
@@ -1050,36 +1213,35 @@ public class UserDao{
      * @return Object
      * @author 24320182203311 杨铭
      * Created at 2020/11/11 19:32
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
     public ReturnObject<Object> modifyPassword(ModifyPwdVo modifyPwdVo) {
 
+        //防止重复请求验证码
+        String key = String.format(CAPTCHAKEY, modifyPwdVo.getCaptcha());
 
         //通过验证码取出id
-        if(!redisTemplate.hasKey("cp_"+modifyPwdVo.getCaptcha()))
+        if (!redisUtil.hasKey(key))
             return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
-        String id= redisTemplate.opsForValue().get("cp_"+modifyPwdVo.getCaptcha()).toString();
+        Long id = (Long) redisUtil.get(key);
 
-        UserPo userpo = null;
-        try {
-            userpo = userPoMapper.selectByPrimaryKey(Long.parseLong(id));
-        }catch (Exception e) {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
-        }
+        ReturnObject<Object> retObj=getUserPoById(id);
+        if(retObj.getCode()!=ReturnNo.OK)
+            return retObj;
+        // 查询密码等资料以计算新签名
+        UserPo userPo =(UserPo) retObj.getData();
 
         //新密码与原密码相同
-        if(AES.decrypt(userpo.getPassword(), User.AESPASS).equals(modifyPwdVo.getNewPassword()))
+        if (userPo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
-
-        //加密
-        UserPo userPo = new UserPo();
-        userPo.setPassword(AES.encrypt(modifyPwdVo.getNewPassword(),User.AESPASS));
-
+        userPo.setPassword(modifyPwdVo.getNewPassword());
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
         //更新数据库
         try {
             userMapper.updateByPrimaryKeySelective(userPo);
-        }catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
         return new ReturnObject<>(ReturnNo.OK);
     }
@@ -1105,37 +1267,36 @@ public class UserDao{
             clearUserPrivCache(uid);
         }
     }
-    /**
+     /**
      * 创建user
      *
      * createdBy Li Zihan 243201822032227
-     * modifiedBy BingShuai Liu 22920192204245
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject addUser(NewUserPo po,Integer level,Long userId,String userName)
-    {
-        NewUserBo newUserBo = (NewUserBo) baseCoder.decode_check(po,NewUserBo.class,newUserCodeFields,newUserSignFields,"signature");
-        newUserBo.setLevel(level);
-        UserPo userPo = (UserPo) baseCoder.code_sign(newUserBo,UserPo.class,userCodeFields,userSignFields,"signature");
-        Common.setPoCreatedFields(userPo,userId,userName);
-        try{
-            userPoMapper.insert(userPo);
-            return new ReturnObject(newUserBo);
-        }catch (DuplicateKeyException e){
-            String info=e.getMessage();
-            if(info.contains("user_name_uindex")){
-                return new ReturnObject(ReturnNo.USER_NAME_REGISTERED);
+    public ReturnObject addUser(NewUserPo po,Long loginUser,String loginName) {
+        ReturnObject returnObject = null;
+        UserPo userPo =(UserPo) Common.cloneVo(po,UserPo.class);
+        Common.setPoCreatedFields(userPo,loginUser,loginName);
+        userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, null,userSignFields, "signature");
+
+        try {
+            returnObject = new ReturnObject<>(userMapper.insert(userPo));
+            logger.debug("success insert User: " + userPo.getId());
+        } catch (DataAccessException e) {
+            if (Objects.requireNonNull(e.getMessage()).contains("auth_user.user_name_uindex")) {
+                //若有重复名则修改失败
+                logger.debug("insertUser: have same user name = " + userPo.getName());
+                returnObject = new ReturnObject<>(ReturnNo.ROLE_EXIST, String.format("用户名重复：" + userPo.getName()));
+            } else {
+                logger.debug("sql exception : " + e.getMessage());
+                returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
             }
-            else if(info.contains("email_uindex")){
-                return new ReturnObject(ReturnNo.EMAIL_REGISTERED);
-            }
-            else{
-                return new ReturnObject(ReturnNo.MOBILE_REGISTERED);
-            }
+        } catch (Exception e) {
+            // 其他Exception错误
+            logger.error("other exception : " + e.getMessage());
+            returnObject = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
-        catch (Exception e){
-            logger.error(e.getMessage());
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
-        }
+        return returnObject;
     }
 
     /**
@@ -1144,24 +1305,34 @@ public class UserDao{
      * @Return:
      * @Author: Yifei Wang
      * @Date: 2020/12/8 11:35
+     * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject changeUserDepart(Long userId, Long departId){
-        UserPo po = new UserPo();
-        po.setId(userId);
-        po.setDepartId(departId);
-        try{
+    public InternalReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
+
+        try {
+            UserPo userPo = userMapper.selectByPrimaryKey(userId);
+            if(userPo.getDepartId()!=-1)
+            {
+                return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+            }
+            userPo.setDepartId(departId);
+            Common.setPoModifiedFields(userPo,loginUser,loginName);
+            userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class,null, userSignFields, "signature");
+
             logger.debug("Update User: " + userId);
-            int ret=userPoMapper.updateByPrimaryKeySelective(po);
-            if(ret == 0){
-                return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
+            int ret = userMapper.updateByPrimaryKeySelective(userPo);
+            if (ret == 0) {
+                return new InternalReturnObject<>(ReturnNo.FIELD_NOTVALID);
             }
             logger.debug("Success Update User: " + userId);
-            return new ReturnObject<>(ReturnNo.OK);
-        }catch (Exception e){
+            return new InternalReturnObject<>(ReturnNo.OK);
+        } catch (Exception e) {
             logger.error("exception : " + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            return new InternalReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
+
+
 
     /**
      * 获取用户状态
@@ -1188,7 +1359,7 @@ public class UserDao{
     public ReturnObject modifyUser(UserBo userBo){
         UserPo userPo = (UserPo) baseCoder.code_sign(userBo,UserPo.class,userCodeFields,userSignFields,"signature");
         try {
-            userPoMapper.updateByPrimaryKeySelective(userPo);
+            userMapper.updateByPrimaryKeySelective(userPo);
             return new ReturnObject();
         }catch (DuplicateKeyException e){
             String info=e.getMessage();
@@ -1241,7 +1412,7 @@ public class UserDao{
             if (email!=null){
                 criteria.andEmailEqualTo(encryptedUserBo.getEmail());
             }
-            userPos = userPoMapper.selectByExample(example);
+            userPos = userMapper.selectByExample(example);
             // TODO:验签
             for(UserPo userPo: userPos){
                 if(null==baseCoder.decode_check(userPo,NewUserPo.class,userCodeFields,userSignFields,"signature")){

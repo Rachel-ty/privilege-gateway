@@ -17,18 +17,24 @@
 package cn.edu.xmu.privilegegateway.gateway.microservice;
 
 import cn.edu.xmu.privilegegateway.annotation.util.InternalReturnObject;
+import cn.edu.xmu.privilegegateway.gateway.microservice.vo.RequestVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 
 /**
  * @author YuJie 22920192204242
  * @date 2021/11/18
+ * modifiedBy Ming Qiu 2021/12/3 17:14
  */
-@FeignClient(value = "privielege-service")
+@FeignClient(value = "privilege-service")
 public interface PrivilegeService {
 
     @PutMapping("/internal/users/{userId}")
-    InternalReturnObject loadSingleUserPriv(@PathVariable Long userId);
+    InternalReturnObject loadUserPriv(@PathVariable Long userId);
+
+    @PutMapping("/internal/privileges/load")
+    InternalReturnObject loadPrivilege(@RequestBody RequestVo requestVo);
 }
