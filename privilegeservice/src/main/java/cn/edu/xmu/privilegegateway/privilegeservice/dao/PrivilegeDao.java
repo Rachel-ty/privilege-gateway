@@ -194,21 +194,10 @@ public class PrivilegeDao implements InitializingBean {
      */
     public ReturnObject changePriv(Privilege bo){
         try {
-            PrivilegePo po=poMapper.selectByPrimaryKey(bo.getId());
-            if(po==null)
-            {
-                return new ReturnObject(ReturnNo.OK);
-            }
-            PrivilegePo newpo=(PrivilegePo) coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
-            if(bo.getUrl()==null)
-            {
-                bo.setUrl(newpo.getUrl());
-            }
-            if(bo.getRequestType()==null)
-            {
-                bo.setRequestType(Privilege.RequestType.getTypeByCode(newpo.getRequestType()));
-            }
-            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
+            PrivilegePo po=(PrivilegePo) Common.cloneVo(bo,PrivilegePo.class);
+            poMapper.insertSelective(po);
+            PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
+            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(retpo,PrivilegePo.class,codeFields,signFields,"signature");
             poMapper.updateByPrimaryKeySelective(updatepo);
             List<String> keys=privilegeImpact(po.getId());
             for(String key:keys)
