@@ -246,7 +246,7 @@ public class RedisUtil {
      * @param values
      * @return
      */
-    public Object executeScript(DefaultRedisScript script,List<String> keyList, Object... values){
+    public <T> T executeScript(DefaultRedisScript<T> script,List<String> keyList, Object... values){
         return redisTemplate.execute(script,keyList,values);
     }
 
