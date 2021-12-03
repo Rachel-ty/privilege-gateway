@@ -2,15 +2,26 @@ package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
 import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import org.apache.http.entity.ContentType;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -19,6 +30,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -28,6 +40,10 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
+
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -43,8 +59,14 @@ public class PrivilegeControllerTest {
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
 
+    @MockBean
+    private HttpServletRequest request;
+    @Autowired
+    private UserDao userDao;
     @Autowired
     private MockMvc mvc;
+    @MockBean
+    private RedisUtil redisUtil;
 
     @BeforeEach
     void init() {
@@ -393,7 +415,38 @@ public class PrivilegeControllerTest {
         String expectString = "{\"errno\":0,\"data\":\"pikaas\",\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
+    /**
+     * Method: resetPassword(@RequestBody ResetPwdVo vo,BindingResult bindingResult
+     * , HttpServletResponse httpServletResponse,HttpServletRequest httpServletRequest)
+     */
 
+
+    /**
+     * 测试
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+
+    @Test
+    public void testResetPassword() throws Exception {
+        Mockito.when(redisUtil.hasKey(Mockito.anyString())).thenReturn(false);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+        String contentJson1 = "{\"name\":\"minge@163.com\"}";
+        String responseString1 = mvc.perform(put("/self/password/reset")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+        contentJson1 = "{\"name\":\"\"}";
+        responseString1 = mvc.perform(put("/self/password/reset")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        expectString1 = "{\"errno\":503,\"errmsg\":\"不能为空;\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
     @Test
     public void loadUserPrivilege() throws Exception {
         JwtHelper jwtHelper = new JwtHelper();
@@ -465,5 +518,199 @@ public class PrivilegeControllerTest {
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
     }
+    @Test
+    public void testModifyPassword() throws Exception {
+        String contentJson1="{\n" +
+                "  \"name\": \"minge@163.com\",\n" +
+                "  \"captcha\": \"123456\",\n" +
+                "  \"newPassword\": \"123456\"\n" +
+                "}";
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(62L);
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
+        String responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":741,\"errmsg\":\"不能与旧密码相同\"}}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
 
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(false);
+        responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        expectString1 = "{\"errno\":700,\"errmsg\":\"用户名不存在或者密码错误\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyPassword2() throws Exception {
+        String contentJson1="{\n" +
+                "  \"name\": \"minge@163.com\",\n" +
+                "  \"captcha\": \"123456\",\n" +
+                "  \"newPassword\": \"12345678\"\n" +
+                "}";
+        Mockito.when(redisUtil.get("cp_123456")).thenReturn(62L);
+        Mockito.when(redisUtil.hasKey("cp_123456")).thenReturn(true);
+        String responseString1 = mvc.perform(put("/self/password")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+
+    @Test
+    public void testReleaseUser() throws Exception {
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        String responseString1 = mvc.perform(put("/departs/1/users/57/release")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyUserInfo() throws Exception {
+        String contentJson1="{\n" +
+                "  \"name\": \"jxy\",\n" +
+                "  \"avatar\": \"1.jpg\",\n" +
+                "  \"idNumber\": \"430124200000000000\",\n" +
+                "  \"passportNumber\": \"123456\",\n" +
+                "  \"level\": 0\n" +
+                "}";
+        String responseString1 = mvc.perform(put("/departs/0/users/62")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testModifyUserInfo2() throws Exception {
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        String contentJson1="{\n" +
+                "  \"name\": \"jxy\",\n" +
+                "  \"avatar\": \"1.jpg\",\n" +
+                "  \"idNumber\": \"430124200000000000\",\n" +
+                "  \"passportNumber\": \"123456\",\n" +
+                "  \"level\": 0\n" +
+                "}";
+
+        String responseString1 = mvc.perform(put("/departs/1/users/57")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testDeleteUser() throws Exception {
+        String responseString1 = mvc.perform(delete("/departs/0/users/62")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testForbidUser() throws Exception {
+        String responseString1 = mvc.perform(put("/departs/0/users/62/forbid")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+        responseString1 = mvc.perform(put("/departs/0/users/62/release")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+       expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
+    @Test
+    public void testApproveUser() throws Exception {
+        String contentJson1="{\"approve\": \"true\"}";
+
+        String responseString1 = mvc.perform(put("/departs/0/users/4/approve")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+    @Test
+    public void testApproveUser2() throws Exception {
+        String contentJson1="{\"approve\": \"false\"}";
+        String responseString1 = mvc.perform(put("/departs/0/users/1/approve")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+
+    @Test
+    public void testAddToDepart() throws Exception {
+        String responseString1 = mvc.perform(put("/internal/users/62/departs/0")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+
+        expectString1 = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
+        responseString1 = mvc.perform(put("/internal/users/60/departs/1")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+        token = jwtHelper.createToken(6L, "jxy", 0L, 1, 36000);
+        responseString1 = mvc.perform(put("/internal/users/1/departs/0")
+                        .contentType("application/json;charset=UTF-8").header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+
+
+    //copyVo的test
+    @Test
+    void copyVotest() {
+        ModifyUserVo userVo=new ModifyUserVo();
+        userVo.setIdNumber("123");
+        userVo.setPassportNumber("99999999");
+        userVo.setName("name");
+
+        UserPo userPo = new UserPo();
+        userPo.setId(1L);
+        userPo.setLevel(0);
+        userPo.setIdNumber("1111");
+        userPo.setName("oldname");
+        userPo.setEmail("111");
+        userPo.setMobile("111");
+        UserPo newUserPo=(UserPo) userDao.copyVo(userVo,userPo);
+        assertEquals(newUserPo.getId(),userPo.getId());
+        assertEquals(newUserPo.getLevel(),userPo.getLevel());
+        assertEquals(newUserPo.getPassportNumber(),userVo.getPassportNumber());
+        assertEquals(newUserPo.getIdNumber(),userVo.getIdNumber());
+        assertEquals(newUserPo.getName(),userVo.getName());
+        assertEquals(newUserPo.getEmail(),userPo.getEmail());
+        assertEquals(newUserPo.getMobile(),userPo.getMobile());
+
+    }
 }
