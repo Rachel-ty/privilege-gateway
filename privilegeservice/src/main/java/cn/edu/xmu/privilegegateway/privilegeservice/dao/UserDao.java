@@ -66,16 +66,6 @@ public class UserDao{
     private long timeout;
 
     public final static String FUSERKEY="f_%d";
-    /**
-     * 用户的redis key： u_id, 集合里为base role
-     *
-     */
-    private final static String USERKEY = "u_%d";
-
-    /**
-     * 最终用户的redis key: up_id 集合里为
-     */
-    private final static String USERPROXYKEY = "up_%d";
 
 
     @Autowired
@@ -1484,9 +1474,6 @@ public class UserDao{
      * @modifier 张晖婧
      * */
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid,Long did) {
-        User user = getUserById(userid.longValue()).getData();
-        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
-
         if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
             UserRolePoExample userRolePoExample = new UserRolePoExample();
             UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
@@ -1498,6 +1485,11 @@ public class UserDao{
                 if (state == 0) {
                     return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
                 } else {
+                    //更新redis缓存
+                    List<String> redisKeyToDeleted = userImpact(userid);
+                    for(String key : redisKeyToDeleted) {
+                        redisUtil.del(key);
+                    }
                     return new ReturnObject<>(ReturnNo.OK);
                 }
             } catch (DataAccessException e) {
@@ -1542,6 +1534,12 @@ public class UserDao{
             try {
                 int ret = userRolePoMapper.insertSelective(userRolePo);
 
+                //更新redis缓存
+                List<String> redisKeyToDeleted = userImpact(userRole.getUserId());
+                for(String key : redisKeyToDeleted) {
+                    redisUtil.del(key);
+                }
+
                 UserRole userRoleBo = (UserRole) Common.cloneVo(userRolePo, UserRole.class);
                 userRoleBo.setSign((byte) 0);
                 //组装Bo
@@ -1577,36 +1575,38 @@ public class UserDao{
      * @return Object 角色返回视图
      * createdBy 王文凯 2021/11/26 11:44
      * ModifiedBy 张晖婧 2021/11/30 22:37
+     * ModifiedBy 王文凯 2021/12/3 23:35
      */
     public ReturnObject selectBaseRoles(Long userId, Long did, Integer page, Integer pageSize) {
         try {
             if (!checkUserDid(userId, did)) {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配"));
             }
-            Set set = redisUtil.getSet(String.format(USERKEY, userId));
-            if (set == null) {
+
+            // 查找用户的功能角色
+            Set roleKeySet = redisUtil.getSet(String.format(FINALUSERKEY, userId));
+            if (roleKeySet == null) {
                 ReturnObject retObj = loadUser(userId);
                 if (retObj.getCode() != ReturnNo.OK) {
                     return retObj;
                 }
-                set = redisUtil.getSet(String.format(USERKEY, userId));
+                roleKeySet = redisUtil.getSet(String.format(FINALUSERKEY, userId));
             }
 
-            List<String> baseroleKeyIds = new ArrayList(set);
-            List<RolePo> pageBaseroles=new ArrayList<>();
-            int lastIndex = page * pageSize - 1;;
+            List<String> baseroleKeyIds = new ArrayList(roleKeySet);
+            List<RolePo> pageBaseroles = new ArrayList<>();
+            int lastIndex = page * pageSize - 1;
             //如果数量不足
             if (baseroleKeyIds.size() < (page - 1) * pageSize) {
-                lastIndex=-1;
+                lastIndex = -1;
             } else {
                 if (baseroleKeyIds.size() < page * pageSize) {
                     lastIndex = baseroleKeyIds.size() - 1;
                 }
             }
-
-            for(int i=(page - 1) * pageSize;i<=lastIndex;i++){
-                //去掉"u_"
-                RolePo rolePo=rolePoMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(2)));
+            for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
+                //去掉 br_
+                RolePo rolePo = rolePoMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
                 pageBaseroles.add(rolePo);
             }
 
@@ -1621,10 +1621,6 @@ public class UserDao{
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
-    public ReturnObject loadUser(Long id) {
-        return new ReturnObject();
-    }
-
 
     /**
      * 用户的影响力分析

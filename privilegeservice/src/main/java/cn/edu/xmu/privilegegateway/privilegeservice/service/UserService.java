@@ -22,6 +22,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;

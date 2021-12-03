@@ -101,8 +101,6 @@ public class RoleDao {
         }
     };
 
-    public final static String ROLEKEY = "r_%d";
-    public final static String BASEROLEKEY = "br_%d";
 
     final static Collection<String> codeFields = new ArrayList<>();
     final static List<String> roleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
@@ -111,18 +109,17 @@ public class RoleDao {
     /**
      * 用户的redis key：r_id values:set{br_id};
      */
-    private final static String ROLEKEY = "r_%d";
+    public final static String ROLEKEY = "r_%d";
 
     /**
      * 功能用户的redis key:br_id values:set{privId};
      */
-    private final static String BASEROLEKEY = "br_%d";
+    public final static String BASEROLEKEY = "br_%d";
 
-    private final static int BANED = 2;
+    public final static int BANED = 2;
 
-    private final static int BASEROLE = 1;
-    @Autowired
-    private BaseCoder baseCoder;
+    public final static int BASEROLE = 1;
+
 
     final static List<String> newUserRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
 
@@ -832,20 +829,21 @@ public class RoleDao {
             }
 
             List<String> baseroleKeyIds = new ArrayList(set);
-            List<RolePo> pageBaseroles=new ArrayList<>();
-            int lastIndex = page * pageSize - 1;;
+            List<RolePo> pageBaseroles = new ArrayList<>();
+            int lastIndex = page * pageSize - 1;
+            ;
             //如果数量不足
             if (baseroleKeyIds.size() < (page - 1) * pageSize) {
-                lastIndex=-1;
+                lastIndex = -1;
             } else {
                 if (baseroleKeyIds.size() < page * pageSize) {
                     lastIndex = baseroleKeyIds.size() - 1;
                 }
             }
 
-            for(int i=(page - 1) * pageSize;i<=lastIndex;i++){
+            for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
                 //去掉"br_"
-                RolePo rolePo=roleMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
+                RolePo rolePo = roleMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
                 pageBaseroles.add(rolePo);
             }
 
@@ -860,6 +858,7 @@ public class RoleDao {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
+
     /**
      * 查询父角色
      * @author 张晖婧 22920192204320

@@ -34,10 +34,10 @@ public class UserRoleSimpleRetVo {
     private LocalDateTime gmtModified;
 
     @ApiModelProperty(value = "创建人")
-    private UserSimpleWithoutSignRetVo creator;
+    private UserSimpleRetVo creator;
 
     @ApiModelProperty(value = "修改人")
-    private UserSimpleWithoutSignRetVo modifier;
+    private UserSimpleRetVo modifier;
 
     @ApiModelProperty(value = "用户角色签名标记")
     private Byte sign;
