@@ -729,10 +729,10 @@ public class RoleDao {
     public List<String> roleImpact(Long roleId){
         List<String> impactList=new ArrayList<String>();
         impactList.add(String.format(ROLEKEY,roleId));
-        digui(roleId,impactList);
+        delRoleAndRelactiveKey(roleId,impactList);
         return impactList;
     }
-    public void digui(Long roleId, List<String> resultList){
+    public void delRoleAndRelactiveKey(Long roleId, List<String> resultList){
         GroupRolePoExample example1=new GroupRolePoExample();
         redisUtil.del(String.format(ROLEKEY,roleId));
         GroupRolePoExample.Criteria criteria1=example1.createCriteria();
@@ -757,7 +757,7 @@ public class RoleDao {
         for(RoleInheritedPo roleInheritedPo:roleList){
             if(!resultList.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
                 resultList.add(String.format(ROLEKEY,roleInheritedPo.getRoleCId()));
-                digui(roleInheritedPo.getRoleCId(),resultList);
+                delRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultList);
             }
         }
     }

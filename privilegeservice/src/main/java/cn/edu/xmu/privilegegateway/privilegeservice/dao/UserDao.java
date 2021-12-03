@@ -19,19 +19,17 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
-import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserRolePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
-import cn.edu.xmu.privilegegateway.annotation.util.*;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -95,21 +93,8 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
-    public final static String SINGLEUSERKEY="u_%d";
-    public final static String PROXYUSERKEY="f_%d";
-
-    /**
-     * 最终用户的redis key: up_id 集合里为
-     */
-    private final static String USERPROXYKEY = "up_%d";
-    public final static String FUSERKEY="f_%d";
-
-
     @Autowired
     private UserRolePoMapper userRolePoMapper;
-
-    @Autowired
-    private UserGroupPoMapper userGroupPoMapper;
 
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
@@ -149,28 +134,6 @@ public class UserDao{
     final static Collection<String> userProxyCodeFields = new ArrayList<>();
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
-
-    /**
-     * 用户的redis key： u_id values:set{br_id};
-     *
-     */
-    private final static String USERKEY = "u_%d";
-
-
-    /**
-     * 最终用户的redis key: fu_id values: set{br_id};
-     */
-    private final static String FINALUSERKEY = "fu_%d";
-    /**
-     * 用户组的redis key： g_id values:set{br_id};
-     *
-     */
-    private final static String GROUPKEY = "g_%d";
-
-    /**
-     * 用户的redis key：r_id values:set{br_id};
-     */
-    private final static String ROLEKEY = "r_%d";
 
     private final static int BANED = 2;
 
