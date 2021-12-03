@@ -223,7 +223,7 @@ public class RoleDao {
                 roleKeys.add(String.format(ROLEKEY,roleInheritedPo.getRoleId()));
             }
             if(roleKeys.size()>0){
-                redisUtil.unionAndStoreSet(roleKeys,key);
+                redisUtil.unionAndStoreSet(key,roleKeys,key);
             }
             redisUtil.addSet(key,0);
             long randTimeout = Common.addRandomTime(timeout);

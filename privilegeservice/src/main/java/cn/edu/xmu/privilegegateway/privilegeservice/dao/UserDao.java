@@ -522,7 +522,7 @@ public class UserDao{
                 groupKeys.add(String.format(GROUPKEY, groupId));
             }
             if(groupKeys.size()>0){
-                redisUtil.unionAndStoreSet(groupKeys, key);
+                redisUtil.unionAndStoreSet(key,groupKeys, key);
             }
             redisUtil.addSet(key,0);
             long randTimeout = Common.addRandomTime(timeout);
