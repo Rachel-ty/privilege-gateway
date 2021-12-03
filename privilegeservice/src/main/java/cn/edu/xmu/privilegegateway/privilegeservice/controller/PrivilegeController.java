@@ -1294,12 +1294,10 @@ public class PrivilegeController {
             @ApiResponse(code = 504, message = "操作id不存在")
     })
     @Audit
-    @PutMapping("/internal/users/{userid}/load")
+     @PutMapping("/internal/users/{userid}/load")
     public Object loadUserPriv(@PathVariable Long userid, HttpServletRequest request){
         String token = request.getHeader("authorization");
         return Common.decorateReturnObject(userService.loadUserPriv(userid, token));
     }
 
-
 }
-
