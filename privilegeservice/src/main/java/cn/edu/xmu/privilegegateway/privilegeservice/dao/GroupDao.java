@@ -199,7 +199,7 @@ public class GroupDao {
                 pKeys.add(String.format(GROUPKEY,groupRelationPo.getGroupPId()));
             }
             if(pKeys.size()>0){
-                redisUtil.unionAndStoreSet(pKeys,gKey);
+                redisUtil.unionAndStoreSet(gKey,pKeys,gKey);
             }
             redisUtil.addSet(gKey,0);
             long randTimeout = Common.addRandomTime(timeout);
