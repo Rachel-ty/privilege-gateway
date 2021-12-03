@@ -92,7 +92,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
      * 1. 检查JWT是否合法,以及是否过期，如果过期则需要在response的头里换发新JWT，如果不过期将旧的JWT在response的头中返回
      * 2. 判断用户的shopid是否与路径上的shopid一致（0可以不做这一检查）
      * 3. 在redis中判断用户是否有权限访问url,如果不在redis中需要通过dubbo接口load用户权限
-     * 4. 需要以dubbo接口访问privilegeservice
+     * 4. 需要以微服务接口访问privilegeservice
      *
      * @param exchange
      * @param chain
