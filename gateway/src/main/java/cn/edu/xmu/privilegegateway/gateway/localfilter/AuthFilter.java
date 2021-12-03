@@ -30,13 +30,16 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -124,6 +127,23 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 若token合法
             // 判断该token是否被ban
             //TODO: 加入任务3-8 用lua脚本实现以下代码
+
+            String[] banSetNames = {"BanJwt_0", "BanJwt_1"};
+            String scriptPath = "check-jwt.lua";
+
+            DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
+
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
+            script.setResultType(Boolean.class);
+
+            List<String> keyList = List.of(banSetNames);
+
+            Boolean baned = redisUtil.executeScript(script, keyList, token);
+
+            if(baned) {
+                response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                return response.writeWith(Mono.empty());
+            }
 /*
             String[] banSetName = {"BanJwt_0", "BanJwt_1"};
             for (String singleBanSetName : banSetName) {
