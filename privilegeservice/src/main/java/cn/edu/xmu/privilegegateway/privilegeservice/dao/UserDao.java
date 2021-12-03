@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
@@ -45,10 +61,17 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
-    public final static String SINGLEUSERKEY="u_%d";
-    public final static String PROXYUSERKEY="f_%d";
-    public final static String USERKEY="up_%d";
+    public final static String FUSERKEY="f_%d";
+    /**
+     * 用户的redis key： u_id, 集合里为base role
+     *
+     */
+    private final static String USERKEY = "u_%d";
 
+    /**
+     * 最终用户的redis key: up_id 集合里为
+     */
+    private final static String USERPROXYKEY = "up_%d";
 
 
     @Autowired
@@ -94,16 +117,7 @@ public class UserDao{
 //    @Autowired
 //    private JavaMailSender mailSender;
 
-    /**
-     * 用户的redis key： u_id
-     *
-     */
-    private final static String USERKEY = "u_%d";
 
-    /**
-     * 最终用户的redis key: up_id
-     */
-    private final static String USERPROXYKEY = "up_%d";
 
     /**
      * @author yue hao

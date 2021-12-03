@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
@@ -89,6 +105,8 @@ public class UserService {
 
     @Autowired
     private BaseCoder baseCoder;
+
+
     final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
@@ -657,6 +675,16 @@ public class UserService {
         return returnObject;
     }
 
-
+    /**
+     * 将用户的权限装载到Redis
+     * @author Ming Qiu 2021-12-3
+     * @param id 用户id
+     * @param jwt jwt token
+     * @return
+     */
+    public ReturnObject loadUserPriv(Long id, String jwt){
+        userDao.loadUserPriv(id, jwt);
+        return new ReturnObject(ReturnNo.OK);
+    }
 
 }
