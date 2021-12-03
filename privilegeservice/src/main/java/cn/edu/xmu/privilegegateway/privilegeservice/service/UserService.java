@@ -791,18 +791,8 @@ public class UserService {
      * @author RenJie Zheng 22920192204334
      */
     @Transactional(rollbackFor = Exception.class)
-    public InternalReturnObject loadUserPrivilege(Long userId,String jwt){
-        try{
-            ReturnObject returnObject = userDao.loadUserPriv(userId,jwt);
-            if(returnObject.getCode()!=ReturnNo.OK){
-                return new InternalReturnObject(INTERNALERROR,returnObject.getErrmsg());
-            }
-            return new InternalReturnObject();
-        }catch (Exception e){
-            logger.error(e.getMessage());
-            return new InternalReturnObject(INTERNALERROR);
-        }
-
+    public ReturnObject loadUserPrivilege(Long userId,String jwt){
+        return userDao.loadUserPriv(userId,jwt);
     }
 
 

@@ -18,26 +18,23 @@ package cn.edu.xmu.privilegegateway.gateway.localfilter;
 
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.gateway.microservice.PrivilegeService;
-import cn.edu.xmu.privilegegateway.gateway.util.GatewayUtil;
+import cn.edu.xmu.privilegegateway.gateway.microservice.vo.RequestVo;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.alibaba.fastjson.JSONObject;
 import io.netty.util.internal.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -172,7 +169,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (!redisUtil.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                privilegeService.loadSingleUserPriv(userId);
+                privilegeService.loadUserPriv(userId);
             }
             // 将token放在返回消息头中
             response.getHeaders().set(tokenName, jwt);
@@ -182,7 +179,12 @@ public class AuthFilter implements GatewayFilter, Ordered {
             String commonUrl = matcher.replaceAll("/{id}");
             logger.debug("获取通用请求路径:" + commonUrl);
             // 找到该url所需要的权限id
-            String urlKey = String.format(PRIVKEY, commonUrl, GatewayUtil.RequestType.getCodeByType(method).getCode());
+            Integer requestType = RequestType.getCodeByType(method).getCode();
+            String urlKey = String.format(PRIVKEY, commonUrl, requestType);
+            if (!redisUtil.hasKey(urlKey)){
+                RequestVo vo = new RequestVo(commonUrl, requestType);
+                privilegeService.loadPrivilege(vo);
+            }
             Long privId = (Long) redisUtil.get(urlKey);
             boolean next = false;
             if (privId == null) {
@@ -246,5 +248,55 @@ public class AuthFilter implements GatewayFilter, Ordered {
         public void setTokenName(String tokenName) {
             this.tokenName = tokenName;
         }
+    }
+
+    /**
+     * 请求类型
+     */
+    public enum RequestType {
+        GET(0, "GET"),
+        POST(1, "POST"),
+        PUT(2, "PUT"),
+        DELETE(3, "DELETE");
+
+        private static final Map<Integer, RequestType> typeMap;
+
+        static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值
+            typeMap = new HashMap();
+            for (RequestType enum1 : values()) {
+                typeMap.put(enum1.code, enum1);
+            }
+        }
+
+        private int code;
+        private String description;
+
+        RequestType(int code, String description) {
+            this.code = code;
+            this.description = description;
+        }
+
+        public static RequestType getTypeByCode(Integer code) {
+            return typeMap.get(code);
+        }
+
+        public static RequestType getCodeByType(HttpMethod method) {
+            switch (method) {
+                case GET: return RequestType.GET;
+                case PUT: return RequestType.PUT;
+                case POST: return RequestType.POST;
+                case DELETE: return RequestType.DELETE;
+                default: return null;
+            }
+        }
+
+        public Integer getCode() {
+            return code;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
     }
 }
