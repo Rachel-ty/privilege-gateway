@@ -102,6 +102,11 @@ public class AuthFilter implements GatewayFilter, Ordered {
      * @author wwc
      * @date 2020/12/02 17:13
      */
+    /**
+     * 将判断token是否被ban的逻辑用lua脚本重写
+     * @author Jianjian Chan
+     * @date 2021/12/03
+     */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
@@ -125,8 +130,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
         } else {
             // 若token合法
             // 判断该token是否被ban
-            //TODO: 加入任务3-8 用lua脚本实现以下代码
-
             String[] banSetNames = {"BanJwt_0", "BanJwt_1"};
             String scriptPath = "check-jwt.lua";
 

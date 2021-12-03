@@ -1,8 +1,8 @@
 --KEYS
---所有set的名字
+--所有BanSet的名称
 
 --ARGV
---jwt
+--要检查是否被ban的jwt
 
 local jwt = ARGV[1]
 

@@ -349,6 +349,11 @@ public class UserService {
      * 修改成lua脚本
      * @param jwt JWT令牌
      */
+    /**
+     * 用lua脚本重写该方法
+     * @author Jianjian Chan
+     * @date 2021/12/02
+     */
     private void banJwt(String jwt) {
         String[] banSetName = {"BanJwt_0", "BanJwt_1"};
         String banIndexKey = "banIndex";
