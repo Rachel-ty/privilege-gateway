@@ -360,25 +360,6 @@ public class RoleDao {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了严重的数据库错误：%s", e.getMessage()));
         }
     }
-    public ReturnObject<PageInfo<VoObject>> selectAllBaseRole(Long did,Long roleid,Integer pageNum, Integer pageSize)
-    {
-        RolePoExample example = new RolePoExample();
-        RolePoExample.Criteria criteria = example.createCriteria();
-        List<RolePo> polist=new ArrayList<>();
-        if(did==0)
-        {
-            polist.add(roleMapper.selectByPrimaryKey(roleid));
-        }
-        else
-        {
-            return null;
-        }
-        if(polist.size()==0)
-        {
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-       return null;
-    }
     /**
      * 增加一个角色
      *
