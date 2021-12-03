@@ -1,35 +1,6 @@
 server:
   port: 8080
 
-other-ip: localhost:9999
-order-ip:
-  order: localhost:9900
-  payment: localhost:9400
-  freight: localhost:9800
-gateway:
-  activity: http://localhost:8988
-  goods: http://localhost:8907
-  falshsale: http://localhost:8188
-
-dubbo:
-  # 配置服务信息
-  application:
-    name: privilege-gateway
-    # 禁用QOS同一台机器可能会有端口冲突现象
-    qos-enable: false
-    qos-accept-foreign-ip: false
-  # 配置注册中心
-  registry:
-    address: nacos://47.115.162.144:8848
-  # 设置协议-协议由提供方指定消费方被动接受
-  protocol:
-    name: dubbo
-    port: 20880
-    # 设置超时时间
-  consumer:
-    timeout: 4000
-    check: false
-
 spring:
   application:
     name: privilege-gateway
@@ -48,19 +19,19 @@ spring:
               - OPTIONS
       routes:
         #权限模块
-        - id: adminuserlogin
-          uri: http://localhost:8081/
+        - id: privilege-no-user
+          uri: privilge-service
           predicates:
-            - Path=/adminusers,/adminusers/login
+            - Path=/privilege/login
           filters:
             - PrefixPath=/privilege
 
         - id: adminusers
           uri: http://localhost:8081/
           predicates:
-            - Path=/adminusers/**,/shops/{shopid}/adminusers/**,/proxies/**,/shops/{shopid}/proxies/**,/shops/{shopid}/roles/**,/shops/{shopid}/roleprivileges/**,/privileges/**,/roles/**,/roles,/shops/{shopid}/roles
+            - Path=/privilege/shops/{did}/**,/privilege/**
           filters:
-            - PrefixPath=/privilege
+            - RewritePath=/privilege/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         #用户模块
