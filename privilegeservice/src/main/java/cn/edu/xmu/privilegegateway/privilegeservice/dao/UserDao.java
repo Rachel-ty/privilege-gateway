@@ -1,38 +1,23 @@
-/**
- * Copyright School of Informatics Xiamen University
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- **/
-
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
-import cn.edu.xmu.privilegegateway.annotation.util.*;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -60,12 +45,8 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
-    public final static String FUSERKEY="f_%d";
-    /**
-     * 用户的redis key： u_id, 集合里为base role
-     *
-     */
-    private final static String USERKEY = "u_%d";
+    public final static String SINGLEUSERKEY="u_%d";
+    public final static String PROXYUSERKEY="f_%d";
 
     /**
      * 最终用户的redis key: up_id 集合里为
@@ -94,7 +75,7 @@ public class UserDao{
     @Autowired
     private RedisUtil redisUtil;
 
-    @Autowired
+    @Autowired@Lazy
     private RoleDao roleDao;
 
     @Autowired
@@ -121,10 +102,6 @@ public class UserDao{
      */
     private final static String USERKEY = "u_%d";
 
-    /**
-     * 最终用户的redis key: up_id  values: set{priv_id}
-     */
-    private final static String USERPROXYKEY = "up_%d";
 
     /**
      * 最终用户的redis key: fu_id values: set{br_id};
@@ -476,6 +453,7 @@ public class UserDao{
         }
         return true;
     }
+
 
     /**
      * 计算User自己的权限，load到Redis

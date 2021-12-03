@@ -21,6 +21,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
@@ -33,13 +34,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -59,7 +64,7 @@ public class RoleDao {
     @Autowired
     private GroupDao groupDao;
 
-    @Autowired
+    @Autowired @Lazy
     private UserDao userDao;
 
     @Autowired
@@ -87,15 +92,10 @@ public class RoleDao {
     private GroupRolePoMapper groupRolePoMapper;
 
     @Autowired
-    private RoleInheritedPoMapper roleInheritedPoMapper;
-
-    @Autowired
     private PrivilegeDao privDao;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
-    @Autowired
-    private GroupRolePoMapper groupRolePoMapper;
     @Autowired
     private RedisUtil redisUtil;
 
