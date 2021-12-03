@@ -194,7 +194,8 @@ public class PrivilegeDao implements InitializingBean {
      */
     public ReturnObject changePriv(Privilege bo){
         try {
-            PrivilegePo po=(PrivilegePo) Common.cloneVo(bo,PrivilegePo.class);
+            //没有对应字段，会跳过的
+            PrivilegePo po=(PrivilegePo) coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
             poMapper.insertSelective(po);
             PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
             PrivilegePo updatepo=(PrivilegePo)coder.code_sign(retpo,PrivilegePo.class,codeFields,signFields,"signature");
