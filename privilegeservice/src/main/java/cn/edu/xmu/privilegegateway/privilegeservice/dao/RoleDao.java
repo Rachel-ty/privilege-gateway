@@ -739,14 +739,16 @@ public class RoleDao {
         criteria1.andRoleIdEqualTo(roleId);
         List<GroupRolePo> gList=groupRolePoMapper.selectByExample(example1);
         for(GroupRolePo groupRolePo:gList){
-            resultList.addAll(groupDao.groupImpact(groupRolePo.getGroupId()));
+            List list=groupDao.groupImpact(groupRolePo.getGroupId());
+            if(list!=null&&!list.isEmpty()) resultList.addAll(list);
         }
         UserRolePoExample example2=new UserRolePoExample();
         UserRolePoExample.Criteria criteria2=example2.createCriteria();
         criteria2.andRoleIdEqualTo(roleId);
         List<UserRolePo> uList=userRolePoMapper.selectByExample(example2);
         for(UserRolePo userRolePo:uList){
-            resultList.addAll(userDao.userImpact(userRolePo.getUserId()));
+            List list=userDao.userImpact(userRolePo.getUserId());
+            if(list!=null&&!list.isEmpty())resultList.addAll(list);
         }
         RoleInheritedPoExample example=new RoleInheritedPoExample();
         RoleInheritedPoExample.Criteria criteria=example.createCriteria();
