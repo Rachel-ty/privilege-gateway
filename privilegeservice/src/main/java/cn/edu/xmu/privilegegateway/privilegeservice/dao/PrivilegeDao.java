@@ -62,6 +62,7 @@ public class PrivilegeDao implements InitializingBean {
 
     private final static String PRIVILEGESET_PATH="cn/edu/xmu/privilegegateway/privilegeservice/lua/SetPrivilege.lua";
     private final static String GETPID_PATH= "cn/edu/xmu/privilegegateway/privilegeservice/lua/JudgePIDByKey.lua";
+    private final static long timeout=8640000;
     public final static String PRIVILEGEKEY = "P_%s_%d";
     public final static Collection<String> codeFields = new ArrayList<>();
     public final static List<String> signFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
@@ -194,11 +195,13 @@ public class PrivilegeDao implements InitializingBean {
      */
     public ReturnObject changePriv(Privilege bo){
         try {
-            //没有对应字段，会跳过的
+            //没有对应字段，会跳过的，如果不进行加密，生成签名直接放进去会破坏里面的加密
             PrivilegePo po=(PrivilegePo) coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
             poMapper.insertSelective(po);
             PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
-            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(retpo,PrivilegePo.class,codeFields,signFields,"signature");
+            //需要先解密再加密，不然多重加密
+            PrivilegePo newpo=(PrivilegePo)coder.decode_check(retpo,PrivilegePo.class,codeFields,signFields,"signature");
+            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(newpo,PrivilegePo.class,codeFields,signFields,"signature");
             poMapper.updateByPrimaryKeySelective(updatepo);
             List<String> keys=privilegeImpact(po.getId());
             for(String key:keys)
@@ -241,11 +244,8 @@ public class PrivilegeDao implements InitializingBean {
                 poMapper.insertSelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
                 PrivilegePo retnewpo=(PrivilegePo)coder.decode_check(retpo,PrivilegePo.class,codeFields,signFields,"signature");
-                DefaultRedisScript script = new DefaultRedisScript<>();
-                script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
                 String key=String.format(PRIVILEGEKEY,retnewpo.getUrl(),retnewpo.getRequestType());
-                List<String> keys = Stream.of(key).collect(Collectors.toList());
-                redisUtil.executeScript(script,keys,po.getId());
+                redisUtil.set(key, retnewpo.getId(),timeout);
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
                 if(retnewpo.getSignature()!=null)
                 {
