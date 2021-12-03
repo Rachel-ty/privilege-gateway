@@ -46,7 +46,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expected="{\"errno\":0,\"data\":[{\"code\":0,\"name\":\"GET\"},{\"code\":1,\"name\":\"POST\"},{\"code\":2,\"name\":\"PUT\"},{\"code\":3,\"name\":\"DELETE\"}],\"errmsg\":\"成功\"}";
-        assertEquals(expected, responseString);
+        JSONAssert,assertEquals(expected, responseString,false);
     }
     /*添加，新增功能角色权限*/
     @Test
@@ -60,7 +60,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     /*添加新增功能角色权限*/
     @Test
@@ -85,7 +85,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     /*删除功能角色权限,成功*/
     @Test
@@ -97,7 +97,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,false);
     }
     /*查询功能角色权限*/
     @Test
@@ -140,7 +140,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,false);
     }
     /*新增权限*/
     @Test
@@ -168,7 +168,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     /*新增权限 重复url*/
     @Test
@@ -182,7 +182,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        assertEquals("{\"errno\":742,\"errmsg\":\"权限url与RequestType重复\"}", responseString);
+        JSONAssert.assertEquals("{\"errno\":742,\"errmsg\":\"权限url与RequestType重复\"}", responseString,false);
     }
     /*删除权限*/
     @Test
@@ -194,7 +194,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,false);
     }
     /*删除权限,错误did*/
     @Test
@@ -206,7 +206,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     /*删除权限,错误pid*/
     @Test
@@ -218,7 +218,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"无该权限\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"无该权限\"}", responseString,false);
     }
     @Test
     public void testForbidPrivs() throws  Exception
@@ -229,7 +229,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":null}", responseString,true);
+        JSONAssert.assertEquals("{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":null}", responseString,false);
     }
     @Test
     public void testForbidPrivsWithErrorDid() throws  Exception
@@ -240,7 +240,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     @Test
     public void testReleasePrivsWithErrorDid() throws  Exception
@@ -251,7 +251,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
     @Test
     public void testReleasePrivs() throws  Exception
@@ -262,7 +262,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,false);
     }
     @Test
     /*修改权限信息，错误pid*/
@@ -276,7 +276,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}", responseString,false);
     }
     @Test
     /*修改权限信息*/
@@ -290,7 +290,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":0,\"errmsg\":\"成功\"}", responseString,false);
     }
     /*修改权限信息，错误did*/
     @Test
@@ -304,7 +304,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,true);
+        JSONAssert.assertEquals("{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}", responseString,false);
     }
 
 }
