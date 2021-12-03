@@ -1278,26 +1278,4 @@ public class PrivilegeController {
         return Common.decorateReturnObject(ret);
     }
 
-
-    /***
-     * 将用户权限装载到Redis
-     * @param userid 用户id
-     * @return
-     */
-    @ApiOperation(value = "将用户权限装载到Redis")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(name="id", value="用户id", required = true, dataType="Integer", paramType="path"),
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 504, message = "操作id不存在")
-    })
-    @Audit
-     @PutMapping("/internal/users/{userid}/load")
-    public Object loadUserPriv(@PathVariable Long userid, HttpServletRequest request){
-        String token = request.getHeader("authorization");
-        return Common.decorateReturnObject(userService.loadUserPriv(userid, token));
-    }
-
 }
