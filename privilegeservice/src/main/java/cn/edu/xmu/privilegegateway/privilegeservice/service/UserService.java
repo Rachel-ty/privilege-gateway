@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
@@ -62,10 +78,20 @@ public class UserService {
 
     @Autowired
     private RedisUtil redisUtil;
+
+    /**
+     * 用户的redis key： u_id
+     *
+     */
+    private final static String USERKEY = "u_%d";
+
     /**
      * 最终用户的redis key: up_id
      */
     private final static String USERPROXYKEY = "up_%d";
+
+    private final static int INTERNALERROR = 500;
+
     /**
      * @author yue hao
      * 根据用户Id查询用户所有权限
@@ -90,6 +116,8 @@ public class UserService {
 
     @Autowired
     private BaseCoder baseCoder;
+
+
     final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
             "passportNumber"));
     final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "mobile", "email","name","idNumber",
@@ -256,40 +284,28 @@ public class UserService {
      * @return
      * modified by Ming Qiu 2021-11-21 19:34
      *   将redisTemplate 替换成redisUtil
+     * modified by RenJie Zheng 22920192204334
+     *   添加注释、添加对用户组的处理
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject login(String userName, String password, String ipAddr)
     {
+        //获得user对象
         ReturnObject retObj = userDao.getUserByName(userName);
         if (retObj.getCode() != ReturnNo.OK){
             return retObj;
         }
 
-        User user = (User) retObj.getData();
-        password = AES.encrypt(password, User.AESPASS);
+        //进行密码验证、userBo已解密
+        UserBo user = (UserBo) retObj.getData();
+        //对user对象进行检验
         if(user == null || !password.equals(user.getPassword())){
             retObj = new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
             return retObj;
         }
-        if (user.getState() != User.State.NORM){
-            retObj = new ReturnObject<>(ReturnNo.AUTH_USER_FORBIDDEN);
-            return retObj;
-        }
-        if (!user.getEmailVerified()){
-            return new ReturnObject<>(ReturnNo.EMAIL_NOTVERIFIED);
-        }
-        if (!user.getMobileVerified()){
-            return new ReturnObject<>(ReturnNo.MOBILE_NOTVERIFIED);
-        }
-        if (!user.authetic()){
-            retObj = new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY, "用户信息被篡改");
-            StringBuilder message = new StringBuilder().append("Login: userid = ").append(user.getId()).
-                    append(", username =").append(user.getUserName()).append(" 信息被篡改");
-            logger.error(message.toString());
-            return retObj;
-        }
 
-        String key = "up_" + user.getId();
+        //检验成功,将redis中的旧JWT剔除，禁止持有旧JWT的用户登录
+        String key = String.format(USERPROXYKEY,  user.getId());
         logger.debug("login: key = "+ key);
         if(redisUtil.hasKey(key) && !canMultiplyLogin){
             logger.debug("login: multiply  login key ="+key);
@@ -307,13 +323,16 @@ public class UserService {
                 }
             }
             logger.debug("login: oldJwt" + jwt);
-            this.banJwt(jwt);
+            banJwt(jwt);
         }
 
         //创建新的token
         JwtHelper jwtHelper = new JwtHelper();
         String jwt = jwtHelper.createToken(user.getId(),user.getUserName(),user.getDepartId(), user.getLevel(),jwtExpireTime);
-        userDao.loadUserPriv(user.getId(), jwt);
+        ReturnObject returnObject = userDao.loadUserPriv(user.getId(), jwt);
+        if(returnObject.getData()!= ReturnNo.OK){
+            return returnObject;
+        }
         logger.debug("login: newJwt = "+ jwt);
         userDao.setLoginIPAndPosition(user.getId(),ipAddr, LocalDateTime.now());
         retObj = new ReturnObject<>(jwt);
@@ -390,9 +409,18 @@ public class UserService {
     }
 
 
+
+    /**
+     * 用户登出
+     * @param userId 用户id
+     * @return
+     * modifiedBy 22920192204334 RenJieZheng
+     */
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject<Boolean> Logout(Long userId)
     {
-        redisTemplate.delete("up_" + userId);
+        String key = String.format(USERPROXYKEY,userId);
+        redisUtil.del(key);
         return new ReturnObject<>(true);
     }
 
@@ -754,6 +782,27 @@ public class UserService {
             return new ReturnObject(ReturnNo.FILE_NO_WRITE_PERMISSION);
         }
         return returnObject;
+    }
+
+    /**
+     * 内部api-将某个用户的权限信息装载到Redis中
+     * @param userId: 用户 id
+     * @return Object 装载的用户id
+     * @author RenJie Zheng 22920192204334
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public InternalReturnObject loadUserPrivilege(Long userId,String jwt){
+        try{
+            ReturnObject returnObject = userDao.loadUserPriv(userId,jwt);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return new InternalReturnObject(INTERNALERROR,returnObject.getErrmsg());
+            }
+            return new InternalReturnObject();
+        }catch (Exception e){
+            logger.error(e.getMessage());
+            return new InternalReturnObject(INTERNALERROR);
+        }
+
     }
 
 

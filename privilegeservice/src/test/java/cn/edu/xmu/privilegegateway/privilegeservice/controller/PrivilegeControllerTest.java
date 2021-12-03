@@ -1,5 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
+import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
@@ -8,6 +9,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
 import org.apache.http.entity.ContentType;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -427,8 +429,8 @@ public class PrivilegeControllerTest {
     @Test
     public void testResetPassword() throws Exception {
         Mockito.when(redisUtil.hasKey(Mockito.anyString())).thenReturn(false);
-        Mockito.when(redisUtil.set(Mockito.anyString(),Mockito.any(),Mockito.anyLong())).thenReturn(true);
-        String contentJson1="{\"name\":\"minge@163.com\"}";
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+        String contentJson1 = "{\"name\":\"minge@163.com\"}";
         String responseString1 = mvc.perform(put("/self/password/reset")
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
                 .andExpect(status().isOk())
@@ -436,15 +438,85 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, false);
-         contentJson1="{\"name\":\"\"}";
+        contentJson1 = "{\"name\":\"\"}";
         responseString1 = mvc.perform(put("/self/password/reset")
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-         expectString1 = "{\"errno\":503,\"errmsg\":\"不能为空;\"}";
+        expectString1 = "{\"errno\":503,\"errmsg\":\"不能为空;\"}";
         JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+    @Test
+    public void loadUserPrivilege() throws Exception {
+        JwtHelper jwtHelper = new JwtHelper();
+        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 3600);
 
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+    }
+
+    @Test
+    public void login() throws Exception {
+        LoginVo loginVo = new LoginVo();
+        loginVo.setUserName("13088admin");
+        loginVo.setPassword("123456");
+        String json = JacksonUtil.toJson(loginVo);
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+        LoginVo loginVo1 = new LoginVo();
+        loginVo1.setUserName("13088admin");
+        loginVo1.setPassword("1234567");
+        String json1 = JacksonUtil.toJson(loginVo1);
+        //密码错误
+        responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json1))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        expectedString = "{\n" +
+                "\"errno\": 700,\n" +
+                "\"errmsg\": \"用户名不存在或者密码错误\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
+
+    }
+
+    @Test
+    public void logout() throws Exception{
+        JwtHelper jwtHelper = new JwtHelper();
+        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 3600);
+
+        //以下是正常情况返回的
+        String responseString;
+        responseString = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString,responseString,false);
     }
     @Test
     public void testModifyPassword() throws Exception {

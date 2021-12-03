@@ -1,4 +1,4 @@
-package cn.edu.xmu.privilegegateway.annotation.gateway.model;
+package cn.edu.xmu.privilegegateway.gateway.model;
 
 import lombok.Data;
 
