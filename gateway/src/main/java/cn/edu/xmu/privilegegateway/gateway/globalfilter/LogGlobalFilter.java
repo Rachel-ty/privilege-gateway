@@ -1,7 +1,7 @@
-package cn.edu.xmu.privilegegateway.annotation.gateway.globalfilter;
+package cn.edu.xmu.privilegegateway.gateway.globalfilter;
 
 
-import cn.edu.xmu.privilegegateway.annotation.gateway.model.Log;
+import cn.edu.xmu.privilegegateway.gateway.model.Log;
 import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * @author Ming Qiu
  * @date Created in 2020/11/13 22:19
  **/
-@Component
+//@Component
 public class LogGlobalFilter implements GlobalFilter, Ordered {
     private  static  final Logger logger = LoggerFactory.getLogger(LogGlobalFilter.class);
     @Resource
