@@ -56,10 +56,35 @@ import java.util.concurrent.TimeUnit;
 @Repository
 public class UserDao{
 
-    @Autowired
-    private UserPoMapper userPoMapper;
 
     private static final Logger logger = LoggerFactory.getLogger(UserDao.class);
+
+    /**
+     * 用户的redis key： u_id values:set{br_id};
+     *
+     */
+    private final static String USERKEY = "u_%d";
+
+    /**
+     * 最终用户的redis key: up_id  values: set{priv_id}
+     */
+    private final static String USERPROXYKEY = "up_%d";
+
+    /**
+     * 最终用户的redis key: fu_id values: set{br_id};
+     */
+    private final static String FINALUSERKEY = "fu_%d";
+    /**
+     * 用户组的redis key： g_id values:set{br_id};
+     *
+     */
+    private final static String GROUPKEY = "g_%d";
+
+    /**
+     * 用户的redis key：r_id values:set{br_id};
+     */
+    private final static String ROLEKEY = "r_%d";
+
 
     // 用户在Redis中的过期时间，而不是JWT的有效期
     @Value("${privilegeservice.user.expiretime}")
@@ -201,7 +226,7 @@ public class UserDao{
         criteria.andUserNameEqualTo(userName);
         List<UserPo> users = null;
         try {
-            users = userPoMapper.selectByExample(example);
+            users = userMapper.selectByExample(example);
         } catch (DataAccessException e) {
             StringBuilder message = new StringBuilder().append("getUserByName: ").append(e.getMessage());
             logger.error(message.toString());
@@ -234,7 +259,7 @@ public class UserDao{
         userPo.setId(userId);
         userPo.setLastLoginIp(IPAddr);
         userPo.setLastLoginTime(date);
-        if (userPoMapper.updateByPrimaryKeySelective(userPo) == 1) {
+        if (userMapper.updateByPrimaryKeySelective(userPo) == 1) {
             return true;
         } else {
             return false;
@@ -581,7 +606,7 @@ public class UserDao{
         try{
             String key = String.format(USERKEY, id);
             String aKey = String.format(FINALUSERKEY,  id);
-            UserPo userPo = userPoMapper.selectByPrimaryKey(id);
+            UserPo userPo = userMapper.selectByPrimaryKey(id);
             if(userPo.getState()!=null&&userPo.getState()==BANED){
                 redisUtil.addSet(key,0);
                 redisUtil.addSet(aKey,0);
@@ -807,7 +832,7 @@ public class UserDao{
         criteria.andIdEqualTo(Id);
 
         logger.debug("findUserById: Id =" + Id);
-        UserPo userPo = userPoMapper.selectByPrimaryKey(Id);
+        UserPo userPo = userMapper.selectByPrimaryKey(Id);
 
         return userPo;
     }
@@ -826,7 +851,7 @@ public class UserDao{
         criteria.andDepartIdEqualTo(did);
 
         logger.debug("findUserByIdAndDid: Id =" + id + " did = " + did);
-        UserPo userPo = userPoMapper.selectByPrimaryKey(id);
+        UserPo userPo = userMapper.selectByPrimaryKey(id);
 
         return userPo;
     }
@@ -845,7 +870,7 @@ public class UserDao{
         if(!mobileAES.isBlank())
             criteria.andMobileEqualTo(mobileAES);
 
-        List<UserPo> users = userPoMapper.selectByExample(example);
+        List<UserPo> users = userMapper.selectByExample(example);
 
         logger.debug("findUserById: retUsers = "+users);
 
@@ -1257,7 +1282,7 @@ public class UserDao{
         userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, null,userSignFields, "signature");
 
         try {
-            returnObject = new ReturnObject<>(userPoMapper.insert(userPo));
+            returnObject = new ReturnObject<>(userMapper.insert(userPo));
             logger.debug("success insert User: " + userPo.getId());
         } catch (DataAccessException e) {
             if (Objects.requireNonNull(e.getMessage()).contains("auth_user.user_name_uindex")) {
@@ -1297,7 +1322,7 @@ public class UserDao{
             userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class,null, userSignFields, "signature");
 
             logger.debug("Update User: " + userId);
-            int ret = userPoMapper.updateByPrimaryKeySelective(userPo);
+            int ret = userMapper.updateByPrimaryKeySelective(userPo);
             if (ret == 0) {
                 return new InternalReturnObject<>(ReturnNo.FIELD_NOTVALID);
             }
@@ -1336,7 +1361,7 @@ public class UserDao{
     public ReturnObject modifyUser(UserBo userBo){
         UserPo userPo = (UserPo) baseCoder.code_sign(userBo,UserPo.class,userCodeFields,userSignFields,"signature");
         try {
-            userPoMapper.updateByPrimaryKeySelective(userPo);
+            userMapper.updateByPrimaryKeySelective(userPo);
             return new ReturnObject();
         }catch (DuplicateKeyException e){
             String info=e.getMessage();
@@ -1389,7 +1414,7 @@ public class UserDao{
             if (email!=null){
                 criteria.andEmailEqualTo(encryptedUserBo.getEmail());
             }
-            userPos = userPoMapper.selectByExample(example);
+            userPos = userMapper.selectByExample(example);
             // TODO:验签
             for(UserPo userPo: userPos){
                 if(null==baseCoder.decode_check(userPo,NewUserPo.class,userCodeFields,userSignFields,"signature")){
