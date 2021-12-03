@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPoExample;
@@ -15,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 @Repository
@@ -34,6 +37,13 @@ public class GroupDao {
 
     @Autowired
     private GroupRelationPoMapper groupRelationPoMapper;
+
+    @Autowired
+    private BaseCoder baseCoder;
+    final static List<String> groupRelationSignFields = new ArrayList<>(Arrays.asList("groupPId","groupSId"));
+    final static Collection<String> groupRelationCodeFields = new ArrayList<>();
+    final static List<String> userGroupSignFields = new ArrayList<>(Arrays.asList("userId","groupId"));
+    final static Collection<String> userGroupCodeFields = new ArrayList<>();
 
 
     /**
@@ -89,6 +99,10 @@ public class GroupDao {
             criteria1.andGroupIdEqualTo(gId);
             List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
             for (UserGroupPo userGroupPo: userGroupPos){
+                UserGroupPo checkPo = (UserGroupPo) baseCoder.decode_check(userGroupPo,UserGroupPo.class,groupRelationCodeFields,groupRelationSignFields,"signature");
+                if(null==checkPo.getSignature()){
+                    logger.error("groupImpact: 签名错误(user_group): id =" + checkPo.getId());
+                }
                 if (!userIds.contains(userGroupPo.getUserId())){
                     userIds.add(userGroupPo.getUserId());
                 }
@@ -113,6 +127,10 @@ public class GroupDao {
             return;
         }else{
             for (GroupRelationPo groupRelationPo : groupRelationPos){
+                GroupRelationPo checkPo = (GroupRelationPo) baseCoder.decode_check(groupRelationPo,GroupRelationPo.class,groupRelationCodeFields,groupRelationSignFields,"signature");
+                if(null==checkPo.getSignature()){
+                    logger.error("getAllGroups: 签名错误(group_relation): id =" + checkPo.getId());
+                }
                 groupIds.add(groupRelationPo.getGroupSId());
                 getAllGroups(groupRelationPo.getGroupSId(),groupIds);
             }
