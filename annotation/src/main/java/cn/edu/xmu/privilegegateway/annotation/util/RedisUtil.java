@@ -149,6 +149,15 @@ public class RedisUtil {
     }
 
     /**
+     * 判断value是否是key的集合中的一元
+     * @param key
+     * @param value
+     * @return
+     */
+    public Boolean isMemberSet(String key, Serializable value) {
+        return redisTemplate.opsForSet().isMember(key, value);
+    }
+    /**
      * 获取List中第index元素
      * @param key
      * @param index
@@ -237,7 +246,7 @@ public class RedisUtil {
      * @param values
      * @return
      */
-    public Object executeScript(DefaultRedisScript script,List<String> keyList, Object... values){
+    public <T> T executeScript(DefaultRedisScript<T> script,List<String> keyList, Object... values){
         return redisTemplate.execute(script,keyList,values);
     }
 

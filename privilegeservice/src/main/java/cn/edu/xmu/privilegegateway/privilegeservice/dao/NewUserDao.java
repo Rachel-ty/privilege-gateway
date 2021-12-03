@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
@@ -6,6 +22,8 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -210,6 +228,23 @@ public class NewUserDao implements InitializingBean {
             logger.error("getNewUser: 新用户数据库不存在该用户 userid=" + id);
         }
         return newUserPo;
+    }
+    /**
+     * @param userid   新用户id
+     * @param departid 路径上的departid
+     * @return boolean
+     * @description 检查用户的departid是否与路径上的一致
+     * Created by 22920192204219 蒋欣雨 at 2021/11/29
+     */
+    public boolean checkUserDid(Long userid, Long departid) {
+        NewUserPo newUserPo = newUserPoMapper.selectByPrimaryKey(userid);
+        if (newUserPo == null) {
+            return false;
+        }
+        if (newUserPo.getDepartId() != departid) {
+            return false;
+        }
+        return true;
     }
 
     /**
