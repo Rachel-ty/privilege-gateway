@@ -696,9 +696,9 @@ public class PrivilegeController {
      */
     @Audit
     @PutMapping("internal/users/{id}/privileges/load")
-    public InternalReturnObject loadUserPrivilege(@PathVariable Long id,HttpServletRequest httpServletRequest){
+    public Object loadUserPrivilege(@PathVariable Long id,HttpServletRequest httpServletRequest){
         String jwt = httpServletRequest.getHeader("authorization");
-        return userService.loadUserPrivilege(id,jwt);
+        return Common.decorateReturnObject(userService.loadUserPrivilege(id,jwt));
     }
 
     /**
