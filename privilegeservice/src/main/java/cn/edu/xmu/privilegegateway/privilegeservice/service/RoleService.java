@@ -6,7 +6,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.SimpleBaseRolePrivlegeVo;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
