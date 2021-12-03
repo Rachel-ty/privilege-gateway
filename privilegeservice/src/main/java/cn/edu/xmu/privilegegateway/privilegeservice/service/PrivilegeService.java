@@ -52,9 +52,11 @@ public class PrivilegeService {
      * @param cid
      * @return
      */
-    public ReturnObject<VoObject> AddPrivileges(PrivilegeVo vo, Long cid,String cname)
+    public ReturnObject<VoObject> AddPrivileges(PrivilegeVo vo, Long creatorId,String creatorName)
     {
-        return privilegeDao.addPriv(vo,cid,cname);
+        Privilege privilege=(Privilege) Common.cloneVo(vo,Privilege.class);
+        Common.setPoCreatedFields(privilege,creatorId,creatorName);
+        return privilegeDao.addPriv(privilege);
     }
 
     /**

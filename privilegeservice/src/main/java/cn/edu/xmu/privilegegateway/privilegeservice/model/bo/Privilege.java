@@ -89,7 +89,7 @@ public class Privilege implements VoObject{
      */
     private String cacuSignature;
 
-    private Byte sign;
+    private Integer sign;
 
     private Long creatorId;
 

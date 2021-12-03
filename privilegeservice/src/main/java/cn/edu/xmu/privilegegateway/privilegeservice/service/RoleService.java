@@ -140,10 +140,10 @@ public class RoleService {
      * @param vo
      * @return
      */
-    @Transactional
-    public ReturnObject addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
+    @Transactional(rollbackFor = Exception.class)
+    public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
         //新增
-        ReturnObject ret = roleDao.addBaseRolePriv(vo);
+        ReturnObject ret = roleDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
         return ret;
     }
 

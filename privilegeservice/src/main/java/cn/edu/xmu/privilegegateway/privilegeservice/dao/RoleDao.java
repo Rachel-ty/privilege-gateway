@@ -85,10 +85,13 @@ public class RoleDao {
     public final static Byte NOTBASEROLE=0;
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
+    public final static Integer OK=0;
+    public final static Integer MODIFIED=1;
     //功能角色查询权限key
     public final static String BASEROLEKEY="br_%d";
     public final static Collection<String> codeFields = new ArrayList<>();
     public final static List<String> signFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+
 
     /**
      * 根据角色Id,查询角色的所有权限
@@ -230,7 +233,9 @@ public class RoleDao {
             return null;
         }
         if(polist.size()==0)
+        {
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
        return null;
     }
     /**
@@ -491,55 +496,41 @@ public class RoleDao {
     public ReturnObject selectBaseRolePrivs(Long rid, Integer pagenum, Integer pagesize)
     {
         try{
-            RolePo rolePo=null;
-            rolePo=roleMapper.selectByPrimaryKey(rid);
-            if(rolePo==null||rolePo.getBaserole()!=ISBASEROLE)
+            PageHelper.startPage(pagenum,pagesize);
+            RolePo rolePo=roleMapper.selectByPrimaryKey(rid);
+            //判断是否为功能角色
+            if(rolePo==null||rolePo.getBaserole().equals(ISBASEROLE))
             {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
-            String key=String.format(BASEROLEKEY,rid);
-            PageHelper.startPage(pagenum, pagesize);
-            Set<Long> PrividSet=new HashSet<Long>();
-            List<BasePrivilegeRetVo> voList=new ArrayList<BasePrivilegeRetVo>();
-            List<PrivilegePo> polist=new ArrayList<>();
-            List<Long> Privs=new ArrayList<>();
-            if(redisUtil.hasKey(key))
+            RolePrivilegePoExample example=new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+            criteria.andRoleIdEqualTo(rid);
+            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
+            List<BaseRolePrivilegeRetVo> volist=new ArrayList<>();
+            for(RolePrivilegePo po:pos)
             {
-
-                var ret=redisUtil.getSet(key);
-                for(Serializable r:ret)
+                RolePrivilegePo newpo=(RolePrivilegePo) coder.decode_check(po,null,codeFields,signFields,"signature");
+                //查询对应的权限信息
+                Privilege privilege=privDao.findPriv(po.getPrivilegeId());
+                BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo)Common.cloneVo(newpo,BaseRolePrivilegeRetVo.class);
+                Integer sign=OK;
+                if(privilege.getSignature()==null)
                 {
-                    Privs.add(Long.valueOf((Integer)r));
+                   sign=MODIFIED;
                 }
-            }
-            else {
-                Privs=getPrivIdsByRoleId(rid);
-                for(Long pid:Privs)
-                    {
-                        PrividSet.add(pid);
-                        String bkey=String.format(BASEROLEKEY,rid);
-                        redisUtil.addSet(key,pid);
-                    }
-
-            }
-
-            for (Long pid : PrividSet) {
-                PrivilegePo privilege=privDao.findPrivPo(pid);
-                if(privilege.getState()==NORMAL)
+                if(newpo.getSignature()==null)
                 {
-                    BasePrivilegeRetVo vo=(BasePrivilegeRetVo) Common.cloneVo(privilege,BasePrivilegeRetVo.class);
-                    int sign=0;
-                    if(privilege.getSignature()==null)
-                        sign=1;
-                    vo.setSign(sign);
-                    vo.setCreator(new AdminVo(privilege.getCreatorId(),privilege.getCreatorName(),sign));
-                    vo.setModifier(new AdminVo(privilege.getModifierId(),privilege.getModifierName(),sign));
-                    voList.add(vo);
+                    sign=MODIFIED;
                 }
+                vo.setSign(sign);
+                vo.setName(privilege.getName());
+                vo.setId(privilege.getId());
+                volist.add(vo);
             }
-            PageInfo<BasePrivilegeRetVo> rolePage = PageInfo.of(voList);
-            ReturnObject returnObject=new ReturnObject(rolePage);
-            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
+            PageInfo<BaseRolePrivilegeRetVo> pageInfo=new PageInfo<>(volist);
+            ReturnObject returnObject=new ReturnObject(pageInfo);
+            return Common.getPageRetVo(returnObject,BaseRolePrivilegeRetVo.class);
         }catch(Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库发生错误",e.getMessage()));
@@ -551,47 +542,50 @@ public class RoleDao {
      * modified by zhangyu
      */
     /**
-     * @param vo
      * @return
      */
-    public ReturnObject addBaseRolePriv(SimpleBaseRolePrivlegeVo vo){
+    /**
+     *
+     * @param roleid
+     * @param privilegeid
+     * @param creatorid
+     * @param creatorname
+     * @return
+     */
+    public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
         try
         {
-            RolePrivilegePo po=(RolePrivilegePo) coder.code_sign(vo,RolePrivilegePo.class,codeFields,signFields,"signature");
-            //获取当前时间
-            LocalDateTime localDateTime = LocalDateTime.now();
-            po.setGmtCreate(localDateTime);
-            //查询是否有对应的角色和权限
-            RolePo rolePo=roleMapper.selectByPrimaryKey(vo.getRoleId());
-            if(rolePo==null||rolePo.getBaserole()==NOTBASEROLE)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-            String Prikey=String.format(BASEROLEKEY,vo.getRoleId());
-            DefaultRedisScript script = new DefaultRedisScript<>();
-            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(JudgePIDByKey)));
-            script.setResultType(Long.class);
-            List<String> keys = Stream.of(Prikey).collect(Collectors.toList());
-            if(redisUtil.hasKey(Prikey))
+            RolePrivilegePo rolePrivilegePo=new RolePrivilegePo();
+            rolePrivilegePo.setRoleId(roleid);
+            rolePrivilegePo.setPrivilegeId(privilegeid);
+            Common.setPoModifiedFields(rolePrivilegePo,creatorid,creatorname);
+            Privilege privilege=privDao.findPriv(privilegeid);
+            if(privilege==null)
+                return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+            RolePrivilegePo newpo=(RolePrivilegePo)coder.code_sign(rolePrivilegePo,RolePrivilegePo.class,codeFields,signFields,"signature");
+            rolePrivilegePoMapper.insertSelective(newpo);
+            RolePrivilegePo retpo=rolePrivilegePoMapper.selectByPrimaryKey(newpo.getId());
+            RolePrivilegePo newretpo=(RolePrivilegePo) coder.decode_check(retpo,RolePrivilegePo.class,codeFields,signFields,"signature");
+            BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo) Common.cloneVo(newretpo,BaseRolePrivilegeRetVo.class);
+            Integer sign=0;
+            if(newretpo.getSignature()==null)
             {
-                Long ret=(Long)redisUtil.executeScript(script,keys,vo.getPrivilegeId());
-                if(ret==Long.valueOf(1))
-                {
-                    return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
-                }
+                sign=MODIFIED;
             }
-            PrivilegePo privilegePo=privDao.findPrivPo(vo.getPrivilegeId());
-            if(privilegePo==null||privilegePo.getState()==FORBIDEN)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-            rolePrivilegePoMapper.insertSelective(po);
-            String key=String.format(BASEROLEKEY,po.getRoleId());
-            redisUtil.addSet(key,po.getPrivilegeId());
-            BaseRolePrivilegeRetVo retvo=(BaseRolePrivilegeRetVo) Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
-            retvo.setName(privilegePo.getName());
-            retvo.setCreator(new AdminVo(vo.getCreatorId(),vo.getCreatorName(),0));
-            retvo.getModifier().setSign(0);
-            retvo.setSign(0);
-            return new ReturnObject(retvo);
+            if(privilege.getSign().equals(MODIFIED))
+            {
+                sign=MODIFIED;
+            }
+            vo.setSign(sign);
+            vo.setName(privilege.getName());
+            vo.setId(privilege.getId());
+            return new ReturnObject(vo);
 
-        }catch (Exception e)
+        }catch (DuplicateFormatFlagsException e)
+        {
+            return  new ReturnObject(ReturnNo.URL_SAME);
+        }
+        catch (Exception e)
         {
             return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
         }

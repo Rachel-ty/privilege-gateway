@@ -68,8 +68,8 @@ public class PrivilegeDao implements InitializingBean {
     //功能角色
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
-    public final static Byte MODIFIED=1;
-    public final static Byte OK=0;
+    public final static Integer MODIFIED=1;
+    public final static Integer OK=0;
 
     /**
      * 将权限载入到本地缓存中
@@ -190,8 +190,6 @@ public class PrivilegeDao implements InitializingBean {
     /**
      *
      * @param bo
-     * @param mid
-     * @param mname
      * @return
      */
     public ReturnObject changePriv(Privilege bo){
@@ -212,7 +210,11 @@ public class PrivilegeDao implements InitializingBean {
             }
             PrivilegePo updatepo=(PrivilegePo)coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
             poMapper.updateByPrimaryKeySelective(updatepo);
-            privilegeImpact(po.getId());
+            List<String> keys=privilegeImpact(po.getId());
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
             return new ReturnObject(ReturnNo.OK);
         }catch (DuplicateFormatFlagsException e)
         {
@@ -233,35 +235,43 @@ public class PrivilegeDao implements InitializingBean {
     /**
      * 新增权限
      * @author: zhangyu
-     * @param vo
-     * @param creatorid
-     * @param creatorname
+     */
+    /**
+     *
+     * @param privilege
      * @return
      */
-    public ReturnObject addPriv(PrivilegeVo vo,Long creatorid,String creatorname)
+    public ReturnObject addPriv(Privilege privilege)
     {
         try {
-                String key=String.format(PRIVILEGEKEY,vo.getUrl(),vo.getRequestType());
-                if(redisUtil.hasKey(key))
-                    return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
-                PrivilegePo po=(PrivilegePo)coder.code_sign(vo,PrivilegePo.class,codeFields,signFields,"signature");
-                Common.setPoCreatedFields(po,creatorid,creatorname);
-                int ret=poMapper.insertSelective(po);
+
+                PrivilegePo po=(PrivilegePo) Common.cloneVo(privilege,PrivilegePo.class);
+                poMapper.insertSelective(po);
+                PrivilegePo newpo=(PrivilegePo)coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
+                poMapper.insertSelective(newpo);
+                PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
+                PrivilegePo retnewpo=(PrivilegePo)coder.decode_check(retpo,PrivilegePo.class,codeFields,signFields,"signature");
                 DefaultRedisScript script = new DefaultRedisScript<>();
                 script.setScriptSource(new ResourceScriptSource(new ClassPathResource(PRIVILEGESET_PATH)));
+                String key=String.format(PRIVILEGEKEY,retnewpo.getUrl(),retnewpo.getRequestType());
                 List<String> keys = Stream.of(key).collect(Collectors.toList());
                 redisUtil.executeScript(script,keys,po.getId());
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
-                if(retVo!=null)
+                if(retnewpo.getSignature()!=null)
                 {
-                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),0));
-                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),0));
-                    retVo.setSign(0);
+                    retVo.setSign(OK);
+                }
+                else
+                {
+                    retVo.setSign(MODIFIED);
                 }
                 return new ReturnObject(retVo);
-        }catch (Exception e)
+        }catch (DuplicateFormatFlagsException e)
         {
             return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,String.format("重复定义",e.getMessage()));
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
     }
@@ -279,28 +289,22 @@ public class PrivilegeDao implements InitializingBean {
     {
         try {
             PageHelper.startPage(pagenum, pagesize);
-            List<PrivilegePo> polist =new ArrayList<>();
             PrivilegePoExample example = new PrivilegePoExample();
             PrivilegePoExample.Criteria criteria = example.createCriteria();
             criteria.andUrlEqualTo(url);
             criteria.andRequestTypeEqualTo(type);
-            polist = poMapper.selectByExample(example);
+            List<PrivilegePo> polist = poMapper.selectByExample(example);
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             for(PrivilegePo po:polist)
             {
-                PrivilegePo newpo=(PrivilegePo)coder.decode_check(po,null,codeFields,signFields,"signature");
+                PrivilegePo newpo=(PrivilegePo)coder.decode_check(po,PrivilegePo.class,codeFields,signFields,"signature");
                 int sign=OK;
                 if(newpo.getSignature()==null)
                 {
                     sign=MODIFIED;
                 }
                 PrivilegeRetVo retVo=(PrivilegeRetVo) Common.cloneVo(newpo,PrivilegeRetVo.class);
-                if(retVo!=null)
-                {
-                    retVo.setCreator(new AdminVo(po.getCreatorId(),po.getCreatorName(),sign));
-                    retVo.setModifier(new AdminVo(po.getModifierId(),po.getModifierName(),sign));
-                    retVo.setSign(sign);
-                }
+                retVo.setSign(sign);
                 vo.add(retVo);
             }
             PageInfo<BasePrivilegeRetVo> pageInfo=new PageInfo(vo);

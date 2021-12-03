@@ -1317,8 +1317,7 @@ public class PrivilegeController {
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        SimpleBaseRolePrivlegeVo vo=new SimpleBaseRolePrivlegeVo(roleid,privilegeid,creatorid,creatorname);
-        ReturnObject returnObject = roleService.addBaseRolePriv(vo);
+        ReturnObject returnObject = roleService.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
         return Common.decorateReturnObject(returnObject);
 
     }
