@@ -1408,11 +1408,11 @@ public class UserDao{
     /**
      * 用户的影响力分析
      * 任务3-5
-     * 删除和禁用某个权限时，删除所有影响的user的redisKey
+     * 删除和禁用某个权限时，返回所有影响的user的redisKey
      * @param userId 用户id
      * @return 影响user的redisKey
      */
-    public List<String> userImpact(Long userId){
+    public Collection<String> userImpact(Long userId){
         return null;
     }
 }

@@ -34,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -96,6 +95,7 @@ public class RoleDao {
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+
     @Autowired
     private RedisUtil redisUtil;
 
@@ -721,7 +721,7 @@ public class RoleDao {
     /**
      * 角色的影响力分析
      * 任务3-6
-     * 删除和禁用，修改角色的继承关系时，删除所有影响的rediskey
+     * 删除和禁用，修改角色的继承关系时，返回所有影响的rediskey
      *
      * @param roleId 角色id
      * @return 影响的role，group和user的redisKey

@@ -231,11 +231,11 @@ public class GroupDao {
     /**
      * 组的影响力分析
      * 任务3-5
-     * 删除和禁用某个权限时，删除所有影响的group和user的redisKey
+     * 删除和禁用某个权限时，返回所有影响的group和user的redisKey
      * @param groupId 组id
      * @return 影响的group和user的redisKey
      */
-    public List<String> groupImpact(Long groupId){
+    public Collection<String> groupImpact(Long groupId){
         return null;
     }
 }
