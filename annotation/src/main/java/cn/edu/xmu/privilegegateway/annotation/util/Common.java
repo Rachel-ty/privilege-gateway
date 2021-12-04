@@ -140,7 +140,6 @@ public class Common {
      * 处理返回对象
      * @param returnObject 返回的对象
      * @return
-     * TODO： 利用cloneVo方法可以生成任意类型v对象,从而把createVo方法从bo中移除
      */
 
     public static ReturnObject getListRetObject(ReturnObject<List> returnObject) {
@@ -198,7 +197,6 @@ public class Common {
      * 处理分页返回对象
      * @param returnObject 返回的对象
      * @return
-     * TODO： 利用cloneVo方法可以生成任意类型v对象,从而把createVo方法从bo中移除
      */
     public static ReturnObject getPageRetObject(ReturnObject<PageInfo<VoObject>> returnObject) {
         ReturnNo code = returnObject.getCode();
