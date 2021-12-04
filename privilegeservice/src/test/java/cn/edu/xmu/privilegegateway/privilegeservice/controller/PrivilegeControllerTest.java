@@ -5,7 +5,9 @@ import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import org.apache.http.entity.ContentType;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
@@ -681,31 +683,31 @@ public class PrivilegeControllerTest {
     }
 
 
-//    //copyVo的test
-//    @Test
-//    void copyVotest() {
-//        ModifyUserVo userVo=new ModifyUserVo();
-//        userVo.setIdNumber("123");
-//        userVo.setPassportNumber("99999999");
-//        userVo.setName("name");
-//
-//        UserPo userPo = new UserPo();
-//        userPo.setId(1L);
-//        userPo.setLevel(0);
-//        userPo.setIdNumber("1111");
-//        userPo.setName("oldname");
-//        userPo.setEmail("111");
-//        userPo.setMobile("111");
-//        UserPo newUserPo=(UserPo) userDao.copyVo(userVo,userPo);
-//        assertEquals(newUserPo.getId(),userPo.getId());
-//        assertEquals(newUserPo.getLevel(),userPo.getLevel());
-//        assertEquals(newUserPo.getPassportNumber(),userVo.getPassportNumber());
-//        assertEquals(newUserPo.getIdNumber(),userVo.getIdNumber());
-//        assertEquals(newUserPo.getName(),userVo.getName());
-//        assertEquals(newUserPo.getEmail(),userPo.getEmail());
-//        assertEquals(newUserPo.getMobile(),userPo.getMobile());
-//
-//    }
+    //copyVo的test
+    @Test
+    void copyVotest() {
+        ModifyUserVo userVo=new ModifyUserVo();
+        userVo.setIdNumber("123");
+        userVo.setPassportNumber("99999999");
+        userVo.setName("name");
+
+        UserPo userPo = new UserPo();
+        userPo.setId(1L);
+        userPo.setLevel(0);
+        userPo.setIdNumber("1111");
+        userPo.setName("oldname");
+        userPo.setEmail("111");
+        userPo.setMobile("111");
+        UserPo newUserPo=(UserPo) userDao.copyVo(userVo,userPo);
+        assertEquals(newUserPo.getId(),userPo.getId());
+        assertEquals(newUserPo.getLevel(),userPo.getLevel());
+        assertEquals(newUserPo.getPassportNumber(),userVo.getPassportNumber());
+        assertEquals(newUserPo.getIdNumber(),userVo.getIdNumber());
+        assertEquals(newUserPo.getName(),userVo.getName());
+        assertEquals(newUserPo.getEmail(),userPo.getEmail());
+        assertEquals(newUserPo.getMobile(),userPo.getMobile());
+
+    }
     @Test
     public void roleImp() throws JSONException {
         List list=new ArrayList();
