@@ -92,27 +92,21 @@ public class GroupDao {
             String gKey= String.format(GROUPKEY,gId);
             if(redisUtil.hasKey(gKey)){
                 keys.add(gKey);
-                redisUtil.del(gKey);
             }
             UserGroupPoExample example1 = new UserGroupPoExample();
             UserGroupPoExample.Criteria criteria1 = example1.createCriteria();
             criteria1.andGroupIdEqualTo(gId);
             List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
             for (UserGroupPo userGroupPo: userGroupPos){
-                UserGroupPo checkPo = (UserGroupPo) baseCoder.decode_check(userGroupPo,UserGroupPo.class,groupRelationCodeFields,groupRelationSignFields,"signature");
-                if(null==checkPo.getSignature()){
-                    logger.error("groupImpact: 签名错误(user_group): id =" + checkPo.getId());
-                }
                 if (!userIds.contains(userGroupPo.getUserId())){
                     userIds.add(userGroupPo.getUserId());
                 }
             }
         }
         for(Long uId:userIds){
-            String uKey = String.format(USERKEY,uId);
+            String uKey = String.format(UserDao.USERKEY,uId);
             if(redisUtil.hasKey(uKey)){
                 keys.add(uKey);
-                redisUtil.del(uKey);
             }
         }
         return keys;
@@ -127,14 +121,9 @@ public class GroupDao {
             return;
         }else{
             for (GroupRelationPo groupRelationPo : groupRelationPos){
-                GroupRelationPo checkPo = (GroupRelationPo) baseCoder.decode_check(groupRelationPo,GroupRelationPo.class,groupRelationCodeFields,groupRelationSignFields,"signature");
-                if(null==checkPo.getSignature()){
-                    logger.error("getAllGroups: 签名错误(group_relation): id =" + checkPo.getId());
-                }
                 groupIds.add(groupRelationPo.getGroupSId());
                 getAllGroups(groupRelationPo.getGroupSId(),groupIds);
             }
         }
     }
-
 }
