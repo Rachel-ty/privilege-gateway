@@ -61,8 +61,6 @@ public class PrivilegeDao implements InitializingBean {
 
     @Autowired
     private PrivilegePoMapper poMapper;
-    @Autowired
-    private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private RolePrivilegePoMapper rolePrivilegePoMapper;
