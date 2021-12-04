@@ -4,17 +4,12 @@ import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
-<<<<<<< HEAD
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
-=======
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
 import org.apache.http.entity.ContentType;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
->>>>>>> upstream/main
 import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,7 +18,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.mock.web.MockMultipartFile;
@@ -46,8 +40,6 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -71,17 +63,6 @@ public class PrivilegeControllerTest {
     private HttpServletRequest request;
     @Autowired
     private UserDao userDao;
-    @Autowired
-    UserDao userDao;
-    @Autowired
-    GroupDao groupDao;
-    @MockBean
-    private RedisUtil redisUtil;
-
-    public final static String GROUPKEY="g_%d";
-
-    private final static String USERKEY = "u_%d";
-
     @Autowired
     private MockMvc mvc;
     @MockBean
@@ -620,41 +601,6 @@ public class PrivilegeControllerTest {
                 "  \"level\": 0\n" +
                 "}";
 
-<<<<<<< HEAD
-    @Test
-    public void deleteUserRedis() throws Exception{
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
-
-        List<String> userResults = userDao.userImpact(51L);
-        List<String> userExpectResults = new ArrayList<>();
-        userExpectResults.add(String.format(USERKEY,49L));
-        userExpectResults.add(String.format(USERKEY,51L));
-        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
-    }
-
-    @Test
-    public void deleteGroupRelationRedis() throws Exception{
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,10L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,11L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,12L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,13L))).thenReturn(true);
-
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
-
-        List<String> userResults = groupDao.groupImpact(10L);
-        List<String> userExpectResults = new ArrayList<>();
-        userExpectResults.add(String.format(GROUPKEY,11L));
-        userExpectResults.add(String.format(GROUPKEY,13L));
-        userExpectResults.add(String.format(GROUPKEY,12L));
-        userExpectResults.add(String.format(GROUPKEY,10L));
-        userExpectResults.add(String.format(USERKEY,51L));
-        userExpectResults.add(String.format(USERKEY,49L));
-        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
-=======
         String responseString1 = mvc.perform(put("/departs/1/users/57")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isForbidden())
@@ -766,6 +712,5 @@ public class PrivilegeControllerTest {
         assertEquals(newUserPo.getEmail(),userPo.getEmail());
         assertEquals(newUserPo.getMobile(),userPo.getMobile());
 
->>>>>>> upstream/main
     }
 }
