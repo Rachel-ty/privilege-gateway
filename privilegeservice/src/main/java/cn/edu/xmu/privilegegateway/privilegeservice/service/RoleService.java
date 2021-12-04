@@ -1,3 +1,19 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
@@ -84,11 +100,6 @@ public class RoleService {
         return retObj;
     }
 
-    @Transactional
-    public void clearuserByroleId(Long id){
-        userDao.clearUserByRoleId(id);
-    }
-
     /**
      * 查询角色权限
      * @param id 角色id
@@ -111,7 +122,7 @@ public class RoleService {
     public ReturnObject<Object> delRolePriv(Long id){
         ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
         //删除成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
+//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
         return ret;
     }
 
@@ -128,7 +139,7 @@ public class RoleService {
         //新增
         ReturnObject<VoObject> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
         //新增成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
+//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
         return ret;
     }
 
