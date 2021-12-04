@@ -22,6 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
@@ -46,10 +47,10 @@ public class GroupDao {
     private GroupRelationPoMapper groupRelationPoMapper;
 
     @Autowired
-    private RoleDao roleDao;
+    private GroupPoMapper groupPoMapper;
 
     @Autowired
-    GroupPoMapper groupPoMapper;
+    private RoleDao roleDao;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -225,6 +226,25 @@ public class GroupDao {
             logger.error("loadGroup: "+e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
+    }
+
+    public void initialize(){
+        //初始化UserGroup
+        UserGroupPoExample example = new UserGroupPoExample();
+        List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
+        for (UserGroupPo po : userGroupPoList) {
+            UserGroupPo newUserRolePo = (UserGroupPo) baseCoder.code_sign(po, UserGroupPo.class,null,newUserGroupSignFields,"signature");
+            userGroupPoMapper.updateByPrimaryKeySelective(newUserRolePo);
+        }
+
+        //初始化GroupRelation
+        GroupRelationPoExample example1 = new GroupRelationPoExample();
+        List<GroupRelationPo> groupRelationPos = groupRelationPoMapper.selectByExample(example1);
+        for (GroupRelationPo po: groupRelationPos){
+            GroupRelationPo newPo = (GroupRelationPo) baseCoder.code_sign(po, GroupRelationPo.class, null, newGroupSignFields, "signature");
+            groupRelationPoMapper.updateByPrimaryKeySelective(newPo);
+        }
+
     }
 
     /**
