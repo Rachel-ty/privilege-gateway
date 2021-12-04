@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -48,6 +49,9 @@ public class GroupDao {
 
     @Autowired
     private GroupPoMapper groupPoMapper;
+
+    @Autowired @Lazy
+    private UserDao userDao;
 
     @Autowired
     private RoleDao roleDao;
@@ -255,6 +259,53 @@ public class GroupDao {
      * @return 影响的group和user的redisKey
      */
     public Collection<String> groupImpact(Long groupId){
-        return null;
+        Collection<String> keys = new ArrayList<>();
+        HashSet<Long> groupIds = new HashSet<>();
+        HashSet<Long> userIds = new HashSet<>();
+        getAllGroups(groupId,groupIds);
+        groupIds.add(groupId);
+        for (Long gId: groupIds){
+            String gKey= String.format(GROUPKEY,gId);
+            if(redisUtil.hasKey(gKey)){
+                keys.add(gKey);
+            }
+            UserGroupPoExample example = new UserGroupPoExample();
+            UserGroupPoExample.Criteria criteria = example.createCriteria();
+            criteria.andGroupIdEqualTo(gId);
+            List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example);
+            for (UserGroupPo userGroupPo: userGroupPos){
+                Collection<String> uKeys = userDao.userImpact(userGroupPo.getUserId());
+                if (userIds.add(userGroupPo.getUserId())){
+                    String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
+                    if (redisUtil.hasKey(uKey)){
+                        keys.add(uKey);
+                    }
+                }
+                for (String uKey : uKeys){
+                    String id = uKey.substring(UserDao.USERKEY.length()-2);
+                    if (userIds.add(Long.parseLong(id))){
+                        if (redisUtil.hasKey(uKey)){
+                            keys.add(uKey);
+                        }
+                    }
+                }
+            }
+        }
+        return keys;
+    }
+
+    public void getAllGroups(Long groupId,HashSet<Long> groupIds){
+        GroupRelationPoExample example = new GroupRelationPoExample();
+        GroupRelationPoExample.Criteria criteria = example.createCriteria();
+        criteria.andGroupPIdEqualTo(groupId);
+        List<GroupRelationPo> groupRelationPos = groupRelationPoMapper.selectByExample(example);
+        if(groupRelationPos==null||groupRelationPos.size()==0){
+            return;
+        }else{
+            for (GroupRelationPo groupRelationPo : groupRelationPos){
+                groupIds.add(groupRelationPo.getGroupSId());
+                getAllGroups(groupRelationPo.getGroupSId(),groupIds);
+            }
+        }
     }
 }
