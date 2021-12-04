@@ -45,7 +45,7 @@ public class GroupDao {
     @Autowired
     private GroupRelationPoMapper groupRelationPoMapper;
 
-    @Autowired
+//    @Autowired
     private RoleDao roleDao;
 
     @Autowired

@@ -18,7 +18,6 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
@@ -27,7 +26,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -92,11 +90,10 @@ public class UserDao{
     public final static String FUSERKEY="f_%d";
 
 
+/*
     @Autowired
     private UserRolePoMapper userRolePoMapper;
-
-    @Autowired
-    private UserGroupPoMapper userGroupPoMapper;
+*/
 
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
@@ -104,8 +101,8 @@ public class UserDao{
     @Autowired
     private UserPoMapper userMapper;
 
-    @Autowired
-    private RolePoMapper rolePoMapper;
+/*    @Autowired
+    private RolePoMapper rolePoMapper;*/
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
@@ -134,9 +131,6 @@ public class UserDao{
 
     final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
     final static Collection<String> userProxyCodeFields = new ArrayList<>();
-    final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
-    final static Collection<String> userRoleCodeFields = new ArrayList<>();
-
 
     private final static int BANED = 2;
 
@@ -238,41 +232,41 @@ public class UserDao{
      * @author Xianwei Wang
      * */
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid){
-        UserRolePoExample userRolePoExample = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
-        criteria.andUserIdEqualTo(userid);
-        criteria.andRoleIdEqualTo(roleid);
-
-        User user = getUserById(userid.longValue()).getData();
-        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
-
-        //用户id或角色id不存在
-        if (user == null || rolePo == null) {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
-        try {
-            int state = userRolePoMapper.deleteByExample(userRolePoExample);
-            if (state == 0){
-                logger.warn("revokeRole: 未找到该用户角色");
-                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-            }
-
-
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
-        }
-
-        //清除缓存
-        clearUserPrivCache(userid);
+//        UserRolePoExample userRolePoExample = new UserRolePoExample();
+//        UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
+//        criteria.andUserIdEqualTo(userid);
+//        criteria.andRoleIdEqualTo(roleid);
+//
+//        User user = getUserById(userid.longValue()).getData();
+//        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
+//
+//        //用户id或角色id不存在
+//        if (user == null || rolePo == null) {
+//            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+//        }
+//
+//        try {
+//            int state = userRolePoMapper.deleteByExample(userRolePoExample);
+//            if (state == 0){
+//                logger.warn("revokeRole: 未找到该用户角色");
+//                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+//            }
+//
+//
+//        } catch (DataAccessException e) {
+//            // 数据库错误
+//            logger.error("数据库错误：" + e.getMessage());
+//            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+//                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+//        } catch (Exception e) {
+//            // 属未知错误
+//            logger.error("严重错误：" + e.getMessage());
+//            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+//                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+//        }
+//
+//        //清除缓存
+//        clearUserPrivCache(userid);
 
         return new ReturnObject<>();
     }
@@ -286,56 +280,56 @@ public class UserDao{
      * @author Xianwei Wang
      * */
     public ReturnObject<VoObject> assignRole(Long createid, Long userid, Long roleid){
-        UserRolePo userRolePo = new UserRolePo();
-        userRolePo.setUserId(userid);
-        userRolePo.setRoleId(roleid);
-
-        User user = getUserById(userid.longValue()).getData();
-        User create = getUserById(createid.longValue()).getData();
-        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
-
-        //用户id或角色id不存在
-        if (user == null || create == null || rolePo == null) {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-
-        userRolePo.setCreatorId(createid);
-        userRolePo.setGmtCreate(LocalDateTime.now());
-
-        UserRole userRole = new UserRole(userRolePo, user, new Role(rolePo), create);
-        userRolePo.setSignature(userRole.getCacuSignature());
-
-        //查询该用户是否已经拥有该角色
-        UserRolePoExample example = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserIdEqualTo(userid);
-        criteria.andRoleIdEqualTo(roleid);
-
-        //若未拥有，则插入数据
-        try {
-            List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
-            if (userRolePoList.isEmpty()){
-                userRolePoMapper.insert(userRolePo);
-            } else {
-                logger.warn("assignRole: 该用户已拥有该角色 userid=" + userid + "roleid=" + roleid);
-                return new ReturnObject<>(ReturnNo.OK);
-            }
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
-            // 属未知错误
-            logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
-        }
-        //清除缓存
-        clearUserPrivCache(userid);
-
-        return new ReturnObject(new UserRole(userRolePo, user, new Role(rolePo), create));
-
+//        UserRolePo userRolePo = new UserRolePo();
+//        userRolePo.setUserId(userid);
+//        userRolePo.setRoleId(roleid);
+//
+//        User user = getUserById(userid.longValue()).getData();
+//        User create = getUserById(createid.longValue()).getData();
+//        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
+//
+//        //用户id或角色id不存在
+//        if (user == null || create == null || rolePo == null) {
+//            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+//        }
+//
+//        userRolePo.setCreatorId(createid);
+//        userRolePo.setGmtCreate(LocalDateTime.now());
+//
+//        UserRole userRole = new UserRole(userRolePo, user, new Role(rolePo), create);
+//        userRolePo.setSignature(userRole.getCacuSignature());
+//
+//        //查询该用户是否已经拥有该角色
+//        UserRolePoExample example = new UserRolePoExample();
+//        UserRolePoExample.Criteria criteria = example.createCriteria();
+//        criteria.andUserIdEqualTo(userid);
+//        criteria.andRoleIdEqualTo(roleid);
+//
+//        //若未拥有，则插入数据
+//        try {
+//            List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
+//            if (userRolePoList.isEmpty()){
+//                userRolePoMapper.insert(userRolePo);
+//            } else {
+//                logger.warn("assignRole: 该用户已拥有该角色 userid=" + userid + "roleid=" + roleid);
+//                return new ReturnObject<>(ReturnNo.OK);
+//            }
+//        } catch (DataAccessException e) {
+//            // 数据库错误
+//            logger.error("数据库错误：" + e.getMessage());
+//            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+//                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+//        } catch (Exception e) {
+//            // 属未知错误
+//            logger.error("严重错误：" + e.getMessage());
+//            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+//                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+//        }
+//        //清除缓存
+//        clearUserPrivCache(userid);
+//
+//        return new ReturnObject(new UserRole(userRolePo, user, new Role(rolePo), create));
+        return null;
     }
 
     /**
@@ -395,7 +389,7 @@ public class UserDao{
      * @author Xianwei Wang
      * */
     public ReturnObject<List> getUserRoles(Long id){
-        UserRolePoExample example = new UserRolePoExample();
+/*        UserRolePoExample example = new UserRolePoExample();
         UserRolePoExample.Criteria criteria = example.createCriteria();
         criteria.andUserIdEqualTo(id);
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
@@ -437,7 +431,8 @@ public class UserDao{
                 logger.error("getUserRoles: Wrong Signature(auth_user_role): id =" + po.getId());
             }
         }
-        return new ReturnObject<>(retUserRoleList);
+        return new ReturnObject<>(retUserRoleList);*/
+        return null;
     }
 
 
@@ -460,24 +455,6 @@ public class UserDao{
         return true;
     }
 
-    /**
-     * @description 检查角色的departid是否与路径上的一致
-     * @param roleid 角色id
-     * @param departid 路径上的departid
-     * @return boolean
-     * @author Xianwei Wang
-     * created at 11/20/20 1:51 PM
-     */
-    public boolean checkRoleDid(Long roleid, Long departid) {
-        RolePo rolePo = rolePoMapper.selectByPrimaryKey(roleid);
-        if (rolePo == null) {
-            return false;
-        }
-        if (rolePo.getDepartId() != departid) {
-            return false;
-        }
-        return true;
-    }
 
     /**
      * 计算User自己的权限，load到Redis
@@ -722,17 +699,6 @@ public class UserDao{
             UserProxyPo newUserProxyPo = (UserProxyPo) baseCoder.code_sign(po,UserProxyPo.class,userProxyCodeFields,userProxySignFields,"signature");
             userProxyPoMapper.updateByPrimaryKeySelective(newUserProxyPo);
         }
-
-        //初始化UserRole
-        UserRolePoExample example3 = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria3 = example3.createCriteria();
-        criteria3.andSignatureIsNull();
-        List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
-        for (UserRolePo po : userRolePoList) {
-            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po,UserRole.class,userRoleCodeFields,userRoleSignFields,"signature");
-            userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
-        }
-
     }
 
     /**
@@ -1212,27 +1178,7 @@ public class UserDao{
         return new ReturnObject<>(ReturnNo.OK);
     }
 
-    /* auth002 end*/
 
-
-    /**
-     * 清除缓存中的与role关联的user
-     *
-     * @param id 角色id
-     * createdBy 王琛 24320182203277
-     */
-    public void clearUserByRoleId(Long id){
-        UserRolePoExample example = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andRoleIdEqualTo(id);
-
-        List<UserRolePo> userrolePos = userRolePoMapper.selectByExample(example);
-        Long uid;
-        for(UserRolePo e:userrolePos){
-            uid = e.getUserId();
-            clearUserPrivCache(uid);
-        }
-    }
      /**
      * 创建user
      *
