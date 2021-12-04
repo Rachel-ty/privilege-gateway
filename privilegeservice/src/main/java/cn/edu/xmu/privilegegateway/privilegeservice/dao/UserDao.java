@@ -21,10 +21,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
@@ -37,6 +34,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.Serializable;
 import java.lang.reflect.Field;
@@ -101,9 +99,6 @@ public class UserDao{
     @Autowired
     private UserPoMapper userMapper;
 
-/*    @Autowired
-    private RolePoMapper rolePoMapper;*/
-
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
@@ -119,18 +114,11 @@ public class UserDao{
     @Autowired
     private BaseCoder baseCoder;
 
-
-    final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
-            "passportNumber"));
-    final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
-            "passportNumber"));
     //user表需要加密的全部字段
     final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
     //user表校验的所有字段
     final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
-
-    final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
-    final static Collection<String> userProxyCodeFields = new ArrayList<>();
+    final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
 
     private final static int BANED = 2;
 
@@ -139,6 +127,134 @@ public class UserDao{
      */
     private final static String CAPTCHAKEY = "cp_%s";
 
+
+    final static Collection<String> codeFields = new ArrayList<>();
+
+    public ReturnObject setUsersProxy(UserProxy bo) {
+        try {
+            if (isExistProxy(bo)) {
+                return new ReturnObject<>(ReturnNo.USERPROXY_CONFLICT);
+            }
+            ReturnObject<User> user = getUserById(bo.getUserId());
+            ReturnObject<User> proxyUser = getUserById(bo.getProxyUserId());
+            if (user.getCode()!=ReturnNo.OK){
+                return user;
+            }
+            if(proxyUser.getCode()!=ReturnNo.OK){
+                return proxyUser;
+            }
+            if (!(user.getData().getDepartId().equals(proxyUser.getData().getDepartId()))) {
+                return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
+            }
+            bo.setUserName(user.getData().getName());
+            bo.setProxyUserName(proxyUser.getData().getName());
+            bo.setValid((byte) 0);
+            UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, codeFields, proxySignFields, "signature");
+            userProxyPoMapper.insert(userProxyPo);
+            UserProxy userProxy = (UserProxy) Common.cloneVo(userProxyPo, UserProxy.class);
+            userProxy.setSign((byte)0);
+            return new ReturnObject<>(userProxy);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
+        }
+    }
+
+    public ReturnObject removeUserProxy(Long id, Long userId) {
+        UserProxyPoExample userProxyPoExample = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = userProxyPoExample.createCriteria();
+        criteria.andIdEqualTo(id);
+        criteria.andProxyUserIdEqualTo(userId);
+        try {
+            int ret = userProxyPoMapper.deleteByExample(userProxyPoExample);
+            if (ret == 1) {
+                return new ReturnObject<>();
+            }
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
+        }
+    }
+
+    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, Integer page, Integer pageSize) {
+        UserProxyPoExample example = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = example.createCriteria();
+        if (userId != null) {
+            criteria.andUserIdEqualTo(userId);
+        }
+        if (proxyUserId != null) {
+            criteria.andProxyUserIdEqualTo(proxyUserId);
+        }
+        criteria.andDepartIdEqualTo(departId);
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
+            PageInfo pageInfo = new PageInfo<>(results);
+            ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), UserProxyRetVo.class);
+            Map<String,Object> data = (Map<String, Object>) pageRetVo.getData();
+            List<UserProxyRetVo> list = (List<UserProxyRetVo>) data.get("list");
+            boolean flag=true;
+            for(int i=0;i<list.size();i++){
+                UserProxyPo u = (UserProxyPo) baseCoder.decode_check(results.get(i),null, codeFields, proxySignFields, "signature");
+                if (u.getSignature()!=null) {
+                    list.get(i).setSign((byte)0);
+                }else {
+                    list.get(i).setSign((byte)1);
+                    flag=false;
+                }
+            }
+            data.put("list",list);
+            if(flag){
+                return new ReturnObject(data);
+            }else {
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY,data);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
+        }
+    }
+
+    public ReturnObject removeAllProxies(Long id, Long departId) {
+        UserProxyPoExample userProxyPoExample = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = userProxyPoExample.createCriteria();
+        criteria.andDepartIdEqualTo(departId);
+        criteria.andIdEqualTo(id);
+        try {
+            int ret = userProxyPoMapper.deleteByExample(userProxyPoExample);
+            if (ret == 1) {
+                return new ReturnObject();
+            }
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
+        }
+    }
+
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public boolean isExistProxy(UserProxy bo) {
+        boolean isExist = false;
+        UserProxyPoExample example = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = example.createCriteria();
+        criteria.andUserIdEqualTo(bo.getUserId());
+        criteria.andProxyUserIdEqualTo(bo.getProxyUserId());
+        List<UserProxyPo> results = userProxyPoMapper.selectByExample(example);
+        if (!results.isEmpty()) {
+            LocalDateTime nowBeginDate = bo.getBeginDate();
+            LocalDateTime nowEndDate = bo.getEndDate();
+            for (UserProxyPo po : results) {
+                LocalDateTime beginDate = po.getBeginDate();
+                LocalDateTime endDate = po.getEndDate();
+                if ((nowBeginDate.isAfter(beginDate) && nowBeginDate.isBefore(endDate)) || (nowEndDate.isAfter(beginDate) && nowEndDate.isBefore(endDate))) {
+                    isExist = true;
+                    break;
+                }
+            }
+        }
+        return isExist;
+    }
     /**
      * @author yue hao
      * @param id 用户ID
@@ -653,7 +769,7 @@ public class UserDao{
             List<Long> retIds = new ArrayList<>(userProxyPos.size());
             LocalDateTime now = LocalDateTime.now();
             for (UserProxyPo po : userProxyPos) {
-                UserProxyPo newPo = (UserProxyPo) baseCoder.decode_check(po,UserProxyPo.class,null,userProxySignFields,"signatrue");
+                UserProxyPo newPo = (UserProxyPo) baseCoder.decode_check(po,UserProxyPo.class,null,proxySignFields,"signatrue");
                 if (newPo.getSignature()==null) {
                     logger.error("getProxyIdsByUserId: Wrong Signature(auth_user_proxy): id =" + po.getId());
                 }
@@ -696,7 +812,7 @@ public class UserDao{
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example1);
 
         for (UserProxyPo po : userProxyPos) {
-            UserProxyPo newUserProxyPo = (UserProxyPo) baseCoder.code_sign(po,UserProxyPo.class,userProxyCodeFields,userProxySignFields,"signature");
+            UserProxyPo newUserProxyPo = (UserProxyPo) baseCoder.code_sign(po,UserProxyPo.class,null,proxySignFields,"signature");
             userProxyPoMapper.updateByPrimaryKeySelective(newUserProxyPo);
         }
     }
