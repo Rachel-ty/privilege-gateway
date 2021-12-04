@@ -1160,17 +1160,12 @@ public class UserDao{
         List<Long> uIds= new ArrayList<>();
         uIds.add(userId);
         for (UserProxyPo userProxyPo : userProxyPos){
-            UserProxyPo checkPo = (UserProxyPo)baseCoder.decode_check(userProxyPo,UserProxyPo.class,userProxyCodeFields,userProxySignFields,"signature");
-            if(null==checkPo.getSignature()){
-                logger.error(ReturnNo.RESOURCE_FALSIFY.getMessage());
-            }
             uIds.add(userProxyPo.getUserId());
         }
         for (Long uId : uIds){
             String key = String.format(USERKEY,uId);
             if(redisUtil.hasKey(key)){
                 keys.add(key);
-                redisUtil.del(key);
             }
         }
         return keys;
