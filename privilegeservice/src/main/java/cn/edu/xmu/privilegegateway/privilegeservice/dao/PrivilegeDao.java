@@ -266,7 +266,7 @@ public class PrivilegeDao implements InitializingBean {
      * @return ReturnObject
      * @author 张晖婧
      * */
-    public ReturnObject deleteRolePrivByRoleId(Long roleId) {
+    public int deleteRolePrivByRoleId(Long roleId) {
         RolePrivilegePoExample exampleRP = new RolePrivilegePoExample();
         RolePrivilegePoExample.Criteria criteriaRP = exampleRP.createCriteria();
         criteriaRP.andRoleIdEqualTo(roleId);
