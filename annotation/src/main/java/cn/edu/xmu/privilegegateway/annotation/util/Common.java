@@ -100,6 +100,7 @@ public class Common {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 VoObject data = returnObject.getData();
                 if (data != null){
                     Object voObj = data.createVo();
@@ -112,10 +113,17 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getRetVo(ReturnObject<Object> returnObject,Class voClass) {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 Object data = returnObject.getData();
                 if (data != null){
                     Object voObj = cloneVo(data,voClass);
@@ -132,13 +140,13 @@ public class Common {
      * 处理返回对象
      * @param returnObject 返回的对象
      * @return
-     * TODO： 利用cloneVo方法可以生成任意类型v对象,从而把createVo方法从bo中移除
      */
 
     public static ReturnObject getListRetObject(ReturnObject<List> returnObject) {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
                 if (objs != null){
                     List<Object> ret = new ArrayList<>(objs.size());
@@ -156,11 +164,18 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getListRetVo(ReturnObject<List> returnObject,Class voClass)
     {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
                 if (objs != null){
                     List<Object> ret = new ArrayList<>(objs.size());
@@ -182,12 +197,12 @@ public class Common {
      * 处理分页返回对象
      * @param returnObject 返回的对象
      * @return
-     * TODO： 利用cloneVo方法可以生成任意类型v对象,从而把createVo方法从bo中移除
      */
     public static ReturnObject getPageRetObject(ReturnObject<PageInfo<VoObject>> returnObject) {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 PageInfo<VoObject> objs = returnObject.getData();
                 if (objs != null){
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
@@ -212,10 +227,17 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getPageRetVo(ReturnObject<PageInfo<Object>> returnObject,Class voClass){
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 PageInfo<Object> objs = returnObject.getData();
                 if (objs != null){
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
@@ -230,9 +252,9 @@ public class Common {
                     ret.put("page", objs.getPageNum());
                     ret.put("pageSize", objs.getPageSize());
                     ret.put("pages", objs.getPages());
-                    return new ReturnObject(ret);
+                    return new ReturnObject(code,ret);
                 }else{
-                    return new ReturnObject();
+                    return new ReturnObject(code);
                 }
             default:
                 return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
@@ -248,9 +270,9 @@ public class Common {
      * @param voClass vo对象类型
      * @return 浅克隆的vo对象
      */
-    public static Object cloneVo(Object bo, Class voClass) {
+    public static <T> T cloneVo(Object bo, Class<T> voClass) {
         Class boClass = bo.getClass();
-        Object newVo = null;
+        T newVo = null;
         try {
             //默认voClass有无参构造函数
             newVo = voClass.getDeclaredConstructor().newInstance();
@@ -588,7 +610,8 @@ public class Common {
                 for(Object obj:srcList){
                     Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
                     if (field.get(object)==null) {
-                        logger.error("listDecode: 签名错误(auth_user_group):"+obj.toString());
+                        //这个不需要再log了，decodecheck里面已经log过了
+                        //logger.error("listDecode: 签名错误(auth_user_group):"+obj.toString());
                     }
                     tgt.add(object);
                 }

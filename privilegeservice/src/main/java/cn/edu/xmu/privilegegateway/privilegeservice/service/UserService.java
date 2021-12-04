@@ -19,6 +19,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.service;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
@@ -76,6 +77,9 @@ public class UserService {
 
     @Autowired
     private UserDao userDao;
+
+    @Autowired
+    private RoleDao roleDao;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -204,7 +208,11 @@ public class UserService {
      * */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid, Long did){
-        return userDao.revokeRole(userid, roleid,did);
+        if ((userDao.checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
+            return userDao.revokeRole(userid, roleid);
+        } else {
+            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
     }
 
     /**
@@ -218,7 +226,7 @@ public class UserService {
      * */
     @Transactional
     public ReturnObject<VoObject> assignRole(Long createid, Long userid, Long roleid, Long did){
-        if ((userDao.checkUserDid(userid, did) && userDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
+        if ((userDao.checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
             return userDao.assignRole(createid, userid, roleid);
         }
         else {
@@ -597,7 +605,7 @@ public class UserService {
         return userDao.changeUserDepart(id,did,loginUser,loginName);
     }
 
-
+    
 
 
     /**

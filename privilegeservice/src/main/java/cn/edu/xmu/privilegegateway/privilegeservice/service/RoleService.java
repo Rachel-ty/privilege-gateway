@@ -127,11 +127,6 @@ public class RoleService {
         return roleDao.selectUserByRole(roleId, did, page, pageSize);
     }
 
-    @Transactional
-    public void clearuserByroleId(Long id){
-        userDao.clearUserByRoleId(id);
-    }
-
     /**
      * 查询角色权限
      * @param id 角色id
@@ -154,7 +149,7 @@ public class RoleService {
     public ReturnObject<Object> delRolePriv(Long id){
         ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
         //删除成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
+//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
         return ret;
     }
 
@@ -171,7 +166,7 @@ public class RoleService {
         //新增
         ReturnObject<VoObject> ret = roleDao.addPrivByRoleIdAndPrivId(roleid, privid, userid);
         //新增成功，缓存中干掉用户
-        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
+//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(roleid);
         return ret;
     }
 
