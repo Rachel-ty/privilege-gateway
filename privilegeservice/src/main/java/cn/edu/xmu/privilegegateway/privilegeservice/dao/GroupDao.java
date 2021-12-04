@@ -22,6 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
@@ -47,6 +48,9 @@ public class GroupDao {
 
     @Autowired
     private RoleDao roleDao;
+
+    @Autowired
+    private UserDao userDao;
 
     @Autowired
     GroupPoMapper groupPoMapper;
@@ -237,7 +241,6 @@ public class GroupDao {
     public List<String> groupImpact(Long groupId){
         List<String> keys = new ArrayList<>();
         List<Long> groupIds = new ArrayList<>();
-        HashSet<Long> userIds = new HashSet<>();
         getAllGroups(groupId,groupIds);
         groupIds.add(groupId);
         for (Long gId: groupIds){
@@ -245,18 +248,8 @@ public class GroupDao {
             if(redisUtil.hasKey(gKey)){
                 keys.add(gKey);
             }
-            UserGroupPoExample example1 = new UserGroupPoExample();
-            UserGroupPoExample.Criteria criteria1 = example1.createCriteria();
-            criteria1.andGroupIdEqualTo(gId);
-            List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
-            for (UserGroupPo userGroupPo: userGroupPos){
-                if (userIds.add(userGroupPo.getUserId())){
-                    String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
-                    if(redisUtil.hasKey(uKey)){
-                        keys.add(uKey);
-                    }
-                }
-            }
+            List<String> uKeys = userDao.getUserImpactByGroupId(gId);
+            keys.addAll(uKeys);
         }
         return keys;
     }
