@@ -29,6 +29,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -212,16 +213,15 @@ public class PrivilegeDao implements InitializingBean {
      * 权限的影响力分析
      * 任务3-7
      * 删除和禁用某个权限时，返回所有影响的role，group和user的redisKey
-     * 删除和禁用某个权限时，删除所以影响的role，group和user的redisKey
      * @author zihan zhou 19720192203768
      * @param privId 权限id
      * @return 影响的role，group和user的redisKey
      */
-    public List<String> privilegeImpact(Long privId){
+    public Collection<String> privilegeImpact(Long privId){
         List<Long> roleIdList =findRoleId(privId);
         List<String>  resultList=new ArrayList<>();
         for (Long roleId : roleIdList) {
-            List<String> roleImpact=roleDao.roleImpact(roleId);
+            Collection<String> roleImpact=roleDao.roleImpact(roleId);
             for (String s : roleImpact) {
                 if(!resultList.contains(s)){
                     resultList.add(s);
