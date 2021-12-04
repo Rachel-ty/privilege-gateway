@@ -17,6 +17,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
@@ -39,6 +43,10 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.*;
 
 /**
@@ -57,11 +65,23 @@ public class PrivilegeDao implements InitializingBean {
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
+    private RolePrivilegePoMapper rolePrivilegePoMapper;
+
+    @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
     @Autowired
     private RoleDao roleDao;
 
+    @Autowired
+    private RedisUtil redisUtil;
 
+    @Autowired
+    private BaseCoder baseCoder;
+
+    final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+    final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
+
+    private static final String PRIVKEY = "%s-%d";
     /**
      * 将权限载入到本地缓存中
      * 如果未初始化，则初始话数据中的数据
@@ -92,14 +112,17 @@ public class PrivilegeDao implements InitializingBean {
         PrivilegePoExample example = new PrivilegePoExample();
         List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
         for (PrivilegePo po : privilegePos) {
-            if (null == po.getSignature()) {
-                Privilege priv = new Privilege(po);
-                PrivilegePo newPo = new PrivilegePo();
-                newPo.setId(po.getId());
-                newPo.setSignature(priv.getCacuSignature());
-                logger.debug("initialize: id = " + newPo.getId() + ",Sign = " + newPo.getSignature());
-                poMapper.updateByPrimaryKeySelective(newPo);
-            }
+            PrivilegePo newPo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
+            logger.debug("initialize: id = " + newPo.getId() + ",Sign = " + newPo.getSignature());
+            poMapper.updateByPrimaryKeySelective(newPo);
+        }
+
+        RolePrivilegePoExample example1 = new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteria = example1.createCriteria();
+        List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example1);
+        for (RolePrivilegePo po : rolePrivilegePos) {
+            RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.code_sign(po, RolePrivilegePo.class, null, newRolePrivilegeSignFields, "signature");
+            rolePrivilegePoMapper.updateByPrimaryKeySelective(newPo);
         }
     }
 
@@ -111,11 +134,9 @@ public class PrivilegeDao implements InitializingBean {
      * createdBy: Ming Qiu 2020-11-01 23:44
      */
     public Long getPrivIdByKey(String url, Privilege.RequestType requestType){
-        StringBuffer key = new StringBuffer(url);
-        key.append("-");
-        key.append(requestType.getCode());
+        String key = String.format(PRIVKEY, url, requestType.getCode());
         logger.info("getPrivIdByKey: key = "+key.toString());
-        return (Long) this.redisTemplate.opsForHash().get("Priv", key.toString());
+        return (Long) this.redisUtil.get(key);
     }
 
     /**
@@ -205,6 +226,34 @@ public class PrivilegeDao implements InitializingBean {
 
         this.poMapper.updateByPrimaryKeySelective(newPo);
         return new ReturnObject();
+    }
+
+    /**
+     * 由Role Id 获得 Privilege Id 列表
+     *
+     * @param id: Role id
+     * @return Privilege Id 列表
+     * created by Ming Qiu in 2020/11/3 11:48
+     */
+    public ReturnObject getPrivIdsByRoleId(Long id) {
+        try{
+            RolePrivilegePoExample example = new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleIdEqualTo(id);
+            List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
+            List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
+            for (RolePrivilegePo po : rolePrivilegePos) {
+                RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.decode_check(po,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+                if (newPo.getSignature()==null) {
+                    logger.debug("getPrivIdsBByRoleId: roleId = " + po.getRoleId() + " privId = " + po.getPrivilegeId());
+                }
+                retIds.add(po.getPrivilegeId());
+            }
+            return new ReturnObject(retIds);
+        }catch(Exception e){
+            logger.error("getPrivIdsBByRoleId: "+e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
     }
 
     /**
