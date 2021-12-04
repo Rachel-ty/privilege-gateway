@@ -13,9 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
-public class PrivilegeService {
+import org.springframework.stereotype.Service;
+
+import java.util.Collection;
+
+@Service
+public class GroupService {
 
 
 }
