@@ -17,6 +17,7 @@
 package cn.edu.xmu.privilegegateway.annotation.util;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,7 @@ public class Common {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 VoObject data = returnObject.getData();
                 if (data != null){
                     Object voObj = data.createVo();
@@ -111,10 +113,17 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getRetVo(ReturnObject<Object> returnObject,Class voClass) {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 Object data = returnObject.getData();
                 if (data != null){
                     Object voObj = cloneVo(data,voClass);
@@ -138,6 +147,7 @@ public class Common {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
                 if (objs != null){
                     List<Object> ret = new ArrayList<>(objs.size());
@@ -155,11 +165,18 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getListRetVo(ReturnObject<List> returnObject,Class voClass)
     {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
                 if (objs != null){
                     List<Object> ret = new ArrayList<>(objs.size());
@@ -187,6 +204,7 @@ public class Common {
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 PageInfo<VoObject> objs = returnObject.getData();
                 if (objs != null){
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
@@ -211,10 +229,17 @@ public class Common {
         }
     }
 
+    /**
+     * @author xucangbai
+     * @param returnObject
+     * @param voClass
+     * @return
+     */
     public static ReturnObject getPageRetVo(ReturnObject<PageInfo<Object>> returnObject,Class voClass){
         ReturnNo code = returnObject.getCode();
         switch (code){
             case OK:
+            case RESOURCE_FALSIFY:
                 PageInfo<Object> objs = returnObject.getData();
                 if (objs != null){
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
@@ -229,9 +254,9 @@ public class Common {
                     ret.put("page", objs.getPageNum());
                     ret.put("pageSize", objs.getPageSize());
                     ret.put("pages", objs.getPages());
-                    return new ReturnObject(ret);
+                    return new ReturnObject(code,ret);
                 }else{
-                    return new ReturnObject();
+                    return new ReturnObject(code);
                 }
             default:
                 return new ReturnObject(returnObject.getCode(), returnObject.getErrmsg());
@@ -247,9 +272,9 @@ public class Common {
      * @param voClass vo对象类型
      * @return 浅克隆的vo对象
      */
-    public static Object cloneVo(Object bo, Class voClass) {
+    public static <T> T cloneVo(Object bo, Class<T> voClass) {
         Class boClass = bo.getClass();
-        Object newVo = null;
+        T newVo = null;
         try {
             //默认voClass有无参构造函数
             newVo = voClass.getDeclaredConstructor().newInstance();
@@ -563,6 +588,43 @@ public class Common {
             return false;
         }
         return true;
+    }
+
+    /**
+     * list级解密
+     * @param srcList 原list
+     * @param tgtClass 目标对象类型
+     * @param baseCoder 解密签名校验对象
+     * @param codeFields 加密属性
+     * @param signFields 签名属性 null代表不检验签名
+     * @param signTarget 签名字段 null代表不检验签名
+     * @return 投影后对象
+     * @author RenJieZheng 22920192204334
+     */
+    public static List listDecode(List srcList, Class tgtClass, BaseCoder baseCoder,
+                                  Collection<String> codeFields, List<String>  signFields, String signTarget) {
+        try{
+            List<Object>tgt = new ArrayList<>();
+            //baseCoder不为空表示要进行解密和签名校验
+            if(baseCoder!=null){
+                Field field = tgtClass.getDeclaredField(signTarget);
+                field.setAccessible(true);
+                for(Object obj:srcList){
+                    Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
+                    if (field.get(object)==null) {
+                        //这个不需要再log了，decodecheck里面已经log过了
+                        //logger.error("listDecode: 签名错误(auth_user_group):"+obj.toString());
+                    }
+                    tgt.add(object);
+                }
+            }else{
+                return null;
+            }
+            return tgt;
+        }catch(Exception e){
+            logger.error("listDecode:"+e.getMessage());
+            return null;
+        }
     }
 
 }
