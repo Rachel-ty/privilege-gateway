@@ -1421,13 +1421,17 @@ public class UserDao{
         criteria.andProxyUserIdEqualTo(userId);
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
         List<String> keys = new ArrayList<>();
-        List<Long> uIds= new ArrayList<>();
-        uIds.add(userId);
+        HashSet<Long> uIds = new HashSet<>();
         for (UserProxyPo userProxyPo : userProxyPos){
-            uIds.add(userProxyPo.getUserId());
+            if(uIds.add(userProxyPo.getUserId())){
+                String key = String.format(USERKEY,userProxyPo.getUserId());
+                if(redisUtil.hasKey(key)){
+                    keys.add(key);
+                }
+            }
         }
-        for (Long uId : uIds){
-            String key = String.format(USERKEY,uId);
+        if(uIds.add(userId)){
+            String key = String.format(USERKEY,userId);
             if(redisUtil.hasKey(key)){
                 keys.add(key);
             }
