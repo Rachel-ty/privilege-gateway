@@ -29,7 +29,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
@@ -41,11 +40,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -79,13 +75,24 @@ public class RoleDao {
     @Autowired
     private RoleInheritedPoMapper roleInheritedPoMapper;
 
-
     @Autowired
-    private PrivilegeDao privDao;
+    PrivilegeDao privDao;
 
     @Autowired
     private RedisUtil redisUtil;
 
+    /**
+     * 用户的redis key：r_id values:set{br_id};
+     */
+    private final static String ROLEKEY = "r_%d";
+    public final static String BASEROLEKEY = "br_%d";
+
+    /**
+     * 功能用户的redis key:br_id values:set{privId};
+     */
+    private final static int BANED = 2;
+
+    private final static int BASEROLE = 1;
     @Autowired
     private BaseCoder baseCoder;
 
@@ -158,40 +165,6 @@ public class RoleDao {
             logger.error("getSuperiorRoleIdsByRoleId: "+e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
-    }
-
-    /**
-     * 将一个角色的所有权限id载入到Redis
-     *
-     * @param id 角色id
-     * @return void
-     *
-     * createdBy: Ming Qiu 2020-11-02 11:44
-     * ModifiedBy: Ming Qiu 2020-11-03 12:24
-     * 将读取权限id的代码独立为getPrivIdsByRoleId. 增加redis值的有效期
-     *            Ming Qiu 2020-11-07 8:00
-     * 集合里强制加“0”
-     */
-    public ReturnObject loadBaseRolePriv(Long id) {
-        try{
-            ReturnObject returnObject = privDao.getPrivIdsByRoleId(id);
-            if(returnObject.getCode()!=ReturnNo.OK){
-                return returnObject;
-            }
-            List<Long> privIds = (List<Long>) returnObject.getData();
-            String key = String.format(BASEROLEKEY, id);
-            for (Long pId : privIds) {
-                redisUtil.addSet(key, pId);
-            }
-            long randTimeout = Common.addRandomTime(this.timeout);
-            redisUtil.addSet(key,0);
-            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
-            return new ReturnObject(ReturnNo.OK);
-        }catch (Exception e){
-            logger.error("loadBaseRolePriv:"+e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
-        }
-
     }
 
     /**

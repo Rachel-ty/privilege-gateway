@@ -63,7 +63,7 @@ public class UserDao{
      * 用户的redis key： u_id values:set{br_id};
      *
      */
-    private final static String USERKEY = "u_%d";
+    public final static String USERKEY = "u_%d";
 
     /**
      * 最终用户的redis key: up_id  values: set{priv_id}
@@ -630,7 +630,7 @@ public class UserDao{
 
                 if(!redisUtil.hasKey(brKeyStr)){
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
-                    ReturnObject returnObject1 = roleDao.loadBaseRolePriv(roleId);
+                    ReturnObject returnObject1 = roleDao.privDao.loadBaseRolePriv(roleId, roleDao);
                     if(returnObject1.getCode()!=ReturnNo.OK){
                         return returnObject1;
                     }
@@ -1585,7 +1585,28 @@ public class UserDao{
      * @return 影响user的redisKey
      */
     public Collection<String> userImpact(Long userId){
-        return null;
+        UserProxyPoExample example = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = example.createCriteria();
+        criteria.andProxyUserIdEqualTo(userId);
+        List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
+        List<String> keys = new ArrayList<>();
+        HashSet<Long> uIds = new HashSet<>();
+        for (UserProxyPo userProxyPo : userProxyPos){
+            if(uIds.add(userProxyPo.getUserId())){
+                String key = String.format(USERKEY,userProxyPo.getUserId());
+                if(redisUtil.hasKey(key)){
+                    keys.add(key);
+                }
+            }
+        }
+        if(uIds.add(userId)){
+            String key = String.format(USERKEY,userId);
+            if(redisUtil.hasKey(key)){
+                keys.add(key);
+            }
+        }
+        return keys;
     }
+
 }
 
