@@ -62,7 +62,7 @@ public class UserDao{
      * 用户的redis key： u_id values:set{br_id};
      *
      */
-    private final static String USERKEY = "u_%d";
+    public final static String USERKEY = "u_%d";
 
     /**
      * 最终用户的redis key: up_id  values: set{priv_id}
@@ -1415,7 +1415,6 @@ public class UserDao{
      * @param userId 用户id
      * @return 影响user的redisKey
      */
-<<<<<<< HEAD
     public List<String> userImpact(Long userId){
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
@@ -1434,10 +1433,6 @@ public class UserDao{
             }
         }
         return keys;
-=======
-    public Collection<String> userImpact(Long userId){
-        return null;
->>>>>>> upstream/main
     }
 }
 

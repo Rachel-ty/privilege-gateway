@@ -17,21 +17,12 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-<<<<<<< HEAD
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.GroupRelationPoExample;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPoExample;
-=======
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
->>>>>>> upstream/main
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
 import org.slf4j.Logger;
@@ -40,15 +31,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Repository;
 
-<<<<<<< HEAD
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-=======
 import java.util.*;
 import java.util.concurrent.TimeUnit;
->>>>>>> upstream/main
 
 @Repository
 public class GroupDao {
@@ -75,29 +59,11 @@ public class GroupDao {
 
     final static List<String> newGroupSignFields = new ArrayList<>(Arrays.asList("groupPId", "groupSId"));
 
-<<<<<<< HEAD
-    private final static String USERKEY = "u_%d";
-
-    @Autowired
-    private RedisUtil redisUtil;
-
-    @Autowired
-    private GroupRelationPoMapper groupRelationPoMapper;
-
-    @Autowired
-    private BaseCoder baseCoder;
-    final static List<String> groupRelationSignFields = new ArrayList<>(Arrays.asList("groupPId","groupSId"));
-    final static Collection<String> groupRelationCodeFields = new ArrayList<>();
-    final static List<String> userGroupSignFields = new ArrayList<>(Arrays.asList("userId","groupId"));
-    final static Collection<String> userGroupCodeFields = new ArrayList<>();
-
-=======
     final static List<String> newUserGroupSignFields = new ArrayList<>(Arrays.asList("userId", "groupId"));
 
     // 用户在Redis中的过期时间,用户组相同
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
->>>>>>> upstream/main
 
     /**
      * 用户的redis key： u_id
@@ -268,7 +234,6 @@ public class GroupDao {
      * @param groupId 组id
      * @return 影响的group和user的redisKey
      */
-<<<<<<< HEAD
     public List<String> groupImpact(Long groupId){
         List<String> keys = new ArrayList<>();
         List<Long> groupIds = new ArrayList<>();
@@ -286,7 +251,7 @@ public class GroupDao {
             List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
             for (UserGroupPo userGroupPo: userGroupPos){
                 if (userIds.add(userGroupPo.getUserId())){
-                    String uKey = String.format(UserDao.USERKEY,uId);
+                    String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
                     if(redisUtil.hasKey(uKey)){
                         keys.add(uKey);
                     }
@@ -309,9 +274,5 @@ public class GroupDao {
                 getAllGroups(groupRelationPo.getGroupSId(),groupIds);
             }
         }
-=======
-    public Collection<String> groupImpact(Long groupId){
-        return null;
->>>>>>> upstream/main
     }
 }
