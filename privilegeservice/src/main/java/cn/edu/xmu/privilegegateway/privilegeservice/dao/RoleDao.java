@@ -712,12 +712,12 @@ public class RoleDao {
     /**
      * 角色的影响力分析
      * 任务3-6
-     * 删除和禁用，修改角色的继承关系时，删除所有影响的rediskey
+     * 删除和禁用，修改角色的继承关系时，返回所有影响的rediskey
      *
      * @param roleId 角色id
      * @return 影响的role，group和user的redisKey
      */
-    public List<String> roleImpact(Long roleId){
+    public Collection<String> roleImpact(Long roleId){
         return null;
     }
 }

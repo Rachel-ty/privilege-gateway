@@ -39,6 +39,7 @@ import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -210,6 +211,7 @@ public class PrivilegeDao implements InitializingBean {
     /**
      * 权限的影响力分析
      * 任务3-7
+     * 删除和禁用某个权限时，返回所有影响的role，group和user的redisKey
      * 删除和禁用某个权限时，删除所以影响的role，group和user的redisKey
      * @author zihan zhou 19720192203768
      * @param privId 权限id
