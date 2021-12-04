@@ -1477,7 +1477,7 @@ public class UserDao{
      * @param userId 用户id
      * @return 影响user的redisKey
      */
-    public List<String> userImpact(Long userId){
+    public Collection<String> userImpact(Long userId){
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
         criteria.andProxyUserIdEqualTo(userId);
@@ -1501,30 +1501,5 @@ public class UserDao{
         return keys;
     }
 
-    public List<String> getUserImpactByGroupId(Long groupId){
-        List<String> keys = new ArrayList<>();
-        HashSet<Long> userIds = new HashSet<>();
-        UserGroupPoExample example = new UserGroupPoExample();
-        UserGroupPoExample.Criteria criteria = example.createCriteria();
-        criteria.andGroupIdEqualTo(groupId);
-        List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example);
-        for (UserGroupPo userGroupPo: userGroupPos){
-            List<String> userImpacts = userImpact(userGroupPo.getUserId());
-            for (String userImpact : userImpacts){
-                if (userIds.add(Long.parseLong(userImpact))){
-                    if (redisUtil.hasKey(userImpact)){
-                        keys.add(userImpact);
-                    }
-                }
-            }
-            if (userIds.add(userGroupPo.getUserId())){
-                String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
-                if(redisUtil.hasKey(uKey)){
-                    keys.add(uKey);
-                }
-            }
-        }
-        return keys;
-    }
 }
 
