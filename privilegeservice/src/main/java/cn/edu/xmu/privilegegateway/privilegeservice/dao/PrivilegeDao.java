@@ -257,7 +257,7 @@ public class PrivilegeDao {
      *            Ming Qiu 2020-11-07 8:00
      * 集合里强制加“0”
      */
-    public ReturnObject loadBaseRolePriv(Long id, RoleDao roleDao) {
+    public ReturnObject loadBaseRolePriv(Long id) {
         try{
             ReturnObject returnObject = getPrivIdsByRoleId(id);
             if(returnObject.getCode()!=ReturnNo.OK){
