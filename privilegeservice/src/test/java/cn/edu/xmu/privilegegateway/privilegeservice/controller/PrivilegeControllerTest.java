@@ -5,6 +5,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
@@ -57,7 +58,7 @@ public class PrivilegeControllerTest {
     @Autowired
     private RoleDao roleDao;
     @Autowired
-    private RoleDao userDao;
+    private UserDao userDao;
     @MockBean
     public static RedisUtil redisUtil;
     @Autowired
