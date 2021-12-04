@@ -217,7 +217,7 @@ public class PrivilegeDao implements InitializingBean {
      */
     public Collection<String> privilegeImpact(Long privId){
         List<Long> roleIdList =findRoleId(privId);
-        Set<String> resultSet=new TreeSet<>();
+        Set<String> resultSet=new HashSet<>();
         for (Long roleId : roleIdList) {
             Collection<String> roleImpact=roleDao.roleImpact(roleId);
             resultSet.addAll(roleImpact);
