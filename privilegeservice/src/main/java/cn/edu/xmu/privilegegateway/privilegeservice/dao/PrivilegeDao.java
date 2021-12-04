@@ -290,8 +290,4 @@ public class PrivilegeDao {
         return rolePrivilegePoMapper.deleteByExample(exampleRP);
     }
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-
-    }
 }

@@ -102,19 +102,6 @@ public class RoleDao {
     final static List<String> roleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
-    /**
-     * 用户的redis key：r_id values:set{br_id};
-     */
-    public final static String ROLEKEY = "r_%d";
-
-    /**
-     * 功能用户的redis key:br_id values:set{privId};
-     */
-    public final static String BASEROLEKEY = "br_%d";
-
-    public final static int BANED = 2;
-
-    public final static int BASEROLE = 1;
 
 
     final static List<String> newUserRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
