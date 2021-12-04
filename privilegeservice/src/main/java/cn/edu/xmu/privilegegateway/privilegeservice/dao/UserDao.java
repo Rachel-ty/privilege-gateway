@@ -58,7 +58,7 @@ public class UserDao{
      * 用户的redis key： u_id values:set{br_id};
      *
      */
-    private final static String USERKEY = "u_%d";
+    public final static String USERKEY = "u_%d";
 
     /**
      * 最终用户的redis key: up_id  values: set{priv_id}
@@ -118,6 +118,7 @@ public class UserDao{
     final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
     //user表校验的所有字段
     final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
+
     final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
 
     private final static int BANED = 2;
@@ -731,7 +732,7 @@ public class UserDao{
 
                 if(!redisUtil.hasKey(brKeyStr)){
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
-                    ReturnObject returnObject1 = roleDao.loadBaseRolePriv(roleId);
+                    ReturnObject returnObject1 = roleDao.privDao.loadBaseRolePriv(roleId);
                     if(returnObject1.getCode()!=ReturnNo.OK){
                         return returnObject1;
                     }
@@ -792,23 +793,28 @@ public class UserDao{
 
     }
 
+    /**
+     * 重写签名和加密
+     * @author Ming Qiu
+     * date： 2021/12/04 16:01
+     */
     public void initialize() throws Exception {
         //初始化user
         UserPoExample example = new UserPoExample();
-        UserPoExample.Criteria criteria = example.createCriteria();
-        criteria.andSignatureIsNull();
-
         List<UserPo> userPos = userMapper.selectByExample(example);
 
         for (UserPo po : userPos) {
-            UserPo newUserPo = (UserPo)baseCoder.code_sign(po,UserPo.class,userCodeFields,userSignFields,"signature");
+            UserPo newUserPo = null;
+            if (null==po.getSignature()) {
+                newUserPo=(UserPo) baseCoder.code_sign(po, UserPo.class, codeFields, userSignFields, "signature");
+            } else {
+                newUserPo=(UserPo) baseCoder.code_sign(po, UserPo.class, null, userSignFields, "signature");
+            }
             userMapper.updateByPrimaryKeySelective(newUserPo);
         }
 
         //初始化UserProxy
         UserProxyPoExample example1 = new UserProxyPoExample();
-        UserProxyPoExample.Criteria criteria1 = example1.createCriteria();
-        criteria1.andSignatureIsNull();
         List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example1);
 
         for (UserProxyPo po : userProxyPos) {
@@ -1478,7 +1484,28 @@ public class UserDao{
      * @return 影响user的redisKey
      */
     public Collection<String> userImpact(Long userId){
-        return null;
+        UserProxyPoExample example = new UserProxyPoExample();
+        UserProxyPoExample.Criteria criteria = example.createCriteria();
+        criteria.andProxyUserIdEqualTo(userId);
+        List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
+        List<String> keys = new ArrayList<>();
+        HashSet<Long> uIds = new HashSet<>();
+        for (UserProxyPo userProxyPo : userProxyPos){
+            if(uIds.add(userProxyPo.getUserId())){
+                String key = String.format(USERKEY,userProxyPo.getUserId());
+                if(redisUtil.hasKey(key)){
+                    keys.add(key);
+                }
+            }
+        }
+        if(uIds.add(userId)){
+            String key = String.format(USERKEY,userId);
+            if(redisUtil.hasKey(key)){
+                keys.add(key);
+            }
+        }
+        return keys;
     }
+
 }
 
