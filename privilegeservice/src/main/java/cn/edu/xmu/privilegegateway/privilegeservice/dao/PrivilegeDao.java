@@ -249,4 +249,9 @@ public class PrivilegeDao implements InitializingBean {
         criteriaRP.andRoleIdEqualTo(roleId);
         return rolePrivilegePoMapper.deleteByExample(exampleRP);
     }
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+
+    }
 }
