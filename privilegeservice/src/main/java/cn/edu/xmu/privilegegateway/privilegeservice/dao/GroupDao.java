@@ -22,7 +22,6 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
@@ -30,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -49,7 +49,7 @@ public class GroupDao {
     @Autowired
     private RoleDao roleDao;
 
-    @Autowired
+    @Autowired @Lazy
     private UserDao userDao;
 
     @Autowired
@@ -238,9 +238,10 @@ public class GroupDao {
      * @param groupId 组id
      * @return 影响的group和user的redisKey
      */
-    public List<String> groupImpact(Long groupId){
-        List<String> keys = new ArrayList<>();
-        List<Long> groupIds = new ArrayList<>();
+    public Collection<String> groupImpact(Long groupId){
+        Collection<String> keys = new ArrayList<>();
+        HashSet<Long> groupIds = new HashSet<>();
+        HashSet<Long> userIds = new HashSet<>();
         getAllGroups(groupId,groupIds);
         groupIds.add(groupId);
         for (Long gId: groupIds){
@@ -248,13 +249,32 @@ public class GroupDao {
             if(redisUtil.hasKey(gKey)){
                 keys.add(gKey);
             }
-            List<String> uKeys = userDao.getUserImpactByGroupId(gId);
-            keys.addAll(uKeys);
+            UserGroupPoExample example = new UserGroupPoExample();
+            UserGroupPoExample.Criteria criteria = example.createCriteria();
+            criteria.andGroupIdEqualTo(gId);
+            List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example);
+            for (UserGroupPo userGroupPo: userGroupPos){
+                Collection<String> uKeys = userDao.userImpact(userGroupPo.getUserId());
+                if (userIds.add(userGroupPo.getUserId())){
+                    String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
+                    if (redisUtil.hasKey(uKey)){
+                        keys.add(uKey);
+                    }
+                }
+                for (String uKey : uKeys){
+                    String id = uKey.substring(UserDao.USERKEY.length()-2);
+                    if (userIds.add(Long.parseLong(id))){
+                        if (redisUtil.hasKey(uKey)){
+                            keys.add(uKey);
+                        }
+                    }
+                }
+            }
         }
         return keys;
     }
 
-    public void getAllGroups(Long groupId,List<Long> groupIds){
+    public void getAllGroups(Long groupId,HashSet<Long> groupIds){
         GroupRelationPoExample example = new GroupRelationPoExample();
         GroupRelationPoExample.Criteria criteria = example.createCriteria();
         criteria.andGroupPIdEqualTo(groupId);
