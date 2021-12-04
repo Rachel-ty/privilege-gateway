@@ -730,10 +730,10 @@ public class RoleDao {
      */
     public Collection<String> roleImpact(Long roleId){
         Set<String> impactList=new HashSet<String>();
-        delRoleAndRelactiveKey(roleId,impactList);
+        getRoleAndRelactiveKey(roleId,impactList);
         return impactList;
     }
-    public void delRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
+    public void getRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
         resultSet.add(String.format(ROLEKEY,roleId));
         List<GroupRolePo> gList=groupRoleDao.selectByRoleId(roleId).getData();
         for(GroupRolePo groupRolePo:gList){
@@ -751,7 +751,7 @@ public class RoleDao {
         List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
         for(RoleInheritedPo roleInheritedPo:roleList){
             if(!resultSet.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
-                delRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultSet);
+                getRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultSet);
             }
         }
     }
