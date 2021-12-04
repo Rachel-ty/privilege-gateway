@@ -735,12 +735,12 @@ public class RoleDao {
     }
     public void delRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
         resultSet.add(String.format(ROLEKEY,roleId));
-        List<GroupRolePo> gList=groupRoleDao.role2GroupImpact(roleId).getData();
+        List<GroupRolePo> gList=groupRoleDao.selectByRoleId(roleId).getData();
         for(GroupRolePo groupRolePo:gList){
             Collection list=groupDao.groupImpact(groupRolePo.getGroupId());
             if(list!=null&&!list.isEmpty()) resultSet.addAll(list);
         }
-        List<UserRolePo> uList=userRoleDao.role2UserImpact(roleId).getData();
+        List<UserRolePo> uList=userRoleDao.selectByRoleId(roleId).getData();
         for(UserRolePo userRolePo:uList){
             Collection list=userDao.userImpact(userRolePo.getUserId());
             if(list!=null&&!list.isEmpty())resultSet.addAll(list);

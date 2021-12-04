@@ -18,7 +18,7 @@ public class UserRoleDao {
     @Autowired
     private UserRolePoMapper userRolePoMapper;
 
-    public ReturnObject<List<UserRolePo>> role2UserImpact(Long roleId){
+    public ReturnObject<List<UserRolePo>> selectByRoleId(Long roleId){
         try{
             Set<String> resultSet=new HashSet<String>();
             UserRolePoExample example1=new UserRolePoExample();

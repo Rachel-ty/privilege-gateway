@@ -18,7 +18,7 @@ public class GroupRoleDao {
     @Autowired
     private GroupRolePoMapper groupRolePoMapper;
 
-    public ReturnObject<List<GroupRolePo>> role2GroupImpact(Long roleId){
+    public ReturnObject<List<GroupRolePo>> selectByRoleId(Long roleId){
         try{
             Set<String> resultSet=new HashSet<String>();
             GroupRolePoExample example1=new GroupRolePoExample();
