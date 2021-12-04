@@ -50,7 +50,7 @@ import java.util.List;
  * @author Ming Qiu
  **/
 @Repository
-public class PrivilegeDao implements InitializingBean {
+public class PrivilegeDao {
 
     private  static  final Logger logger = LoggerFactory.getLogger(PrivilegeDao.class);
 
