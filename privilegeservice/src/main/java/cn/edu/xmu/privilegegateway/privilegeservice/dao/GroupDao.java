@@ -16,20 +16,19 @@
 
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -46,7 +45,7 @@ public class GroupDao {
     @Autowired
     private GroupRelationPoMapper groupRelationPoMapper;
 
-    @Autowired@Lazy
+    @Autowired
     private RoleDao roleDao;
 
     @Autowired
