@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -68,6 +69,7 @@ public class PrivilegeDao implements InitializingBean {
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
     @Autowired
+    @Lazy
     private RoleDao roleDao;
 
     @Autowired
@@ -277,6 +279,9 @@ public class PrivilegeDao implements InitializingBean {
         RolePrivilegePoExample.Criteria criteria = example.createCriteria();
         criteria.andPrivilegeIdEqualTo(privId);
         List<RolePrivilegePo> gList = rolePrivilegePoMapper.selectByExample(example);
+        if(gList==null||gList.size()==0){
+            return new ArrayList<>();
+        }
         List<Long> resultList = new ArrayList<>();
         for (RolePrivilegePo po : gList) {
             resultList.add(po.getRoleId());
