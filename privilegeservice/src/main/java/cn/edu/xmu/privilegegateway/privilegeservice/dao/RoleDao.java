@@ -34,16 +34,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -99,10 +97,14 @@ public class RoleDao {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private GroupRoleDao groupRoleDao;
+    @Autowired
+    private UserRoleDao userRoleDao;
     /**
      * 用户的redis key：r_id values:set{br_id};
      */
-    private final static String ROLEKEY = "r_%d";
+    public final static String ROLEKEY = "r_%d";
 
     /**
      * 功能用户的redis key:br_id values:set{privId};
@@ -726,38 +728,30 @@ public class RoleDao {
      * @param roleId 角色id
      * @return 影响的role，group和user的redisKey
      */
-    public List<String> roleImpact(Long roleId){
-        List<String> impactList=new ArrayList<String>();
-        impactList.add(String.format(ROLEKEY,roleId));
+    public Collection<String> roleImpact(Long roleId){
+        Set<String> impactList=new HashSet<String>();
         delRoleAndRelactiveKey(roleId,impactList);
         return impactList;
     }
-    public void delRoleAndRelactiveKey(Long roleId, List<String> resultList){
-        GroupRolePoExample example1=new GroupRolePoExample();
-        redisUtil.del(String.format(ROLEKEY,roleId));
-        GroupRolePoExample.Criteria criteria1=example1.createCriteria();
-        criteria1.andRoleIdEqualTo(roleId);
-        List<GroupRolePo> gList=groupRolePoMapper.selectByExample(example1);
+    public void delRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
+        resultSet.add(String.format(ROLEKEY,roleId));
+        List<GroupRolePo> gList=groupRoleDao.role2GroupImpact(roleId).getData();
         for(GroupRolePo groupRolePo:gList){
-            List list=groupDao.groupImpact(groupRolePo.getGroupId());
-            if(list!=null&&!list.isEmpty()) resultList.addAll(list);
+            Collection list=groupDao.groupImpact(groupRolePo.getGroupId());
+            if(list!=null&&!list.isEmpty()) resultSet.addAll(list);
         }
-        UserRolePoExample example2=new UserRolePoExample();
-        UserRolePoExample.Criteria criteria2=example2.createCriteria();
-        criteria2.andRoleIdEqualTo(roleId);
-        List<UserRolePo> uList=userRolePoMapper.selectByExample(example2);
+        List<UserRolePo> uList=userRoleDao.role2UserImpact(roleId).getData();
         for(UserRolePo userRolePo:uList){
-            List list=userDao.userImpact(userRolePo.getUserId());
-            if(list!=null&&!list.isEmpty())resultList.addAll(list);
+            Collection list=userDao.userImpact(userRolePo.getUserId());
+            if(list!=null&&!list.isEmpty())resultSet.addAll(list);
         }
         RoleInheritedPoExample example=new RoleInheritedPoExample();
         RoleInheritedPoExample.Criteria criteria=example.createCriteria();
         criteria.andRoleIdEqualTo(roleId);
         List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
         for(RoleInheritedPo roleInheritedPo:roleList){
-            if(!resultList.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
-                resultList.add(String.format(ROLEKEY,roleInheritedPo.getRoleCId()));
-                delRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultList);
+            if(!resultSet.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
+                delRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultSet);
             }
         }
     }
