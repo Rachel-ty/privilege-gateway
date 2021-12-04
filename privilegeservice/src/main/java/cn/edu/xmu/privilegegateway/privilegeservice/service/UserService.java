@@ -205,14 +205,11 @@ public class UserService {
      * @param did departid
      * @return ReturnObject<VoObject>
      * @author Xianwei Wang
+     * @Modifier 张晖婧
      * */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid, Long did){
-        if ((userDao.checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
-            return userDao.revokeRole(userid, roleid);
-        } else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
+        return userDao.revokeRole(userid, roleid,did);
     }
 
     /**
