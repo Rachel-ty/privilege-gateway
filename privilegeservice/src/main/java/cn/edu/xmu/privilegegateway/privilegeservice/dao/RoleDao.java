@@ -650,15 +650,26 @@ public class RoleDao {
         }
     }
 
+    /**
+     * 重写签名和加密
+     * @author Ming Qiu
+     * date： 2021/12/04 16:01
+     */
     public void initialize(){
         //初始化UserRole
         UserRolePoExample example3 = new UserRolePoExample();
-        UserRolePoExample.Criteria criteria3 = example3.createCriteria();
-        criteria3.andSignatureIsNull();
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
         for (UserRolePo po : userRolePoList) {
-            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRole.class,newUserRoleSignFields,null,"signature");
+            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRole.class,null,newUserRoleSignFields,"signature");
             userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
+        }
+
+        //初始化GroupRole
+        GroupRolePoExample example = new GroupRolePoExample();
+        List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
+        for (GroupRolePo po: groupRolePoList){
+            GroupRolePo newPo = (GroupRolePo) baseCoder.code_sign(po, GroupRolePo.class, null, newGroupRoleSignFields, "signature");
+            groupRolePoMapper.updateByPrimaryKeySelective(newPo);
         }
     }
 

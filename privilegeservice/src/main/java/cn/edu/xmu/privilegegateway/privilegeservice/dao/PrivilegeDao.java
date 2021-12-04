@@ -17,10 +17,8 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
@@ -76,32 +74,12 @@ public class PrivilegeDao implements InitializingBean {
     final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
 
     private static final String PRIVKEY = "%s-%d";
-    /**
-     * 将权限载入到本地缓存中
-     * 如果未初始化，则初始话数据中的数据
-     * @throws Exception
-     * createdBy: Ming Qiu 2020-11-01 23:44
-     * modifiedBy: Ming Qiu 2020-11-03 11:44
-     *            将签名的认证改到Privilege对象中去完成
-     *            Ming Qiu 2020-12-03 9:44
-     *            将缓存放到redis中
-     */
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        PrivilegePoExample example = new PrivilegePoExample();
-        List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
-        for (PrivilegePo po : privilegePos){
-            Privilege priv = new Privilege(po);
-            if (priv.authetic()) {
-                logger.debug("afterPropertiesSet: key = " + priv.getKey() + " p = " + priv);
-                redisTemplate.opsForHash().putIfAbsent("Priv", priv.getKey(), priv.getId());
-            }else{
-                logger.debug("afterPropertiesSet: id = " + priv.getId()+ ",Sign = "+priv.getSignature()+". cacuSign="+priv.getCacuSignature());
-                logger.error("afterPropertiesSet: Wrong Signature(auth_privilege): id = " + priv.getId());
-            }
-        }
-    }
 
+    /**
+     * 重写签名和加密
+     * @author Ming Qiu
+     * date： 2021/12/04 16:01
+     */
     public void initialize() {
         PrivilegePoExample example = new PrivilegePoExample();
         List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
@@ -112,7 +90,6 @@ public class PrivilegeDao implements InitializingBean {
         }
 
         RolePrivilegePoExample example1 = new RolePrivilegePoExample();
-        RolePrivilegePoExample.Criteria criteria = example1.createCriteria();
         List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example1);
         for (RolePrivilegePo po : rolePrivilegePos) {
             RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.code_sign(po, RolePrivilegePo.class, null, newRolePrivilegeSignFields, "signature");
