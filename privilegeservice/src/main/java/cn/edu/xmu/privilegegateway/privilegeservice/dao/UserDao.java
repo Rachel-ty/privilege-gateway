@@ -111,6 +111,8 @@ public class UserDao{
     private RolePoMapper rolePoMapper;
 
     @Autowired
+    private UserRolePoMapper userRolePoMapper;
+    @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
     @Autowired
@@ -137,36 +139,15 @@ public class UserDao{
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
 
-    /**
-     * 用户的redis key： u_id values:set{br_id};
-     *
-     */
-    private final static String USERKEY = "u_%d";
 
-    /**
-     * 最终用户的redis key: up_id  values: set{priv_id}
-     */
-    private final static String USERPROXYKEY = "up_%d";
 
 
 
 
 //    @Autowired
 //    private JavaMailSender mailSender;
-    /**
-     * 最终用户的redis key: fu_id values: set{br_id};
-     */
-    private final static String FINALUSERKEY = "fu_%d";
-    /**
-     * 用户组的redis key： g_id values:set{br_id};
-     *
-     */
-    private final static String GROUPKEY = "g_%d";
 
-    /**
-     * 用户的redis key：r_id values:set{br_id};
-     */
-    private final static String ROLEKEY = "r_%d";
+
 
     private final static int BANED = 2;
 
@@ -175,9 +156,6 @@ public class UserDao{
      */
     private final static String CAPTCHAKEY = "cp_%s";
 
-
-
-    final static Collection<String> codeFields = new ArrayList<>();
 
     public ReturnObject setUsersProxy(UserProxy bo) {
         try {
@@ -471,9 +449,9 @@ public class UserDao{
      * @author Xianwei Wang
      * */
     public ReturnObject<List> getUserRoles(Long id){
-    }
-        return new ReturnObject<>(retUserRoleList);*/
         return null;
+    }
+
 
 
     /**
@@ -1461,7 +1439,7 @@ public class UserDao{
                     return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
                 } else {
                     //更新redis缓存
-                    List<String> redisKeyToDeleted = userImpact(userid);
+                    Collection<String> redisKeyToDeleted = userImpact(userid);
                     for(String key : redisKeyToDeleted) {
                         redisUtil.del(key);
                     }
@@ -1510,7 +1488,7 @@ public class UserDao{
                 int ret = userRolePoMapper.insertSelective(userRolePo);
 
                 //更新redis缓存
-                List<String> redisKeyToDeleted = userImpact(userRole.getUserId());
+                Collection<String> redisKeyToDeleted = userImpact(userRole.getUserId());
                 for(String key : redisKeyToDeleted) {
                     redisUtil.del(key);
                 }

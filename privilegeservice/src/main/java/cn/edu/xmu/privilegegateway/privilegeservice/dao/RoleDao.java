@@ -81,6 +81,12 @@ public class RoleDao {
     private RoleInheritedPoMapper roleInheritedPoMapper;
 
     @Autowired
+    private RolePrivilegePoMapper rolePrivilegePoMapper;
+
+    @Autowired
+    private UserProxyPoMapper userProxyPoMapper;
+
+    @Autowired
     private PrivilegeDao privDao;
 
     @Autowired
@@ -618,24 +624,7 @@ public class RoleDao {
         return true;
     }
 
-    /**
-     * @description 检查角色的departid是否与路径上的一致
-     * @param roleid 角色id
-     * @param departid 路径上的departid
-     * @return boolean
-     * @author Xianwei Wang
-     * created at 11/20/20 1:51 PM
-     */
-    public boolean checkRoleDid(Long roleid, Long departid) {
-        RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
-        if (rolePo == null) {
-            return false;
-        }
-        if (!rolePo.getDepartId().equals(departid)) {
-            return false;
-        }
-        return true;
-    }
+
 
     /**
      * 设置角色继承关系
