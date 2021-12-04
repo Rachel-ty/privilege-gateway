@@ -39,9 +39,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * 权限DAO
@@ -219,16 +217,12 @@ public class PrivilegeDao implements InitializingBean {
      */
     public Collection<String> privilegeImpact(Long privId){
         List<Long> roleIdList =findRoleId(privId);
-        List<String>  resultList=new ArrayList<>();
+        Set<String> resultSet=new TreeSet<>();
         for (Long roleId : roleIdList) {
             Collection<String> roleImpact=roleDao.roleImpact(roleId);
-            for (String s : roleImpact) {
-                if(!resultList.contains(s)){
-                    resultList.add(s);
-                }
-            }
+            resultSet.addAll(roleImpact);
         }
-        return resultList;
+        return resultSet;
     }
 
     public List<Long> findRoleId(Long privId) {
