@@ -1,10 +1,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserProxyVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserProxyDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserProxyService {
 
     @Autowired
-    private UserProxyDao userProxyDao;
+    private UserDao userProxyDao;
 
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject setUsersProxy(Long proxyUserId, Long userId, UserProxyVo vo, Long departId, Long creatorId, String creratorName) {
