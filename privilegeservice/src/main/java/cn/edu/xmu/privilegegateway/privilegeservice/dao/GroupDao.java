@@ -85,7 +85,7 @@ public class GroupDao {
     public List<String> groupImpact(Long groupId){
         List<String> keys = new ArrayList<>();
         List<Long> groupIds = new ArrayList<>();
-        List<Long> userIds =new ArrayList<>();
+        HashSet<Long> userIds = new HashSet<>();
         getAllGroups(groupId,groupIds);
         groupIds.add(groupId);
         for (Long gId: groupIds){
@@ -98,15 +98,12 @@ public class GroupDao {
             criteria1.andGroupIdEqualTo(gId);
             List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example1);
             for (UserGroupPo userGroupPo: userGroupPos){
-                if (!userIds.contains(userGroupPo.getUserId())){
-                    userIds.add(userGroupPo.getUserId());
+                if (userIds.add(userGroupPo.getUserId())){
+                    String uKey = String.format(UserDao.USERKEY,uId);
+                    if(redisUtil.hasKey(uKey)){
+                        keys.add(uKey);
+                    }
                 }
-            }
-        }
-        for(Long uId:userIds){
-            String uKey = String.format(UserDao.USERKEY,uId);
-            if(redisUtil.hasKey(uKey)){
-                keys.add(uKey);
             }
         }
         return keys;
