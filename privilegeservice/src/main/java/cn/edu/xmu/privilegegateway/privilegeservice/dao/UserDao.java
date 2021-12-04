@@ -101,14 +101,10 @@ public class UserDao{
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
 
-    @Autowired
-    private RoleInheritedPoMapper roleInheritedPoMapper;
 
     @Autowired
     private UserPoMapper userMapper;
 
-    @Autowired
-    private RolePoMapper rolePoMapper;
 
     @Autowired
     private UserRolePoMapper userRolePoMapper;
@@ -660,7 +656,7 @@ public class UserDao{
      * @return 被代理的用户id
      * createdBy Ming Qiu 14:37
      */
-    private ReturnObject getProxyIdsByUserId(Long id) {
+    public ReturnObject getProxyIdsByUserId(Long id) {
         try{
             UserProxyPoExample example = new UserProxyPoExample();
             //查询当前所有有效的被代理用户
@@ -1399,7 +1395,7 @@ public class UserDao{
             List<Role> roles = new ArrayList<>(userRolePos.size());
             for (UserRolePo po : userRolePos) {
                 UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
-                Role role = (Role) Common.cloneVo(rolePoMapper.selectByPrimaryKey(po.getRoleId()), Role.class);
+                Role role = (Role) Common.cloneVo(roleDao.getRolePoByRoleId(po.getRoleId()), Role.class);
                 if (userRole.getSignature() != null) {
                     role.setSign((byte)0);
                 } else {
@@ -1472,7 +1468,7 @@ public class UserDao{
         User user = getUserById(userRole.getUserId().longValue()).getData();
 
         User create = getUserById(userRole.getCreatorId().longValue()).getData();
-        RolePo rolePo = rolePoMapper.selectByPrimaryKey(userRole.getRoleId());
+        RolePo rolePo=roleDao.getRolePoByRoleId(userRole.getRoleId());
 
         //用户id或角色id不存在
         if (user == null || create == null || rolePo == null) {
@@ -1559,7 +1555,7 @@ public class UserDao{
             }
             for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
                 //去掉 br_
-                RolePo rolePo = rolePoMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
+                RolePo rolePo = roleDao.getRolePoByRoleId(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
                 pageBaseroles.add(rolePo);
             }
 

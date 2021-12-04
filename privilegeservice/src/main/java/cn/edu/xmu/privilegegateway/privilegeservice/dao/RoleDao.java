@@ -39,6 +39,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -65,11 +66,9 @@ public class RoleDao {
     @Autowired
     private RolePoMapper roleMapper;
 
+    @Lazy
     @Autowired
-    private UserPoMapper userMapper;
-
-    @Autowired
-    private PrivilegePoMapper privilegePoMapper;
+    private  UserDao userDao;
 
     @Autowired
     private UserRolePoMapper userRolePoMapper;
@@ -80,11 +79,6 @@ public class RoleDao {
     @Autowired
     private RoleInheritedPoMapper roleInheritedPoMapper;
 
-    @Autowired
-    private RolePrivilegePoMapper rolePrivilegePoMapper;
-
-    @Autowired
-    private UserProxyPoMapper userProxyPoMapper;
 
     @Autowired
     private PrivilegeDao privDao;
@@ -367,14 +361,8 @@ public class RoleDao {
             } else {
                 // 删除角色权限表
                 logger.debug("deleteRole: delete role roleId = " + roleId);
-                RolePrivilegePoExample exampleRP = new RolePrivilegePoExample();
-                RolePrivilegePoExample.Criteria criteriaRP = exampleRP.createCriteria();
-                criteriaRP.andRoleIdEqualTo(roleId);
-                List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(exampleRP);
-                logger.debug("deleteRole: delete role-privilege num = " + rolePrivilegePos.size());
-                for (RolePrivilegePo rolePrivilegePo : rolePrivilegePos) {
-                    rolePrivilegePoMapper.deleteByPrimaryKey(rolePrivilegePo.getId());
-                }
+                privDao.deleteRolePrivByRoleId(roleId);
+
                 // 删除缓存中角色权限信息
                 redisUtil.del(String.format(ROLEKEY, roleId));
                 // 删除用户角色表
@@ -388,15 +376,12 @@ public class RoleDao {
                     // 删除缓存中具有删除角色的用户权限
                     redisUtil.del("u_" + userRolePo.getUserId());
                     redisUtil.del("up_" + userRolePo.getUserId());
-                    // 查询当前所有有效的代理具有删除角色用户的代理用户
-                    UserProxyPoExample example = new UserProxyPoExample();
-                    UserProxyPoExample.Criteria criteria = example.createCriteria();
-                    criteria.andProxyUserIdEqualTo(userRolePo.getUserId());
-                    List<UserProxyPo> userProxyPos = userProxyPoMapper.selectByExample(example);
-                    for (UserProxyPo userProxyPo : userProxyPos) {
+                    // 查询当前所有有效的代理具有删除角色用户的代理的用户id
+                    List<Long> userProxyIds=(List<Long>) userDao.getProxyIdsByUserId(userRolePo.getUserId());
+                    for (Long userProxyId : userProxyIds) {
                         // 删除缓存中代理了具有删除角色的用户的代理用户
-                        redisUtil.del("u_" + userProxyPo.getUserId());
-                        redisUtil.del("up_" + userProxyPo.getUserId());
+                        redisUtil.del("u_" + userProxyId);
+                        redisUtil.del("up_" + userProxyId);
                     }
                 }
                 return new ReturnObject<>();
@@ -466,7 +451,7 @@ public class RoleDao {
             List<User> users = new ArrayList<>(userRolePos.size());
             for (UserRolePo po : userRolePos) {
                 UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
-                User user = (User) Common.cloneVo(userMapper.selectByPrimaryKey(po.getUserId()), User.class);
+                User user = (User) Common.cloneVo(userDao.getUserById(po.getUserId()), User.class);
                 if (userRole.getSignature() != null) {
                     user.setSign((byte)0);
                 } else {
@@ -634,7 +619,7 @@ public class RoleDao {
     public ReturnObject createRoleInherited(RoleInherited roleInherited, Long did) {
         RolePo prolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleId());
         RolePo crolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleCId());
-        UserPo createPo = userMapper.selectByPrimaryKey(roleInherited.getCreatorId());
+        User createPo = (User) Common.cloneVo(userDao.getUserById(roleInherited.getCreatorId()),User.class);
 
         //用户id或角色id不存在
         if (prolePo == null || createPo == null || crolePo == null) {
@@ -762,7 +747,15 @@ public class RoleDao {
         return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
     }
 
-
+    /**
+     * 通过RoleId获取RolePo
+     * @param roleId 角色id
+     * @return RolePo
+     * @author 张晖婧
+     */
+    public RolePo getRolePoByRoleId(Long roleId) {
+        return roleMapper.selectByPrimaryKey(roleId);
+    }
 
     /**
      * 角色的影响力分析
@@ -775,4 +768,5 @@ public class RoleDao {
     public Collection<String> roleImpact(Long roleId){
         return null;
     }
+
 }
