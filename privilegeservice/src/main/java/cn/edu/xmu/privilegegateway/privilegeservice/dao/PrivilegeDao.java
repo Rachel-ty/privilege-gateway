@@ -17,6 +17,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
@@ -35,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -44,6 +46,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 权限DAO
@@ -54,6 +57,8 @@ public class PrivilegeDao {
 
     private  static  final Logger logger = LoggerFactory.getLogger(PrivilegeDao.class);
 
+    @Value("${privilegeservice.role.expiretime}")
+    private long timeout;
 
     @Autowired
     private PrivilegePoMapper poMapper;
@@ -74,6 +79,7 @@ public class PrivilegeDao {
     final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
 
     private static final String PRIVKEY = "%s-%d";
+
 
     /**
      * 重写签名和加密
@@ -238,4 +244,38 @@ public class PrivilegeDao {
         return null;
     }
 
+    /**
+     * 将一个角色的所有权限id载入到Redis
+     *
+     * @param id 角色id
+     * @param roleDao
+     * @return void
+     *
+     * createdBy: Ming Qiu 2020-11-02 11:44
+     * ModifiedBy: Ming Qiu 2020-11-03 12:24
+     * 将读取权限id的代码独立为getPrivIdsByRoleId. 增加redis值的有效期
+     *            Ming Qiu 2020-11-07 8:00
+     * 集合里强制加“0”
+     */
+    public ReturnObject loadBaseRolePriv(Long id, RoleDao roleDao) {
+        try{
+            ReturnObject returnObject = getPrivIdsByRoleId(id);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            List<Long> privIds = (List<Long>) returnObject.getData();
+            String key = String.format(RoleDao.BASEROLEKEY, id);
+            for (Long pId : privIds) {
+                redisUtil.addSet(key, pId);
+            }
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.addSet(key,0);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e){
+            logger.error("loadBaseRolePriv:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+
+    }
 }

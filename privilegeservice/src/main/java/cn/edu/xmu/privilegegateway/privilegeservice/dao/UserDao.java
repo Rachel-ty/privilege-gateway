@@ -732,7 +732,7 @@ public class UserDao{
 
                 if(!redisUtil.hasKey(brKeyStr)){
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
-                    ReturnObject returnObject1 = roleDao.loadBaseRolePriv(roleId);
+                    ReturnObject returnObject1 = roleDao.privDao.loadBaseRolePriv(roleId, roleDao);
                     if(returnObject1.getCode()!=ReturnNo.OK){
                         return returnObject1;
                     }
