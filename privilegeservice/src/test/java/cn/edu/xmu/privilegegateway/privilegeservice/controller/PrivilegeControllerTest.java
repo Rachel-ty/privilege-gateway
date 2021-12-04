@@ -728,7 +728,7 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
 
-        List<String> userResults = userDao.userImpact(51L);
+        List<String> userResults = (List<String>) userDao.userImpact(51L);
         List<String> userExpectResults = new ArrayList<>();
         userExpectResults.add(String.format(USERKEY,49L));
         userExpectResults.add(String.format(USERKEY,51L));
@@ -746,14 +746,14 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
 
-        List<String> userResults = groupDao.groupImpact(10L);
+        List<String> userResults = (List<String>) groupDao.groupImpact(10L);
         List<String> userExpectResults = new ArrayList<>();
-        userExpectResults.add(String.format(GROUPKEY,11L));
-        userExpectResults.add(String.format(GROUPKEY,13L));
-        userExpectResults.add(String.format(GROUPKEY,12L));
         userExpectResults.add(String.format(GROUPKEY,10L));
         userExpectResults.add(String.format(USERKEY,51L));
         userExpectResults.add(String.format(USERKEY,49L));
+        userExpectResults.add(String.format(GROUPKEY,11L));
+        userExpectResults.add(String.format(GROUPKEY,12L));
+        userExpectResults.add(String.format(GROUPKEY,13L));
         JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
     }
 }
