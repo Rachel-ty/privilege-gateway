@@ -129,7 +129,7 @@ public class RoleDao {
             criteria.andRoleCIdEqualTo(roleId);
             List<RoleInheritedPo>roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
             logger.debug("getSuperiorRoleIdsByRoleId: roleId = " + roleId);
-            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature");
+            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature",false);
             return new ReturnObject(ret);
         }catch (Exception e){
             logger.error("getSuperiorRoleIdsByRoleId: "+e.getMessage());
@@ -573,7 +573,7 @@ public class RoleDao {
             criteria.andUserIdEqualTo(id);
             List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
-            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature");
+            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (UserRolePo po : userRolePosDecoded) {
                 retIds.add(po.getRoleId());
@@ -599,7 +599,7 @@ public class RoleDao {
             criteria.andGroupIdEqualTo(id);
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
-            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature");
+            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (GroupRolePo po : groupRolePosDecoded) {
                 retIds.add(po.getRoleId());
