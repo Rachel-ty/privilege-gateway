@@ -1,8 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.*;
 import org.mybatis.spring.annotation.MapperScan;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +36,12 @@ public class PrivilegeServiceApplication implements ApplicationRunner {
     @Autowired
     private PrivilegeDao privilegeDao;
 
+    @Autowired
+    private NewUserDao newUserDao;
+
+    @Autowired
+    private GroupDao groupDao;
+
     public static void main(String[] args) {
         SpringApplication.run(PrivilegeServiceApplication.class, args);
     }
@@ -47,8 +51,10 @@ public class PrivilegeServiceApplication implements ApplicationRunner {
         if (initialization){
             logger.debug("Initialize......");
             userDao.initialize();
+            newUserDao.initialize();
             roleDao.initialize();
             privilegeDao.initialize();
+            groupDao.initialize();
         }
     }
 }
