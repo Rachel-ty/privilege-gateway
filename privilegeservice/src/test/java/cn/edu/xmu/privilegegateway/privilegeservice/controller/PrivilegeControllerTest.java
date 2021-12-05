@@ -5,10 +5,6 @@ import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
-import org.apache.http.entity.ContentType;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
@@ -17,17 +13,12 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import org.apache.http.entity.ContentType;
 import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestMethodOrder;
 import org.mockito.Mockito;
 import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -37,24 +28,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.lang.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -773,13 +754,27 @@ public class PrivilegeControllerTest {
     @Test
     public void roleImp() throws JSONException {
         List list=new ArrayList();
+        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,10L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,11L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,12L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,13L))).thenReturn(true);
+
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
         list.add(String.format(ROLEKEY,2L));
-        list.add(String.format(ROLEKEY,1L));
+        list.add(String.format(GROUPKEY,10L));
         list.add(String.format(ROLEKEY,3L));
         list.add(String.format(ROLEKEY,6L));
+        list.add(String.format(GROUPKEY,12L));
+        list.add(String.format(USERKEY,49L));
         list.add(String.format(ROLEKEY,5L));
+        list.add(String.format(ROLEKEY,23L));
         String except=list.toString();
-        String result=roleDao.roleImpact(1L).toString();
-        JSONAssert.assertEquals(except, result, true);
+        String result=roleDao.roleImpact(23L).toString();
+        JSONAssert.assertEquals(result, except,false);
     }
 }
