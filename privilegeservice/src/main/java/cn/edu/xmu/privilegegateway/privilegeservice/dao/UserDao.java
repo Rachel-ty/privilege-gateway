@@ -315,6 +315,7 @@ public class UserDao{
             UserBo userBo = (UserBo)baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
             if(userBo.getSignature() == null){
                 logger.error("getUserByName: 签名错误(auth_user_group):"+ userPo.getId());
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
             return new ReturnObject<>(userBo);
         }
