@@ -180,7 +180,7 @@ CREATE TABLE `auth_role_inherited` (
   `signature` varchar(256) DEFAULT NULL,
   `creator_id` bigint DEFAULT NULL,
   `modifier_id` bigint DEFAULT NULL,
-  `gmt_create` datetime DEFAULT NULL,
+  `gmt_create` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `gmt_modified` datetime DEFAULT NULL,
   `creator_name` varchar(128) DEFAULT NULL COMMENT '创建用户名',
   `modifier_name` varchar(128) DEFAULT NULL COMMENT '修改用户名',

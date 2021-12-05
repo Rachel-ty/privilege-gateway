@@ -621,7 +621,8 @@ public class RoleDao {
         UserRolePoExample example3 = new UserRolePoExample();
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
         for (UserRolePo po : userRolePoList) {
-            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRole.class,null,newUserRoleSignFields,"signature");
+            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRolePo.class,null,newUserRoleSignFields,"signature");
+            logger.debug("initialize: newUserRolePo = "+newUserRolePo.toString());
             userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
         }
 
@@ -630,8 +631,19 @@ public class RoleDao {
         List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
         for (GroupRolePo po: groupRolePoList){
             GroupRolePo newPo = (GroupRolePo) baseCoder.code_sign(po, GroupRolePo.class, null, newGroupRoleSignFields, "signature");
+            logger.debug("initialize: groupRolePo = "+newPo.toString());
             groupRolePoMapper.updateByPrimaryKeySelective(newPo);
         }
+
+        //初始化RoleInheritance
+        RoleInheritedPoExample example2 = new RoleInheritedPoExample();
+        List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example2);
+        for (RoleInheritedPo po: roleInheritedPos){
+            RoleInheritedPo newPo = (RoleInheritedPo) baseCoder.code_sign(po, RoleInheritedPo.class, null, newRoleInheritedSignFields, "signature");
+            logger.debug("initialize: RoleInheritedPo = "+newPo.toString());
+            roleInheritedPoMapper.updateByPrimaryKeySelective(newPo);
+        }
+
     }
 
     /**
