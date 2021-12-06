@@ -77,7 +77,7 @@ public class PrivilegeDao {
     final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
     final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
 
-    public static final String PRIVKEY = "%s-%d";
+    private static final String PRIVKEY = "%s-%d";
     //功能角色
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
