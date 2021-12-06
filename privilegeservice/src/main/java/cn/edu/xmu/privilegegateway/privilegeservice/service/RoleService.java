@@ -150,11 +150,10 @@ public class RoleService {
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
         if(roleDao.isBaseRole(rid))
         {
-
+            Collection<String> keys=roleDao.roleImpact(rid);
             ReturnObject returnObject=privilegeDao.delRolePriv(rid,pid);
             if(returnObject.getCode()==ReturnNo.OK)
             {
-                Collection<String> keys=roleDao.roleImpact(rid);
                 for(String key:keys)
                 {
                     redisUtil.del(key);
@@ -194,10 +193,10 @@ public class RoleService {
         //新增
         if(roleDao.isBaseRole(roleid))
         {
+            Collection<String> keys=roleDao.roleImpact(roleid);
             ReturnObject returnObject=privilegeDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
             if(returnObject.getCode()==ReturnNo.OK)
             {
-                Collection<String> keys=roleDao.roleImpact(roleid);
                 for(String key:keys)
                 {
                     redisUtil.del(key);

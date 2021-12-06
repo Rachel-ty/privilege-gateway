@@ -72,6 +72,9 @@ public class PrivilegeDao {
     private RedisUtil redisUtil;
 
     @Autowired
+    private RoleDao roleDao;
+
+    @Autowired
     private BaseCoder baseCoder;
 
     final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
