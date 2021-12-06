@@ -719,33 +719,22 @@ public class PrivilegeControllerTest {
 
     @Test
     public void deleteUserRedis() throws Exception{
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
-
         List<String> userResults = (List<String>) userDao.userImpact(51L);
         List<String> userExpectResults = new ArrayList<>();
         userExpectResults.add(String.format(USERKEY,49L));
         userExpectResults.add(String.format(USERKEY,51L));
+        userExpectResults.add(String.format(USERKEY,60L));
         JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
     }
 
     @Test
     public void deleteGroupRelationRedis() throws Exception{
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,10L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,11L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,12L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,13L))).thenReturn(true);
-
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
-
         List<String> userResults = (List<String>) groupDao.groupImpact(10L);
         List<String> userExpectResults = new ArrayList<>();
         userExpectResults.add(String.format(GROUPKEY,10L));
         userExpectResults.add(String.format(USERKEY,51L));
         userExpectResults.add(String.format(USERKEY,49L));
+        userExpectResults.add(String.format(USERKEY,60L));
         userExpectResults.add(String.format(GROUPKEY,11L));
         userExpectResults.add(String.format(GROUPKEY,12L));
         userExpectResults.add(String.format(GROUPKEY,13L));
