@@ -91,7 +91,7 @@ public abstract class BaseSign {
         }
 
         StringBuilder signature = Common.concatString("-", fieldDataList);
-        logger.info(String.format("getSignature: signature = %s", signature));
+        logger.debug(String.format("getSignature: signature = %s", signature));
         return encrypt(signature.toString());
     }
 }
