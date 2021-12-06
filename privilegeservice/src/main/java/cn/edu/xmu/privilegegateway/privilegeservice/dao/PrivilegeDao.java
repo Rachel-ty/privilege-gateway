@@ -386,7 +386,6 @@ public class PrivilegeDao {
             {
                 sign=MODIFIED;
             }
-
             vo.setSign(sign);
             vo.setName(privilege.getName());
             vo.setId(privilege.getId());
@@ -422,10 +421,7 @@ public class PrivilegeDao {
             rolePrivilegePoMapper.deleteByExample(example);
             //删除缓存功能角色权限
             String key=String.format(RoleDao.BASEROLEKEY,rid);
-            DefaultRedisScript script = new DefaultRedisScript<>();
-            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETEROLEPRIVILEGEPATH)));
-            List<String> keys = Stream.of(key).collect(Collectors.toList());
-            redisUtil.executeScript(script, keys,pid);
+            redisUtil.del(key);
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
