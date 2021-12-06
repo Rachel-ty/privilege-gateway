@@ -460,15 +460,6 @@ public class RoleDao {
         }
     }
 
-    /**
-     * 由Role Id, Privilege Id 增加功能角色权限
-     * created by 王琛 24320182203277
-     * modified by zhangyu
-     */
-    /**
-     * @return
-     */
-
 
 
     /**
