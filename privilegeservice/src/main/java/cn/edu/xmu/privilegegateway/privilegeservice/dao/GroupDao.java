@@ -258,7 +258,8 @@ public class GroupDao {
      * 任务3-5
      * 删除和禁用某个权限时，返回所有影响的group和user的redisKey
      * @param groupId 组id
-     * @return 影响的group和user的redisKey
+     * @return 
+     * @author BingShuai Liu 22920192204245
      */
     public Collection<String> groupImpact(Long groupId){
         Collection<String> keys = new ArrayList<>();
@@ -290,6 +291,9 @@ public class GroupDao {
         return keys;
     }
 
+    /**
+     * @author BingShuai Liu 22920192204245
+    */
     public void getAllGroups(Long groupId,HashSet<Long> groupIds){
         GroupRelationPoExample example = new GroupRelationPoExample();
         GroupRelationPoExample.Criteria criteria = example.createCriteria();
