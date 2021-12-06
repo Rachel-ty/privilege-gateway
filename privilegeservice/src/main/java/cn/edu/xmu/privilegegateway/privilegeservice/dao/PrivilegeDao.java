@@ -547,7 +547,7 @@ public class PrivilegeDao {
         }
 
     }
-    public InternalReturnObject loadPrivilege(String url,Byte requestType) {
+    public ReturnObject loadPrivilege(String url,Byte requestType) {
         try {
             PrivilegePoExample example = new PrivilegePoExample();
             PrivilegePoExample.Criteria criteria = example.createCriteria();
@@ -559,10 +559,10 @@ public class PrivilegeDao {
                 String key=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
                 redisUtil.addSet(key,po.getId());
             }
-            return new InternalReturnObject(ReturnNo.OK);
+            return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
-            return new InternalReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
     }

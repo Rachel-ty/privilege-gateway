@@ -121,7 +121,7 @@ public class PrivilegeService {
         return privilegeDao.changePrivState(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
-    public InternalReturnObject loadPrivilege(PrivilegeVo privilegeVo) {
+    public ReturnObject loadPrivilege(PrivilegeVo privilegeVo) {
         return privilegeDao.loadPrivilege(privilegeVo.getUrl(),privilegeVo.getRequestType());
     }
 }
