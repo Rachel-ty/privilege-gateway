@@ -46,7 +46,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expected="{\"errno\":0,\"data\":[{\"code\":0,\"name\":\"GET\"},{\"code\":1,\"name\":\"POST\"},{\"code\":2,\"name\":\"PUT\"},{\"code\":3,\"name\":\"DELETE\"}],\"errmsg\":\"成功\"}";
-        JSONAssert,assertEquals(expected, responseString,false);
+        JSONAssert.assertEquals(expected, responseString,false);
     }
     /*添加，新增功能角色权限*/
     @Test
