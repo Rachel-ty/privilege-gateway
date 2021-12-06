@@ -17,8 +17,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -28,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -44,6 +47,12 @@ public class RoleService {
 
     @Autowired
     UserDao userDao;
+
+    @Autowired
+    PrivilegeDao privilegeDao;
+
+    @Autowired
+    RedisUtil redisUtil;
 
     /**
      * 分页查询所有角色
@@ -111,7 +120,23 @@ public class RoleService {
         ReturnObject<List>  ret = roleDao.getRolePrivByRoleId(id);
         return ret;
     }
+    /**
+     * author:zhangyu
+     * 查询功能角色权限
+     * @param roleid
+     * @param pagenum
+     * @param pagesize
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
+    {
+        if(roleDao.isBaseRole(roleid))
+        {
 
+        }
+        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+    }
 
     /**
      * author:zhangyu
@@ -122,6 +147,15 @@ public class RoleService {
      */
     @Transactional
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
+        if(roleDao.isBaseRole(rid))
+        {
+            Collection<String> keys=roleDao.roleImpact(rid);
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
+            privilegeDao.
+        }
         ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
         return ret;
     }
@@ -153,8 +187,10 @@ public class RoleService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
         //新增
-        ReturnObject ret = roleDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
-        return ret;
+        if(roleDao.isBaseRole(roleid))
+            return privilegeDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
+        else
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
     }
 
 }

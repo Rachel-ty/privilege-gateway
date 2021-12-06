@@ -2,6 +2,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
@@ -99,6 +100,7 @@ public class Privilege implements VoObject{
 
     private String modifierName;
     private Byte state;
+    private BaseCoder baseCoder;
 
     /**
      * 构造函数
@@ -113,12 +115,7 @@ public class Privilege implements VoObject{
         this.gmtCreate = po.getGmtCreate();
         this.gmtModified = po.getGmtModified();
         this.requestType = RequestType.getTypeByCode(po.getRequestType().byteValue());
-
-        StringBuilder signature1 = Common.concatString("-", po.getUrl(), po.getRequestType().toString());
-        this.key = String.format(PrivilegeDao.PRIVILEGEKEY,url,requestType.getCode());
-        signature1.append("-");
-        signature1.append(po.getId());
-        this.cacuSignature = SHA256.getSHA256(signature1.toString());
+        this.key = String.format(PrivilegeDao.PRIVKEY,url,requestType.getCode());
     }
 
     /**

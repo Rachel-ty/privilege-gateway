@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -24,9 +25,9 @@ public class PrivilegeRetVo {
     private String url;
 
     private Byte requestType;
-
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "GMT+8")
     private LocalDateTime gmtCreate;
-
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "GMT+8")
     private LocalDateTime gmtModified;
 
     private AdminVo creator;

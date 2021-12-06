@@ -26,12 +26,9 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.AdminVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -86,13 +83,7 @@ public class PrivilegeDao {
     final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
     final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
 
-    private static final String PRIVKEY = "%s-%d";
-
-
-
-    @Autowired
-    private BaseCoder coder;
-
+    public static final String PRIVKEY = "%s-%d";
     //功能角色
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
@@ -201,19 +192,29 @@ public class PrivilegeDao {
      */
     public ReturnObject changePriv(Privilege bo){
         try {
-            //没有对应字段，会跳过的，如果不进行加密，生成签名直接放进去会破坏里面的加密
-            PrivilegePo po=(PrivilegePo) coder.code_sign(bo,PrivilegePo.class,codeFields,signFields,"signature");
-            poMapper.insertSelective(po);
-            PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
-            //需要先解密再加密，不然多重加密
-            PrivilegePo newpo=(PrivilegePo)coder.decode_check(retpo,PrivilegePo.class,codeFields,signFields,"signature");
-            PrivilegePo updatepo=(PrivilegePo)coder.code_sign(newpo,PrivilegePo.class,codeFields,signFields,"signature");
-            poMapper.updateByPrimaryKeySelective(updatepo);
-            List<String> keys=privilegeImpact(po.getId());
-            for(String key:keys)
+            PrivilegePo po=poMapper.selectByPrimaryKey(bo.getId());
+            if(po==null)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            if(bo.getState()==FORBIDEN)
             {
-                redisUtil.del(key);
+                //禁用权限 清除权限
+                Collection<String> keys=privilegeImpact(bo.getId());
+                for(String key:keys)
+                {
+                    redisUtil.del(key);
+                }
             }
+            po.setState(bo.getState());
+            //清除缓存中的权限
+            String pkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
+            redisUtil.del(pkey);
+            if(bo.getRequestType()!=null||bo.getUrl()!=null)
+            {
+                po.setUrl(bo.getUrl());
+                po.setRequestType(bo.getRequestType().getCode());
+            }
+            PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
+            poMapper.insertSelective(newpo);
             return new ReturnObject(ReturnNo.OK);
         }catch (DuplicateFormatFlagsException e)
         {
@@ -246,16 +247,14 @@ public class PrivilegeDao {
 
                 PrivilegePo po=(PrivilegePo) Common.cloneVo(privilege,PrivilegePo.class);
                 poMapper.insertSelective(po);
-                PrivilegePo newpo=(PrivilegePo)coder.code_sign(po,PrivilegePo.class,codeFields,signFields,"signature");
+                PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
                 poMapper.insertSelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
-                PrivilegePo retnewpo=(PrivilegePo)coder.decode_check(retpo,PrivilegePo.class,codeFields,signFields,"signature");
-                String key=String.format(PRIVILEGEKEY,retnewpo.getUrl(),retnewpo.getRequestType());
-                redisUtil.set(key, retnewpo.getId(),timeout);
+                PrivilegePo retnewpo=(PrivilegePo)baseCoder.decode_check(retpo,PrivilegePo.class,null,privilegeSignFields,"signature");
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
                 if(retnewpo.getSignature()!=null)
                 {
-                    retVo.setSign(OK);
+                    retVo.setSign(NOTMODIFIED);
                 }
                 else
                 {
@@ -291,10 +290,10 @@ public class PrivilegeDao {
             criteria.andRequestTypeEqualTo(type);
             List<PrivilegePo> polist = poMapper.selectByExample(example);
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
-            List<PrivilegePo> newpolist=Common.listDecode(polist,PrivilegePo.class,coder,codeFields,signFields,"signature");
+            Collection<PrivilegePo> newpolist=Common.listDecode(polist,PrivilegePo.class,baseCoder,null,privilegeSignFields,"signature",true);
             for(PrivilegePo po:newpolist)
             {
-                int sign=OK;
+                int sign=NOTMODIFIED;
                 if(po.getSignature()==null)
                 {
                     sign=MODIFIED;
@@ -343,6 +342,83 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("删除权限失败",e.getMessage()));
         }
     }
+    /**
+     *
+     * @param roleid
+     * @param privilegeid
+     * @param creatorid
+     * @param creatorname
+     * @return
+     */
+    public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
+        try
+        {
+            RolePrivilegePo rolePrivilegePo=new RolePrivilegePo();
+            rolePrivilegePo.setRoleId(roleid);
+            rolePrivilegePo.setPrivilegeId(privilegeid);
+            Common.setPoModifiedFields(rolePrivilegePo,creatorid,creatorname);
+            PrivilegePo privilege=poMapper.selectByPrimaryKey(privilegeid);
+            if(privilege==null)
+            {
+                return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+            }
+            RolePrivilegePo newpo=(RolePrivilegePo)baseCoder.code_sign(rolePrivilegePo,RolePrivilegePo.class,null,privilegeSignFields,"signature");
+            rolePrivilegePoMapper.insertSelective(newpo);
+            RolePrivilegePo retpo=rolePrivilegePoMapper.selectByPrimaryKey(newpo.getId());
+            //判断关系是否篡改
+            RolePrivilegePo newretpo=(RolePrivilegePo) baseCoder.decode_check(retpo,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+            BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo) Common.cloneVo(newretpo,BaseRolePrivilegeRetVo.class);
+            //判断权限是否篡改
+            PrivilegePo newprivilege=(PrivilegePo)baseCoder.decode_check(privilege,PrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+            Integer sign=NOTMODIFIED;
+            //判断关系是否篡改                    权限是否篡改
+            if(newretpo.getSignature()==null||newprivilege.getSignature()!=null)
+            {
+                sign=MODIFIED;
+            }
+
+            vo.setSign(sign);
+            vo.setName(privilege.getName());
+            vo.setId(privilege.getId());
+            return new ReturnObject(vo);
+
+        }catch (DuplicateFormatFlagsException e)
+        {
+            return  new ReturnObject(ReturnNo.URL_SAME);
+        }
+        catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+        }
+
+    }
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/25 20:11
+     * @version: 1.0
+     */
+    /**
+     * 由角色id,privilegeid删除角色对应权限
+     * @param rid
+     * @param pid
+     * @return
+     */
+    public ReturnObject delRolePriv(Long rid,Long pid){
+        try {
+            RolePrivilegePoExample example = new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleIdEqualTo(rid);
+            criteria.andPrivilegeIdEqualTo(pid);
+            String key=String.format(RoleDao.BASEROLEKEY,rid);
+            redisUtil.del(key);
+            rolePrivilegePoMapper.deleteByExample(example);
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
     /**
      * 由Role Id 获得 Privilege Id 列表
      *

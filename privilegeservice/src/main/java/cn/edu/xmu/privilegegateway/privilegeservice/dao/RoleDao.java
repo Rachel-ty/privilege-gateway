@@ -100,6 +100,9 @@ public class RoleDao {
 
     final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
+    public final static Integer MODIFIED=1;
+    public final static Integer NOTMODIFIED=0;
+
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -636,7 +639,7 @@ public class RoleDao {
             PageHelper.startPage(pagenum,pagesize);
             RolePo rolePo=roleMapper.selectByPrimaryKey(rid);
             //判断是否为功能角色
-            if(rolePo==null||rolePo.getBaserole().equals(ISBASEROLE))
+            if(rolePo==null||rolePo.getBaserole().equals(BASEROLE))
             {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
@@ -652,7 +655,7 @@ public class RoleDao {
                 //查询对应的权限信息
                 Privilege privilege=privDao.findPriv(po.getPrivilegeId());
                 BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo)Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
-                Integer sign=OK;
+                Integer sign=NOTMODIFIED;
                 if(privilege.getSignature()==null)
                 {
                    sign=MODIFIED;
@@ -682,85 +685,7 @@ public class RoleDao {
     /**
      * @return
      */
-    /**
-     *
-     * @param roleid
-     * @param privilegeid
-     * @param creatorid
-     * @param creatorname
-     * @return
-     */
-    public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
-        try
-        {
-            RolePrivilegePo rolePrivilegePo=new RolePrivilegePo();
-            rolePrivilegePo.setRoleId(roleid);
-            rolePrivilegePo.setPrivilegeId(privilegeid);
-            Common.setPoModifiedFields(rolePrivilegePo,creatorid,creatorname);
-            Privilege privilege=privDao.findPriv(privilegeid);
-            if(privilege==null)
-            {
-                return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
-            }
-            RolePrivilegePo newpo=(RolePrivilegePo)coder.code_sign(rolePrivilegePo,RolePrivilegePo.class,codeFields,signFields,"signature");
-            rolePrivilegePoMapper.insertSelective(newpo);
-            RolePrivilegePo retpo=rolePrivilegePoMapper.selectByPrimaryKey(newpo.getId());
-            RolePrivilegePo newretpo=(RolePrivilegePo) coder.decode_check(retpo,RolePrivilegePo.class,codeFields,signFields,"signature");
-            BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo) Common.cloneVo(newretpo,BaseRolePrivilegeRetVo.class);
-            Integer sign=0;
-            //判断关系是否篡改
-            if(newretpo.getSignature()==null)
-            {
-                sign=MODIFIED;
-            }
-            //判断权限是否篡改
-            if(privilege.getSign().equals(MODIFIED))
-            {
-                sign=MODIFIED;
-            }
-            vo.setSign(sign);
-            vo.setName(privilege.getName());
-            vo.setId(privilege.getId());
-            return new ReturnObject(vo);
 
-        }catch (DuplicateFormatFlagsException e)
-        {
-            return  new ReturnObject(ReturnNo.URL_SAME);
-        }
-        catch (Exception e)
-        {
-            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
-        }
-
-    }
-
-    /**
-     * @author: zhang yu
-     * @date: 2021/11/25 20:11
-     * @version: 1.0
-     */
-    /**
-     * 由角色id,privilegeid删除角色对应权限
-     * @param rid
-     * @param pid
-     * @return
-     */
-
-    public ReturnObject delBaseRolePriv(Long rid,Long pid){
-        try {
-            RolePrivilegePoExample example = new RolePrivilegePoExample();
-            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-            criteria.andRoleIdEqualTo(rid);
-            criteria.andPrivilegeIdEqualTo(pid);
-            String key=String.format(BASEROLEKEY,rid);
-            redisUtil.del(key);
-            int ret = rolePrivilegePoMapper.deleteByExample(example);
-            return new ReturnObject(ReturnNo.OK);
-        }catch (Exception e)
-        {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
-        }
-    }
 
 
     /**
@@ -817,6 +742,21 @@ public class RoleDao {
         return true;
     }
 
+    /**
+     * 判断是否为功能角色
+     * @param roleid
+     * @return
+     */
+    public boolean isBaseRole(Long roleid) {
+        RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
+        if (rolePo == null) {
+            return false;
+        }
+        if (rolePo.getDepartId() !=BASEROLE) {
+            return false;
+        }
+        return true;
+    }
     /**
      * 角色的影响力分析
      * 任务3-6
