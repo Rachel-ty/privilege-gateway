@@ -1527,6 +1527,7 @@ public class UserDao{
      * 删除和禁用某个权限时，返回所有影响的user的redisKey
      * @param userId 用户id
      * @return 影响user的redisKey
+     * @author BingShuai Liu 22920192204245
      */
     public Collection<String> userImpact(Long userId){
         UserProxyPoExample example = new UserProxyPoExample();
@@ -1538,16 +1539,12 @@ public class UserDao{
         for (UserProxyPo userProxyPo : userProxyPos){
             if(uIds.add(userProxyPo.getUserId())){
                 String key = String.format(USERKEY,userProxyPo.getUserId());
-                if(redisUtil.hasKey(key)){
-                    keys.add(key);
-                }
+                keys.add(key);
             }
         }
         if(uIds.add(userId)){
             String key = String.format(USERKEY,userId);
-            if(redisUtil.hasKey(key)){
-                keys.add(key);
-            }
+            keys.add(key);
         }
         return keys;
     }
