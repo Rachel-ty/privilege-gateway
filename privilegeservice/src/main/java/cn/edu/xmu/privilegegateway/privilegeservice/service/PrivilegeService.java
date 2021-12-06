@@ -17,6 +17,7 @@ package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.InternalReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
@@ -118,5 +119,9 @@ public class PrivilegeService {
         Common.setPoModifiedFields(privilege,modifierId,modifierName);
         privilege.setState(NORMAL);
         return privilegeDao.changePriv(privilege);
+    }
+    @Transactional(rollbackFor = Exception.class)
+    public InternalReturnObject loadPrivilege(PrivilegeVo privilegeVo) {
+        return privilegeDao.
     }
 }

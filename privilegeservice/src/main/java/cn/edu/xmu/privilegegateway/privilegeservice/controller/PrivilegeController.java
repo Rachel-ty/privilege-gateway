@@ -1526,5 +1526,9 @@ public class PrivilegeController {
         ReturnObject ret =userService.showUserName(id);
         return Common.decorateReturnObject(ret);
     }
-
+    @Audit
+    @PutMapping("internal/privileges/load")
+    public InternalReturnObject loadPrivilege(@Validated @RequestBody PrivilegeVo privilegeVo){
+        return privilegeService.loadPrivilege(privilegeVo);
+    }
 }

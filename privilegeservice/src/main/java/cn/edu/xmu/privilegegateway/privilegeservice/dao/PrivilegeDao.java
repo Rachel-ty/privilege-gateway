@@ -17,8 +17,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
@@ -33,8 +32,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -96,20 +93,11 @@ public class PrivilegeDao {
     @Autowired
     private BaseCoder coder;
 
-    @Autowired
-    private RedisUtil redisUtil;
-
-    private final static String PRIVILEGESET_PATH="cn/edu/xmu/privilegegateway/privilegeservice/lua/SetPrivilege.lua";
-    private final static String GETPID_PATH= "cn/edu/xmu/privilegegateway/privilegeservice/lua/JudgePIDByKey.lua";
-    private final static long timeout=8640000;
-    public final static String PRIVILEGEKEY = "P_%s_%d";
-    public final static Collection<String> codeFields = new ArrayList<>();
-    public final static List<String> signFields = new ArrayList<>(Arrays.asList("id","url", "requestType"));
     //功能角色
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
     public final static Integer MODIFIED=1;
-    public final static Integer OK=0;
+    public final static Integer NOTMODIFIED=0;
 
     /**
      * 重写签名和加密
@@ -339,12 +327,12 @@ public class PrivilegeDao {
             {
                 return new ReturnObject(ReturnNo.OK);
             }
-            String privkey=String.format(PRIVILEGEKEY,po.getUrl(),po.getRequestType());
+            String privkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
             if(redisUtil.hasKey(privkey))
             {
                 redisUtil.del(privkey);
             }
-            List<String> keys=privilegeImpact(pid);
+            Collection<String> keys=privilegeImpact(pid);
             for(String key:keys)
             {
                 redisUtil.del(key);
@@ -398,7 +386,6 @@ public class PrivilegeDao {
      * 将一个角色的所有权限id载入到Redis
      *
      * @param id 角色id
-     * @param roleDao
      * @return void
      *
      * createdBy: Ming Qiu 2020-11-02 11:44
@@ -425,6 +412,25 @@ public class PrivilegeDao {
         }catch (Exception e){
             logger.error("loadBaseRolePriv:"+e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+
+    }
+    public InternalReturnObject loadPrivilege(String url,Byte requestType) {
+        try {
+            PrivilegePoExample example = new PrivilegePoExample();
+            PrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRequestTypeEqualTo(requestType);
+            criteria.andUrlEqualTo(url);
+            List<PrivilegePo> poList = poMapper.selectByExample(example);
+            for(PrivilegePo po:poList)
+            {
+                String key=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
+                redisUtil.addSet(key,po.getId());
+            }
+            return new InternalReturnObject(ReturnNo.OK);
+        }catch (Exception e)
+        {
+            return new InternalReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
 
     }
