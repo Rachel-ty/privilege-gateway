@@ -1528,7 +1528,7 @@ public class PrivilegeController {
     }
     @Audit
     @PutMapping("internal/privileges/load")
-    public InternalReturnObject loadPrivilege(@Validated @RequestBody PrivilegeVo privilegeVo){
+    public Object loadPrivilege(@Validated @RequestBody PrivilegeVo privilegeVo){
         return privilegeService.loadPrivilege(privilegeVo);
     }
 }
