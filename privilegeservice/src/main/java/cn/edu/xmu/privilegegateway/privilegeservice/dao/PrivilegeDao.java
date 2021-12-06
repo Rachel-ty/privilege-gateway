@@ -189,19 +189,7 @@ public class PrivilegeDao {
             PrivilegePo po=poMapper.selectByPrimaryKey(bo.getId());
             if(po==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-            if(bo.getState()==FORBIDEN)
-            {
-                //禁用权限 清除权限
-                Collection<String> keys=privilegeImpact(bo.getId());
-                for(String key:keys)
-                {
-                    redisUtil.del(key);
-                }
-            }
             po.setState(bo.getState());
-            //清除缓存中的权限
-            String pkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
-            redisUtil.del(pkey);
             if(bo.getRequestType()!=null||bo.getUrl()!=null)
             {
                 po.setUrl(bo.getUrl());
@@ -210,6 +198,9 @@ public class PrivilegeDao {
             //生成签名
             PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
             poMapper.insertSelective(newpo);
+            //清除缓存中的权限
+            String pkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
+            redisUtil.del(pkey);
             return new ReturnObject(ReturnNo.OK);
         }catch (DuplicateFormatFlagsException e)
         {
@@ -219,6 +210,33 @@ public class PrivilegeDao {
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
+    }
+    public ReturnObject changePrivState(Privilege bo)
+    {
+        try {
+            PrivilegePo po = poMapper.selectByPrimaryKey(bo.getId());
+            if (po == null)
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            po.setState(bo.getState());
+            //生成签名
+            PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
+            poMapper.insertSelective(newpo);
+            if (bo.getState() == FORBIDEN) {
+                //禁用权限 清除权限
+                Collection<String> keys = privilegeImpact(bo.getId());
+                for (String key : keys) {
+                    redisUtil.del(key);
+                }
+                //清除缓存中的权限
+                String pkey = String.format(PRIVKEY, po.getUrl(), po.getRequestType());
+                redisUtil.del(pkey);
+            }
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e)
+        {
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+
     }
     /*新建权限
 
@@ -245,17 +263,8 @@ public class PrivilegeDao {
                 PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
                 poMapper.insertSelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
-                //判断权限是否被篡改
-                PrivilegePo retnewpo=(PrivilegePo)baseCoder.decode_check(retpo,PrivilegePo.class,null,privilegeSignFields,"signature");
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
-                if(retnewpo.getSignature()!=null)
-                {
-                    retVo.setSign(NOTMODIFIED);
-                }
-                else
-                {
-                    retVo.setSign(MODIFIED);
-                }
+                retVo.setSign(MODIFIED);
                 return new ReturnObject(retVo);
         }catch (DuplicateFormatFlagsException e)
         {
@@ -318,10 +327,6 @@ public class PrivilegeDao {
         try
         {
             Collection<String> keys=privilegeImpact(pid);
-            for(String key:keys)
-            {
-                redisUtil.del(key);
-            }
             PrivilegePo po=poMapper.selectByPrimaryKey(pid);
             if(po==null)
             {
@@ -337,7 +342,10 @@ public class PrivilegeDao {
             {
                 redisUtil.del(privkey);
             }
-
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {

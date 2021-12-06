@@ -109,7 +109,7 @@ public class PrivilegeService {
         privilege.setId(privilegeId);
         Common.setPoModifiedFields(privilege,modifierId,modifierName);
         privilege.setState(FORBIDEN);
-        return privilegeDao.changePriv(privilege);
+        return privilegeDao.changePrivState(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject ReleasePriv(Long privilegeId,Long modifierId,String modifierName)
@@ -118,7 +118,7 @@ public class PrivilegeService {
         privilege.setId(privilegeId);
         Common.setPoModifiedFields(privilege,modifierId,modifierName);
         privilege.setState(NORMAL);
-        return privilegeDao.changePriv(privilege);
+        return privilegeDao.changePrivState(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
     public InternalReturnObject loadPrivilege(PrivilegeVo privilegeVo) {
