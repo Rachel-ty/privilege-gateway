@@ -5,6 +5,8 @@ import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
@@ -41,6 +43,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -72,10 +75,16 @@ public class PrivilegeControllerTest {
     private MockMvc mvc;
     @MockBean
     private RedisUtil redisUtil;
+    @Autowired
+    private PrivilegeDao privilegeDao;
+    // TODO 在3-6完成后就可以不用mock了
+    @MockBean
+    private RoleDao roleDao;
 
     public final static String GROUPKEY="g_%d";
 
     private final static String USERKEY = "u_%d";
+    public final static String ROLEKEY = "r_%d";
     @BeforeEach
     void init() {
         token = jwtHelper.createToken(46L, "个", 0L, 1, 36000);
@@ -756,4 +765,24 @@ public class PrivilegeControllerTest {
         userExpectResults.add(String.format(GROUPKEY,13L));
         JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
     }
+    @Test
+    public void privilegeImpactTest() throws Exception {
+        Mockito.when(roleDao.roleImpact(23L)).thenReturn(List.of(
+                String.format(ROLEKEY, 1L),
+                String.format(ROLEKEY, 2L)
+        ));
+        Mockito.when(roleDao.roleImpact(86L)).thenReturn(List.of(
+                String.format(ROLEKEY, 2L),
+                String.format(ROLEKEY, 3L)
+        ));
+        var result = privilegeDao.privilegeImpact(3L);
+        System.err.println(result);
+        var expected = List.of(
+                String.format(ROLEKEY, 2L),
+                String.format(ROLEKEY, 1L),
+                String.format(ROLEKEY, 3L)
+        );
+        JSONAssert.assertEquals(result.toString(), expected.toString(), false);
+    }
+
 }
