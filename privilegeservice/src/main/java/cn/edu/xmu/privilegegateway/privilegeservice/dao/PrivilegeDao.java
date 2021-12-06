@@ -69,9 +69,6 @@ public class PrivilegeDao {
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
-    private RedisTemplate<String, Serializable> redisTemplate;
-
-    @Autowired
     private RedisUtil redisUtil;
 
     @Autowired
@@ -210,6 +207,7 @@ public class PrivilegeDao {
                 po.setUrl(bo.getUrl());
                 po.setRequestType(bo.getRequestType().getCode());
             }
+            //生成签名
             PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
             poMapper.insertSelective(newpo);
             return new ReturnObject(ReturnNo.OK);
@@ -247,6 +245,7 @@ public class PrivilegeDao {
                 PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
                 poMapper.insertSelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
+                //判断权限是否被篡改
                 PrivilegePo retnewpo=(PrivilegePo)baseCoder.decode_check(retpo,PrivilegePo.class,null,privilegeSignFields,"signature");
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
                 if(retnewpo.getSignature()!=null)
@@ -260,7 +259,7 @@ public class PrivilegeDao {
                 return new ReturnObject(retVo);
         }catch (DuplicateFormatFlagsException e)
         {
-            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,String.format("重复定义",e.getMessage()));
+            return new ReturnObject(ReturnNo.URL_SAME);
         }catch (Exception e)
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
@@ -318,21 +317,27 @@ public class PrivilegeDao {
     {
         try
         {
-            PrivilegePo po=poMapper.selectByPrimaryKey(pid);
-            if(po==null)
-            {
-                return new ReturnObject(ReturnNo.OK);
-            }
-            String privkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
-            if(redisUtil.hasKey(privkey))
-            {
-                redisUtil.del(privkey);
-            }
             Collection<String> keys=privilegeImpact(pid);
             for(String key:keys)
             {
                 redisUtil.del(key);
             }
+            PrivilegePo po=poMapper.selectByPrimaryKey(pid);
+            if(po==null)
+            {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            poMapper.deleteByPrimaryKey(pid);
+            RolePrivilegePoExample example=new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+            criteria.andPrivilegeIdEqualTo(pid);
+            rolePrivilegePoMapper.deleteByExample(example);
+            String privkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
+            if(redisUtil.hasKey(privkey))
+            {
+                redisUtil.del(privkey);
+            }
+
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
