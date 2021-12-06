@@ -17,19 +17,24 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
+import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
-import cn.edu.xmu.privilegegateway.annotation.util.*;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -85,19 +90,56 @@ public class UserDao{
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
 
-    public final static String FUSERKEY="f_%d";
+    @Autowired
+    private RedisTemplate<String, Serializable> redisTemplate;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired@Lazy
+    private RoleDao roleDao;
+
+    @Autowired@Lazy
+    private GroupDao groupDao;
+    @Autowired
+    private UserProxyPoMapper userProxyPoMapper;
+    @Autowired
+    private UserPoMapper userMapper;
+    @Autowired
+    private BaseCoder baseCoder;
+    final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email","name","idNumber",
+            "passportNumber"));
+    //user表需要加密的全部字段
+    final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
+    //user表校验的所有字段
+    final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
+
+    final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
+    final static Collection<String> userProxyCodeFields = new ArrayList<>();
+
+    final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
+    final static Collection<String> userRoleCodeFields = new ArrayList<>();
+    final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
+
+    private final static int BANED = 2;
 
 /*
     @Autowired
     private UserRolePoMapper userRolePoMapper;
-*/
+
+    @Autowired
+    private UserGroupPoMapper userGroupPoMapper;
 
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
 
     @Autowired
     private UserPoMapper userMapper;
+
+    @Autowired
+    private RolePoMapper rolePoMapper;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
@@ -120,6 +162,9 @@ public class UserDao{
     final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
 
     final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
+
+    final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
+    final static Collection<String> userRoleCodeFields = new ArrayList<>();
 
     private final static int BANED = 2;
 
