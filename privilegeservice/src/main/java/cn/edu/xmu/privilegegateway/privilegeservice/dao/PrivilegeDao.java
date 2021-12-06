@@ -83,7 +83,6 @@ public class PrivilegeDao {
     public final static Byte NORMAL=0;
     public final static Integer MODIFIED=1;
     public final static Integer NOTMODIFIED=0;
-    public final static String DELETEROLEPRIVILEGEPATH="RolePrivilege/DeleteRolePrivilege.lua";
     /**
      * 重写签名和加密
      * @author Ming Qiu
