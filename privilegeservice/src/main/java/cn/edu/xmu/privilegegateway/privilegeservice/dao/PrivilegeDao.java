@@ -30,6 +30,8 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExam
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.AdminVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
@@ -39,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -47,6 +50,12 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,18 +64,32 @@ import java.util.stream.Stream;
  * @author Ming Qiu
  **/
 @Repository
-public class PrivilegeDao implements InitializingBean {
+public class PrivilegeDao {
 
     private  static  final Logger logger = LoggerFactory.getLogger(PrivilegeDao.class);
 
+    @Value("${privilegeservice.role.expiretime}")
+    private long timeout;
 
     @Autowired
     private PrivilegePoMapper poMapper;
+
     @Autowired
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+
+    @Autowired
+    private RedisUtil redisUtil;
+
+    @Autowired
+    private BaseCoder baseCoder;
+
+    final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
+    final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
+
+    private static final String PRIVKEY = "%s-%d";
 
 
 
@@ -89,43 +112,24 @@ public class PrivilegeDao implements InitializingBean {
     public final static Integer OK=0;
 
     /**
-     * 将权限载入到本地缓存中
-     * 如果未初始化，则初始话数据中的数据
-     * @throws Exception
-     * createdBy: Ming Qiu 2020-11-01 23:44
-     * modifiedBy: Ming Qiu 2020-11-03 11:44
-     *            将签名的认证改到Privilege对象中去完成
-     *            Ming Qiu 2020-12-03 9:44
-     *            将缓存放到redis中
+     * 重写签名和加密
+     * @author Ming Qiu
+     * date： 2021/12/04 16:01
      */
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        PrivilegePoExample example = new PrivilegePoExample();
-        List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
-        for (PrivilegePo po : privilegePos){
-            Privilege priv = new Privilege(po);
-            if (priv.authetic()) {
-                logger.debug("afterPropertiesSet: key = " + priv.getKey() + " p = " + priv);
-                redisTemplate.opsForHash().putIfAbsent("Priv", priv.getKey(), priv.getId());
-            }else{
-                logger.debug("afterPropertiesSet: id = " + priv.getId()+ ",Sign = "+priv.getSignature()+". cacuSign="+priv.getCacuSignature());
-                logger.error("afterPropertiesSet: Wrong Signature(auth_privilege): id = " + priv.getId());
-            }
-        }
-    }
-
     public void initialize() {
         PrivilegePoExample example = new PrivilegePoExample();
         List<PrivilegePo> privilegePos = poMapper.selectByExample(example);
         for (PrivilegePo po : privilegePos) {
-            if (null == po.getSignature()) {
-                Privilege priv = new Privilege(po);
-                PrivilegePo newPo = new PrivilegePo();
-                newPo.setId(po.getId());
-                newPo.setSignature(priv.getCacuSignature());
-                logger.debug("initialize: id = " + newPo.getId() + ",Sign = " + newPo.getSignature());
-                poMapper.updateByPrimaryKeySelective(newPo);
-            }
+            PrivilegePo newPo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
+            logger.debug("initialize: id = " + newPo.getId() + ",Sign = " + newPo.getSignature());
+            poMapper.updateByPrimaryKeySelective(newPo);
+        }
+
+        RolePrivilegePoExample example1 = new RolePrivilegePoExample();
+        List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example1);
+        for (RolePrivilegePo po : rolePrivilegePos) {
+            RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.code_sign(po, RolePrivilegePo.class, null, newRolePrivilegeSignFields, "signature");
+            rolePrivilegePoMapper.updateByPrimaryKeySelective(newPo);
         }
     }
 
@@ -137,11 +141,9 @@ public class PrivilegeDao implements InitializingBean {
      * createdBy: Ming Qiu 2020-11-01 23:44
      */
     public Long getPrivIdByKey(String url, Privilege.RequestType requestType){
-        StringBuffer key = new StringBuffer(url);
-        key.append("-");
-        key.append(requestType.getCode());
+        String key = String.format(PRIVKEY, url, requestType.getCode());
         logger.info("getPrivIdByKey: key = "+key.toString());
-        return (Long) this.redisTemplate.opsForHash().get("Priv", key.toString());
+        return (Long) this.redisUtil.get(key);
     }
 
     /**
@@ -354,14 +356,76 @@ public class PrivilegeDao implements InitializingBean {
         }
     }
     /**
+     * 由Role Id 获得 Privilege Id 列表
+     *
+     * @param id: Role id
+     * @return Privilege Id 列表
+     * created by Ming Qiu in 2020/11/3 11:48
+     */
+    public ReturnObject getPrivIdsByRoleId(Long id) {
+        try{
+            RolePrivilegePoExample example = new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+            criteria.andRoleIdEqualTo(id);
+            List<RolePrivilegePo> rolePrivilegePos = rolePrivilegePoMapper.selectByExample(example);
+            List<Long> retIds = new ArrayList<>(rolePrivilegePos.size());
+            for (RolePrivilegePo po : rolePrivilegePos) {
+                RolePrivilegePo newPo = (RolePrivilegePo) baseCoder.decode_check(po,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+                if (newPo.getSignature()==null) {
+                    logger.debug("getPrivIdsBByRoleId: roleId = " + po.getRoleId() + " privId = " + po.getPrivilegeId());
+                }
+                retIds.add(po.getPrivilegeId());
+            }
+            return new ReturnObject(retIds);
+        }catch(Exception e){
+            logger.error("getPrivIdsBByRoleId: "+e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+        }
+    }
+
+    /**
      * 权限的影响力分析
      * 任务3-7
-     * 删除和禁用某个权限时，删除所以影响的role，group和user的redisKey
+     * 删除和禁用某个权限时，返回所有影响的role，group和user的redisKey
      * @param privId 权限id
      * @return 影响的role，group和user的redisKey
      */
-    public List<String> privilegeImpact(Long privId){
+    public Collection<String> privilegeImpact(Long privId){
         return null;
     }
 
+    /**
+     * 将一个角色的所有权限id载入到Redis
+     *
+     * @param id 角色id
+     * @param roleDao
+     * @return void
+     *
+     * createdBy: Ming Qiu 2020-11-02 11:44
+     * ModifiedBy: Ming Qiu 2020-11-03 12:24
+     * 将读取权限id的代码独立为getPrivIdsByRoleId. 增加redis值的有效期
+     *            Ming Qiu 2020-11-07 8:00
+     * 集合里强制加“0”
+     */
+    public ReturnObject loadBaseRolePriv(Long id) {
+        try{
+            ReturnObject returnObject = getPrivIdsByRoleId(id);
+            if(returnObject.getCode()!=ReturnNo.OK){
+                return returnObject;
+            }
+            List<Long> privIds = (List<Long>) returnObject.getData();
+            String key = String.format(RoleDao.BASEROLEKEY, id);
+            for (Long pId : privIds) {
+                redisUtil.addSet(key, pId);
+            }
+            long randTimeout = Common.addRandomTime(timeout);
+            redisUtil.addSet(key,0);
+            redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
+            return new ReturnObject(ReturnNo.OK);
+        }catch (Exception e){
+            logger.error("loadBaseRolePriv:"+e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        }
+
+    }
 }

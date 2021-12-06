@@ -21,9 +21,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.NewUserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPoExample;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -58,10 +56,6 @@ public class NewUserDao implements InitializingBean {
     private  static  final Logger logger = LoggerFactory.getLogger(NewUserDao.class);
     @Autowired
     NewUserPoMapper newUserPoMapper;
-    @Autowired
-    UserPoMapper userPoMapper;
-    @Autowired
-    RedisTemplate redisTemplate;
 
     @Autowired
     BloomFilter<String> stringBloomFilter;
@@ -291,6 +285,28 @@ public class NewUserDao implements InitializingBean {
             return new ReturnObject(newUserPos);
         }catch (DataAccessException e){
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+    }
+
+    /**
+     * 重写签名和加密
+     * @author Ming Qiu
+     * date： 2021/12/04 16:01
+     */
+    public void initialize() throws Exception {
+        //初始化user
+        NewUserPoExample example = new NewUserPoExample();
+        List<NewUserPo> userPos = newUserPoMapper.selectByExample(example);
+
+        for (NewUserPo po : userPos) {
+            NewUserPo newUserPo = null;
+            if (null == po.getSignature()) {
+                newUserPo = (NewUserPo) baseCoder.code_sign(po, NewUserPo.class, codeFields, signFields, "signature");
+            }else{
+                newUserPo = (NewUserPo) baseCoder.code_sign(po, NewUserPo.class, null, signFields, "signature");
+            }
+            logger.debug("initialize: newUserPo = "+newUserPo.toString());
+            newUserPoMapper.updateByPrimaryKeySelective(newUserPo);
         }
     }
 }

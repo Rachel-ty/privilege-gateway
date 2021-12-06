@@ -1,7 +1,24 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.service;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
@@ -84,25 +101,6 @@ public class RoleService {
         return retObj;
     }
 
-    @Transactional
-    public void clearuserByroleId(Long id){
-        userDao.clearUserByRoleId(id);
-    }
-
-    /**
-     * author:zhangyu
-     * 查询功能角色权限
-     * @param roleid
-     * @param pagenum
-     * @param pagesize
-     * @return
-     */
-    @Transactional(readOnly = true)
-    public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
-    {
-        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
-
-    }
     /**
      * 查询角色权限
      * @param id 角色id
@@ -125,6 +123,19 @@ public class RoleService {
     @Transactional
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
         ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
+        return ret;
+    }
+    /**
+     * 取消角色权限
+     * @param id 角色权限id
+     * @return 权限列表
+     * createdBy wc 24320182203277
+     */
+    @Transactional
+    public ReturnObject<Object> delRolePriv(Long id){
+        ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
+        //删除成功，缓存中干掉用户
+//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
         return ret;
     }
 

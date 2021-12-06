@@ -146,7 +146,9 @@
                     <includes>
                         <include>**/*Test.java</include>
                     </includes>
-                    <!--                    <skip>true</skip>-->
+<!--
+                    <skip>true</skip>
+-->
                 </configuration>
             </plugin>
         </plugins>

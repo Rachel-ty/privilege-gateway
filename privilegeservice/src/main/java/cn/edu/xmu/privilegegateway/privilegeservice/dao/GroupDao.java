@@ -22,6 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
@@ -29,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -46,10 +48,13 @@ public class GroupDao {
     private GroupRelationPoMapper groupRelationPoMapper;
 
     @Autowired
-    private RoleDao roleDao;
+    private GroupPoMapper groupPoMapper;
+
+    @Autowired @Lazy
+    private UserDao userDao;
 
     @Autowired
-    GroupPoMapper groupPoMapper;
+    private RoleDao roleDao;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -97,7 +102,7 @@ public class GroupDao {
             criteria.andUserIdEqualTo(id);
             List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + userGroupPoList.size());
-            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature");
+            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (UserGroupPo po : userGroupPosDecoded) {
                 retIds.add(po.getGroupId());
@@ -122,7 +127,7 @@ public class GroupDao {
             criteria.andGroupSIdEqualTo(groupId);
             List<GroupRelationPo>groupRelationPos = groupRelationPoMapper.selectByExample(example);
             logger.debug("getSuperiorGroupIdsByGroupId: groupId = " + groupId);
-            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(groupRelationPos,GroupRelationPo.class,baseCoder,null,newGroupSignFields,"signature");
+            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(groupRelationPos,GroupRelationPo.class,baseCoder,null,newGroupSignFields,"signature",false);
             return new ReturnObject(ret);
         }catch (Exception e){
             logger.error("getSuperiorGroupIdsByGroupId: "+e.getMessage());
@@ -227,14 +232,80 @@ public class GroupDao {
         }
     }
 
+    public void initialize(){
+        //初始化UserGroup
+        UserGroupPoExample example = new UserGroupPoExample();
+        List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
+        for (UserGroupPo po : userGroupPoList) {
+            UserGroupPo newUserRolePo = (UserGroupPo) baseCoder.code_sign(po, UserGroupPo.class,null,newUserGroupSignFields,"signature");
+            userGroupPoMapper.updateByPrimaryKeySelective(newUserRolePo);
+        }
+
+        //初始化GroupRelation
+        GroupRelationPoExample example1 = new GroupRelationPoExample();
+        List<GroupRelationPo> groupRelationPos = groupRelationPoMapper.selectByExample(example1);
+        for (GroupRelationPo po: groupRelationPos){
+            GroupRelationPo newPo = (GroupRelationPo) baseCoder.code_sign(po, GroupRelationPo.class, null, newGroupSignFields, "signature");
+            groupRelationPoMapper.updateByPrimaryKeySelective(newPo);
+        }
+
+    }
+
     /**
      * 组的影响力分析
      * 任务3-5
-     * 删除和禁用某个权限时，删除所有影响的group和user的redisKey
+     * 删除和禁用某个权限时，返回所有影响的group和user的redisKey
      * @param groupId 组id
      * @return 影响的group和user的redisKey
      */
-    public List<String> groupImpact(Long groupId){
-        return null;
+    public Collection<String> groupImpact(Long groupId){
+        Collection<String> keys = new ArrayList<>();
+        HashSet<Long> groupIds = new HashSet<>();
+        HashSet<Long> userIds = new HashSet<>();
+        getAllGroups(groupId,groupIds);
+        groupIds.add(groupId);
+        for (Long gId: groupIds){
+            String gKey= String.format(GROUPKEY,gId);
+            if(redisUtil.hasKey(gKey)){
+                keys.add(gKey);
+            }
+            UserGroupPoExample example = new UserGroupPoExample();
+            UserGroupPoExample.Criteria criteria = example.createCriteria();
+            criteria.andGroupIdEqualTo(gId);
+            List<UserGroupPo> userGroupPos = userGroupPoMapper.selectByExample(example);
+            for (UserGroupPo userGroupPo: userGroupPos){
+                Collection<String> uKeys = userDao.userImpact(userGroupPo.getUserId());
+                if (userIds.add(userGroupPo.getUserId())){
+                    String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
+                    if (redisUtil.hasKey(uKey)){
+                        keys.add(uKey);
+                    }
+                }
+                for (String uKey : uKeys){
+                    String id = uKey.substring(UserDao.USERKEY.length()-2);
+                    if (userIds.add(Long.parseLong(id))){
+                        if (redisUtil.hasKey(uKey)){
+                            keys.add(uKey);
+                        }
+                    }
+                }
+            }
+        }
+        return keys;
+    }
+
+    public void getAllGroups(Long groupId,HashSet<Long> groupIds){
+        GroupRelationPoExample example = new GroupRelationPoExample();
+        GroupRelationPoExample.Criteria criteria = example.createCriteria();
+        criteria.andGroupPIdEqualTo(groupId);
+        List<GroupRelationPo> groupRelationPos = groupRelationPoMapper.selectByExample(example);
+        if(groupRelationPos==null||groupRelationPos.size()==0){
+            return;
+        }else{
+            for (GroupRelationPo groupRelationPo : groupRelationPos){
+                groupIds.add(groupRelationPo.getGroupSId());
+                getAllGroups(groupRelationPo.getGroupSId(),groupIds);
+            }
+        }
     }
 }
