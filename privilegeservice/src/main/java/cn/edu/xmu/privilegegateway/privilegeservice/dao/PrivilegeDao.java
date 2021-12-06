@@ -83,7 +83,7 @@ public class PrivilegeDao {
     public final static Byte NORMAL=0;
     public final static Integer MODIFIED=1;
     public final static Integer NOTMODIFIED=0;
-
+    public final static String DELETEROLEPRIVILEGEPATH="RolePrivilege/DeleteRolePrivilege.lua";
     /**
      * 重写签名和加密
      * @author Ming Qiu
@@ -411,9 +411,13 @@ public class PrivilegeDao {
             RolePrivilegePoExample.Criteria criteria = example.createCriteria();
             criteria.andRoleIdEqualTo(rid);
             criteria.andPrivilegeIdEqualTo(pid);
-            String key=String.format(RoleDao.BASEROLEKEY,rid);
-
             rolePrivilegePoMapper.deleteByExample(example);
+            //删除缓存功能角色权限
+            String key=String.format(RoleDao.BASEROLEKEY,rid);
+            DefaultRedisScript script = new DefaultRedisScript<>();
+            script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETEROLEPRIVILEGEPATH)));
+            List<String> keys = Stream.of(key).collect(Collectors.toList());
+            redisUtil.executeScript(script, keys,pid);
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {

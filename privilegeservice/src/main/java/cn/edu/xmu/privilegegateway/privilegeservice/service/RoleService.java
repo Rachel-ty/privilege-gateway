@@ -155,7 +155,6 @@ public class RoleService {
             {
                 redisUtil.del(key);
             }
-            roleDao.unloadRolePrivilege(rid,pid);
            return  privilegeDao.delRolePriv(rid,pid);
         }
         return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);

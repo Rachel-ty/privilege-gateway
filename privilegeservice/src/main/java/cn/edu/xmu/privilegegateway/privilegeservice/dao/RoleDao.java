@@ -102,7 +102,6 @@ public class RoleDao {
 
     public final static Integer MODIFIED=1;
     public final static Integer NOTMODIFIED=0;
-    public final static String DELETEROLEPRIVILEGEPATH="RolePrivilege/DeleteRolePrivilege.lua";
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -530,15 +529,6 @@ public class RoleDao {
             return false;
         }
         return true;
-    }
-    //从缓存删除角色权限
-    public Object unloadRolePrivilege(Long rid,Long pid)
-    {
-        String key=String.format(BASEROLEKEY,rid);
-        DefaultRedisScript script = new DefaultRedisScript<>();
-        script.setScriptSource(new ResourceScriptSource(new ClassPathResource(DELETEROLEPRIVILEGEPATH)));
-        List<String> keys = Stream.of(key).collect(Collectors.toList());
-        redisUtil.executeScript(script, keys,pid);
     }
     /**
      * 角色的影响力分析
