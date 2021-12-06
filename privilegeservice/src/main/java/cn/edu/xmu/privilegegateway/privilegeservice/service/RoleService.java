@@ -133,9 +133,10 @@ public class RoleService {
     {
         if(roleDao.isBaseRole(roleid))
         {
-
+            return privilegeDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
         }
-        return roleDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+        else
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
     }
 
     /**
@@ -154,10 +155,10 @@ public class RoleService {
             {
                 redisUtil.del(key);
             }
-            privilegeDao.
+            roleDao.unloadRolePrivilege(rid,pid);
+           return  privilegeDao.delRolePriv(rid,pid);
         }
-        ReturnObject<Object> ret = roleDao.delBaseRolePriv(rid,pid);
-        return ret;
+        return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
     }
     /**
      * 取消角色权限
@@ -188,7 +189,15 @@ public class RoleService {
     public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
         //新增
         if(roleDao.isBaseRole(roleid))
+        {
+            Collection<String> keys=roleDao.roleImpact(roleid);
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
             return privilegeDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
+        }
+
         else
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
     }

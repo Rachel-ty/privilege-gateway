@@ -14,10 +14,10 @@ public class BaseRolePrivilegeRetVo {
     private Long id;
 
     private String name;
-    @JsonFormat(pattern = "yyyy-MM-ddTHH:mm:ss.SSSZ", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT+8")
     private LocalDateTime gmtCreate;
 
-    @JsonFormat(pattern = "yyyy-MM-ddTHH:mm:ss.SSSZ", timezone = "GMT+8")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZ", timezone = "GMT+8")
     private LocalDateTime gmtModified;
 
     private AdminVo creator;

@@ -22,10 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.PrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.RolePrivilegePoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePoExample;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
@@ -410,7 +407,7 @@ public class PrivilegeDao {
             criteria.andRoleIdEqualTo(rid);
             criteria.andPrivilegeIdEqualTo(pid);
             String key=String.format(RoleDao.BASEROLEKEY,rid);
-            redisUtil.del(key);
+
             rolePrivilegePoMapper.deleteByExample(example);
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
@@ -418,7 +415,54 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
-
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/25 20:04
+     * @version: 1.0
+     */
+    /**
+     * 查询功能角色权限，先根据roleid查询privilegeid,再根据privilegeidc查询
+     *
+     * @param rid
+     * @param pagenum
+     * @param pagesize
+     * @return
+     */
+    public ReturnObject selectBaseRolePrivs(Long rid, Integer pagenum, Integer pagesize)
+    {
+        try{
+            PageHelper.startPage(pagenum,pagesize);
+            RolePrivilegePoExample example=new RolePrivilegePoExample();
+            RolePrivilegePoExample.Criteria criteria=example.createCriteria();
+            criteria.andRoleIdEqualTo(rid);
+            List<RolePrivilegePo> pos=rolePrivilegePoMapper.selectByExample(example);
+            //判断是否篡改
+            List<RolePrivilegePo> newpos=Common.listDecode(pos,RolePrivilegePo.class,baseCoder,null,newRolePrivilegeSignFields,"signature",true);
+            List<BaseRolePrivilegeRetVo> volist=new ArrayList<>();
+            for(RolePrivilegePo po:newpos)
+            {
+                //查询对应的权限信息
+                PrivilegePo privilege=poMapper.selectByPrimaryKey(po.getPrivilegeId());
+                //判断权限是否修改
+                BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo)Common.cloneVo(po,BaseRolePrivilegeRetVo.class);
+                Integer sign=NOTMODIFIED;
+                if(privilege.getSignature()==null||po.getSignature()==null)
+                {
+                    sign=MODIFIED;
+                }
+                vo.setSign(sign);
+                vo.setName(privilege.getName());
+                vo.setId(privilege.getId());
+                volist.add(vo);
+            }
+            PageInfo<BaseRolePrivilegeRetVo> pageInfo=new PageInfo<>(volist);
+            ReturnObject returnObject=new ReturnObject(pageInfo);
+            return Common.getPageRetVo(returnObject,BaseRolePrivilegeRetVo.class);
+        }catch(Exception e)
+        {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库发生错误",e.getMessage()));
+        }
+    }
     /**
      * 由Role Id 获得 Privilege Id 列表
      *
