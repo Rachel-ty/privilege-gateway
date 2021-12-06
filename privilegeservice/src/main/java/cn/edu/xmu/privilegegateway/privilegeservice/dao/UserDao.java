@@ -129,8 +129,6 @@ public class UserDao{
     private final static String CAPTCHAKEY = "cp_%s";
 
 
-    final static Collection<String> codeFields = new ArrayList<>();
-
     public ReturnObject setUsersProxy(UserProxy bo) {
         try {
             if (isExistProxy(bo)) {
@@ -150,7 +148,7 @@ public class UserDao{
             bo.setUserName(user.getData().getName());
             bo.setProxyUserName(proxyUser.getData().getName());
             bo.setValid((byte) 0);
-            UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, codeFields, proxySignFields, "signature");
+            UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, null, proxySignFields, "signature");
             userProxyPoMapper.insert(userProxyPo);
             UserProxy userProxy = (UserProxy) Common.cloneVo(userProxyPo, UserProxy.class);
             userProxy.setSign((byte)0);
@@ -197,7 +195,7 @@ public class UserDao{
             List<UserProxyRetVo> list = (List<UserProxyRetVo>) data.get("list");
             boolean flag=true;
             for(int i=0;i<list.size();i++){
-                UserProxyPo u = (UserProxyPo) baseCoder.decode_check(results.get(i),null, codeFields, proxySignFields, "signature");
+                UserProxyPo u = (UserProxyPo) baseCoder.decode_check(results.get(i),null, null, proxySignFields, "signature");
                 if (u.getSignature()!=null) {
                     list.get(i).setSign((byte)0);
                 }else {
@@ -317,6 +315,7 @@ public class UserDao{
             UserBo userBo = (UserBo)baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
             if(userBo.getSignature() == null){
                 logger.error("getUserByName: 签名错误(auth_user_group):"+ userPo.getId());
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
             return new ReturnObject<>(userBo);
         }
@@ -806,10 +805,11 @@ public class UserDao{
         for (UserPo po : userPos) {
             UserPo newUserPo = null;
             if (null==po.getSignature()) {
-                newUserPo=(UserPo) baseCoder.code_sign(po, UserPo.class, codeFields, userSignFields, "signature");
+                newUserPo=(UserPo) baseCoder.code_sign(po, UserPo.class, userCodeFields, userSignFields, "signature");
             } else {
                 newUserPo=(UserPo) baseCoder.code_sign(po, UserPo.class, null, userSignFields, "signature");
             }
+            logger.debug("initialize: userPo = "+ newUserPo.toString());
             userMapper.updateByPrimaryKeySelective(newUserPo);
         }
 

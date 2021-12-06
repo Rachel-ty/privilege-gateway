@@ -596,24 +596,32 @@ public class Common {
      * @param codeFields 加密属性
      * @param signFields 签名属性 null代表不检验签名
      * @param signTarget 签名字段 null代表不检验签名
+     * @param sign  true时需要加入签名不对的,false则不需要
      * @return 投影后对象
      * @author RenJieZheng 22920192204334
      */
     public static List listDecode(List srcList, Class tgtClass, BaseCoder baseCoder,
-                                  Collection<String> codeFields, List<String>  signFields, String signTarget) {
+                                  Collection<String> codeFields, List<String>  signFields, String signTarget,Boolean sign) {
         try{
             List<Object>tgt = new ArrayList<>();
             //baseCoder不为空表示要进行解密和签名校验
             if(baseCoder!=null){
-                Field field = tgtClass.getDeclaredField(signTarget);
-                field.setAccessible(true);
-                for(Object obj:srcList){
-                    Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
-                    if (field.get(object)==null) {
-                        //这个不需要再log了，decodecheck里面已经log过了
-                        //logger.error("listDecode: 签名错误(auth_user_group):"+obj.toString());
+                if(sign){
+                    for(Object obj:srcList){
+                        // 已经在decode_check中加入日志
+                        Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
+                        tgt.add(object);
                     }
-                    tgt.add(object);
+                }else{
+                    Field field = tgtClass.getDeclaredField(signTarget);
+                    field.setAccessible(true);
+                    for(Object obj:srcList){
+                        // 已经在decode_check中加入日志
+                        Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
+                        if (field.get(object)!=null) {
+                            tgt.add(object);
+                        }
+                    }
                 }
             }else{
                 return null;
