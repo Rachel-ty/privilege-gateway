@@ -138,7 +138,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             script.setScriptSource(new ResourceScriptSource(new ClassPathResource(scriptPath)));
             script.setResultType(Boolean.class);
 
-            List<String> keyList = List.of(banSetNames);
+            List<String> keyList = Arrays.asList(banSetNames);
 
             Boolean baned = redisUtil.executeScript(script, keyList, token);
 
