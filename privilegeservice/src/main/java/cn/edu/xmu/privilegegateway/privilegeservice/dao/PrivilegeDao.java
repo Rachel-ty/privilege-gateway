@@ -266,7 +266,7 @@ public class PrivilegeDao {
                 poMapper.insertSelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
-                retVo.setSign(MODIFIED);
+                retVo.setSign(NOTMODIFIED);
                 return new ReturnObject(retVo);
         }catch (DuplicateFormatFlagsException e)
         {
