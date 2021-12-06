@@ -26,7 +26,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -711,12 +710,12 @@ public class RoleDao {
         List<GroupRolePo> gList=groupRoleDao.selectByRoleId(roleId).getData();
         for(GroupRolePo groupRolePo:gList){
             Collection list=groupDao.groupImpact(groupRolePo.getGroupId());
-            if(list!=null&&!list.isEmpty()) resultSet.addAll(list);
+            resultSet.addAll(list);
         }
         List<UserRolePo> uList=userRoleDao.selectByRoleId(roleId).getData();
         for(UserRolePo userRolePo:uList){
             Collection list=userDao.userImpact(userRolePo.getUserId());
-            if(list!=null&&!list.isEmpty())resultSet.addAll(list);
+            resultSet.addAll(list);
         }
         RoleInheritedPoExample example=new RoleInheritedPoExample();
         RoleInheritedPoExample.Criteria criteria=example.createCriteria();

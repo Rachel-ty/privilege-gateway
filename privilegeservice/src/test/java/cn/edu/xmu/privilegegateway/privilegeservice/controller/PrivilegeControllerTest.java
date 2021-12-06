@@ -458,7 +458,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
-                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -478,7 +478,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                .contentType("application/json;charset=UTF-8").content(json))
+                        .contentType("application/json;charset=UTF-8").content(json))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -493,7 +493,7 @@ public class PrivilegeControllerTest {
         String json1 = JacksonUtil.toJson(loginVo1);
         //密码错误
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                .contentType("application/json;charset=UTF-8").content(json1))
+                        .contentType("application/json;charset=UTF-8").content(json1))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         expectedString = "{\n" +
@@ -512,7 +512,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
-                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -636,7 +636,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-       expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
     }
     @Test
@@ -743,17 +743,6 @@ public class PrivilegeControllerTest {
     @Test
     public void roleImp() throws JSONException {
         List list=new ArrayList();
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,10L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,11L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,12L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(GROUPKEY,13L))).thenReturn(true);
-
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(true);
         list.add(String.format(USERKEY,60L));
         list.add(String.format(ROLEKEY,2L));
         list.add(String.format(GROUPKEY,10L));
@@ -763,8 +752,9 @@ public class PrivilegeControllerTest {
         list.add(String.format(USERKEY,49L));
         list.add(String.format(ROLEKEY,5L));
         list.add(String.format(ROLEKEY,23L));
-        String except=list.toString();
+        String except="[r_2, u_1, g_10, r_3, g_11, r_6, g_12, r_5, g_13, u_51, u_3123, u_4356, u_60, u_2234, u_59, u_49, u_57, r_23]";
         String result=roleDao.roleImpact(23L).toString();
+        System.out.println(result);
         JSONAssert.assertEquals(result, except,false);
     }
 }
