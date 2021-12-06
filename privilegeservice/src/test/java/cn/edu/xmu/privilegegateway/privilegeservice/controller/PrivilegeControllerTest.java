@@ -764,7 +764,8 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,49L))).thenReturn(true);
         Mockito.when(redisUtil.hasKey(String.format(USERKEY,51L))).thenReturn(true);
-        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(false);
+        Mockito.when(redisUtil.hasKey(String.format(USERKEY,60L))).thenReturn(true);
+        list.add(String.format(USERKEY,60L));
         list.add(String.format(ROLEKEY,2L));
         list.add(String.format(GROUPKEY,10L));
         list.add(String.format(ROLEKEY,3L));
