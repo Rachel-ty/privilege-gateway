@@ -365,6 +365,7 @@ public class PrivilegeDao {
     public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
         try
         {
+            Collection<String> keys=roleDao.roleImpact(roleid);
             RolePrivilegePo rolePrivilegePo=new RolePrivilegePo();
             rolePrivilegePo.setRoleId(roleid);
             rolePrivilegePo.setPrivilegeId(privilegeid);
@@ -391,6 +392,10 @@ public class PrivilegeDao {
             vo.setSign(sign);
             vo.setName(privilege.getName());
             vo.setId(privilege.getId());
+            for(String key:keys)
+            {
+                redisUtil.del(key);
+            }
             return new ReturnObject(vo);
 
         }catch (DuplicateFormatFlagsException e)
@@ -416,6 +421,7 @@ public class PrivilegeDao {
      */
     public ReturnObject delRolePriv(Long rid,Long pid){
         try {
+            Collection<String> keys=roleDao.roleImpact(rid);
             RolePrivilegePoExample example = new RolePrivilegePoExample();
             RolePrivilegePoExample.Criteria criteria = example.createCriteria();
             criteria.andRoleIdEqualTo(rid);
@@ -424,6 +430,11 @@ public class PrivilegeDao {
             //删除缓存功能角色权限
             String key=String.format(RoleDao.BASEROLEKEY,rid);
             redisUtil.del(key);
+            //删除角色相关
+            for(String rkey:keys)
+            {
+                redisUtil.del(rkey);
+            }
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
