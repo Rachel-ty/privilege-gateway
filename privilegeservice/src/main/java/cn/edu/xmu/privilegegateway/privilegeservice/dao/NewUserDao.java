@@ -301,10 +301,11 @@ public class NewUserDao implements InitializingBean {
         for (NewUserPo po : userPos) {
             NewUserPo newUserPo = null;
             if (null == po.getSignature()) {
-                newUserPo = (NewUserPo) baseCoder.code_sign(po, UserPo.class, codeFields, signFields, "signature");
+                newUserPo = (NewUserPo) baseCoder.code_sign(po, NewUserPo.class, codeFields, signFields, "signature");
             }else{
-                newUserPo = (NewUserPo) baseCoder.code_sign(po, UserPo.class, null, signFields, "signature");
+                newUserPo = (NewUserPo) baseCoder.code_sign(po, NewUserPo.class, null, signFields, "signature");
             }
+            logger.debug("initialize: newUserPo = "+newUserPo.toString());
             newUserPoMapper.updateByPrimaryKeySelective(newUserPo);
         }
     }

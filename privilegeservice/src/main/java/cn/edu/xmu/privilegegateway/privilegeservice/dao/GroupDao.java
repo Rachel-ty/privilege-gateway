@@ -16,6 +16,7 @@
 
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -26,6 +27,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,7 +104,7 @@ public class GroupDao {
             criteria.andUserIdEqualTo(id);
             List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + userGroupPoList.size());
-            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature");
+            List<UserGroupPo> userGroupPosDecoded = Common.listDecode(userGroupPoList,UserGroupPo.class,baseCoder,null,newUserGroupSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (UserGroupPo po : userGroupPosDecoded) {
                 retIds.add(po.getGroupId());
@@ -127,7 +129,7 @@ public class GroupDao {
             criteria.andGroupSIdEqualTo(groupId);
             List<GroupRelationPo>groupRelationPos = groupRelationPoMapper.selectByExample(example);
             logger.debug("getSuperiorGroupIdsByGroupId: groupId = " + groupId);
-            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(groupRelationPos,GroupRelationPo.class,baseCoder,null,newGroupSignFields,"signature");
+            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(groupRelationPos,GroupRelationPo.class,baseCoder,null,newGroupSignFields,"signature",false);
             return new ReturnObject(ret);
         }catch (Exception e){
             logger.error("getSuperiorGroupIdsByGroupId: "+e.getMessage());

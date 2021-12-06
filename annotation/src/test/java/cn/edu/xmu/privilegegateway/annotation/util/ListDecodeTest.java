@@ -41,7 +41,7 @@ public class ListDecodeTest {
         Collection<String>  codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
         List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
         List<UserPo>list1 = Arrays.asList(userPo);
-        List<UserPo>list2 = (List<UserPo>) Common.listDecode(list1,UserPo.class,coder,codeFields,signFields,"signature");
+        List<UserPo>list2 = (List<UserPo>) Common.listDecode(list1,UserPo.class,coder,codeFields,signFields,"signature",true);
         assertNotNull(list2);
         assertEquals(1L,list2.get(0).getId());
     }
