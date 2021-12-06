@@ -25,7 +25,7 @@ mybatis:
     map-underscore-to-camel-case: true
 
 privilegeservice:
-  initialization: true
+  initialization: false
   lockerExpireTime: 30
   dav:
     username: ooad_javaee
