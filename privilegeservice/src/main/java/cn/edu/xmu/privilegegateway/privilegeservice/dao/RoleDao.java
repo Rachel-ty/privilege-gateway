@@ -17,6 +17,10 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
@@ -24,19 +28,18 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -54,11 +57,29 @@ public class RoleDao {
     @Value("${privilegeservice.role.expiretime}")
     private long timeout;
 
+    @Autowired@Lazy
+    private GroupDao groupDao;
+
+    @Autowired @Lazy
+    private UserDao userDao;
+
     @Autowired
     private RolePoMapper roleMapper;
 
     @Autowired
+    private UserPoMapper userMapper;
+
+    @Autowired
+    private PrivilegePoMapper privilegePoMapper;
+
+    @Autowired
     private UserRolePoMapper userRolePoMapper;
+
+    @Autowired
+    private UserProxyPoMapper userProxyPoMapper;
+
+    @Autowired
+    private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private GroupRolePoMapper groupRolePoMapper;
@@ -70,12 +91,19 @@ public class RoleDao {
     PrivilegeDao privDao;
 
     @Autowired
+    private RedisTemplate<String, Serializable> redisTemplate;
+
+    @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private GroupRoleDao groupRoleDao;
+    @Autowired
+    private UserRoleDao userRoleDao;
     /**
      * 用户的redis key：r_id values:set{br_id};
      */
-    private final static String ROLEKEY = "r_%d";
+    public final static String ROLEKEY = "r_%d";
     public final static String BASEROLEKEY = "br_%d";
 
     /**
@@ -129,7 +157,7 @@ public class RoleDao {
             criteria.andRoleCIdEqualTo(roleId);
             List<RoleInheritedPo>roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
             logger.debug("getSuperiorRoleIdsByRoleId: roleId = " + roleId);
-            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature");
+            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature",false);
             return new ReturnObject(ret);
         }catch (Exception e){
             logger.error("getSuperiorRoleIdsByRoleId: "+e.getMessage());
@@ -573,7 +601,7 @@ public class RoleDao {
             criteria.andUserIdEqualTo(id);
             List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
-            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature");
+            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (UserRolePo po : userRolePosDecoded) {
                 retIds.add(po.getRoleId());
@@ -599,7 +627,7 @@ public class RoleDao {
             criteria.andGroupIdEqualTo(id);
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
-            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature");
+            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature",false);
             List<Long> retIds = new ArrayList<>();
             for (GroupRolePo po : groupRolePosDecoded) {
                 retIds.add(po.getRoleId());
@@ -674,6 +702,30 @@ public class RoleDao {
      * @return 影响的role，group和user的redisKey
      */
     public Collection<String> roleImpact(Long roleId){
-        return null;
+        Set<String> impactList=new HashSet<String>();
+        getRoleAndRelactiveKey(roleId,impactList);
+        return impactList;
+    }
+    public void getRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
+        resultSet.add(String.format(ROLEKEY,roleId));
+        List<GroupRolePo> gList=groupRoleDao.selectByRoleId(roleId).getData();
+        for(GroupRolePo groupRolePo:gList){
+            Collection list=groupDao.groupImpact(groupRolePo.getGroupId());
+            if(list!=null&&!list.isEmpty()) resultSet.addAll(list);
+        }
+        List<UserRolePo> uList=userRoleDao.selectByRoleId(roleId).getData();
+        for(UserRolePo userRolePo:uList){
+            Collection list=userDao.userImpact(userRolePo.getUserId());
+            if(list!=null&&!list.isEmpty())resultSet.addAll(list);
+        }
+        RoleInheritedPoExample example=new RoleInheritedPoExample();
+        RoleInheritedPoExample.Criteria criteria=example.createCriteria();
+        criteria.andRoleIdEqualTo(roleId);
+        List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
+        for(RoleInheritedPo roleInheritedPo:roleList){
+            if(!resultSet.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
+                getRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultSet);
+            }
+        }
     }
 }
