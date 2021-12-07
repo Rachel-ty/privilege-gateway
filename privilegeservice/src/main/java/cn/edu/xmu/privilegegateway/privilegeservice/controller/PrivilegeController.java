@@ -286,7 +286,7 @@ public class PrivilegeController {
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        return privilegeService.ForbidPriv(pid,modifiedId,modifiedName);
+        return Common.decorateReturnObject(privilegeService.ForbidPriv(pid,modifiedId,modifiedName));
     }
     /*解禁权限*/
 
