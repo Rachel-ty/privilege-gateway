@@ -37,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
@@ -47,6 +48,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 /**
  * 权限DAO
@@ -68,6 +70,9 @@ public class PrivilegeDao {
 
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
+    @Autowired
+    @Lazy
+    private RoleDao roleDao;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -237,11 +242,33 @@ public class PrivilegeDao {
      * 权限的影响力分析
      * 任务3-7
      * 删除和禁用某个权限时，返回所有影响的role，group和user的redisKey
+     * @author zihan zhou 19720192203768
      * @param privId 权限id
      * @return 影响的role，group和user的redisKey
      */
     public Collection<String> privilegeImpact(Long privId){
-        return null;
+        List<Long> roleIdList =findRoleId(privId);
+        Set<String> resultSet=new HashSet<>();
+        for (Long roleId : roleIdList) {
+            Collection<String> roleImpact=roleDao.roleImpact(roleId);
+            resultSet.addAll(roleImpact);
+        }
+        return resultSet;
+    }
+
+    public List<Long> findRoleId(Long privId) {
+        RolePrivilegePoExample example = new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+        criteria.andPrivilegeIdEqualTo(privId);
+        List<RolePrivilegePo> gList = rolePrivilegePoMapper.selectByExample(example);
+        if(gList==null||gList.size()==0){
+            return new ArrayList<>();
+        }
+        List<Long> resultList = new ArrayList<>();
+        for (RolePrivilegePo po : gList) {
+            resultList.add(po.getRoleId());
+        }
+        return resultList;
     }
 
     /**
