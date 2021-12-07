@@ -9,6 +9,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.AES;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,6 +23,7 @@ import java.util.Map;
  * Modified at 2020/11/4 21:23
  **/
 @Data
+@NoArgsConstructor
 public class User implements VoObject {
 
     public static String AESPASS = "OOAD2020-11-01";
@@ -104,6 +106,8 @@ public class User implements VoObject {
     private String signature;
 
     private String cacuSignature;
+
+    private Byte sign;
 
     /**
      * 构造函数

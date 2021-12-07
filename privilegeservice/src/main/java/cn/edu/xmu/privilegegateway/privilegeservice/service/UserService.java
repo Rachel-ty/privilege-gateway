@@ -23,6 +23,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
@@ -206,14 +207,11 @@ public class UserService {
      * @param did departid
      * @return ReturnObject<VoObject>
      * @author Xianwei Wang
+     * @Modifier 张晖婧
      * */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid, Long did){
-        if ((userDao.checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
-            return userDao.revokeRole(userid, roleid);
-        } else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
+        return userDao.revokeRole(userid, roleid,did);
     }
 
     /**
@@ -741,6 +739,61 @@ public class UserService {
     }
 
     /**
+     * 查看任意用户的角色
+     *
+     * @author 22920192204289 王文凯
+     * @param userId 用户id
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject selectRoles(Long userId, Long did, Integer page, Integer pageSize) {
+        return userDao.selectRoles(userId, did, page, pageSize);
+    }
+
+    /**
+     * 查看自己的角色
+     *
+     * @author 22920192204289 王文凯
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject selectSelfRoles(Long userId, Long did, Integer page, Integer pageSize) {
+        return userDao.selectRoles(userId, did, page, pageSize);
+    }
+
+    /**
+     * 查看自己的功能角色
+     *
+     * @author 22920192204289 王文凯
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject selectSelfBaseRoles(Long userId, Long did, Integer page, Integer pageSize) {
+        return userDao.selectBaseRoles(userId, did, page, pageSize);
+    }
+
+    /**
+     * 获得用户的功能角色
+     *
+     * @author 22920192204320 张晖婧
+     * @param did: 部门 id
+     * @param id: 用户 id
+     * @return Object
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject findBaserolesByUserId(Long did, Long id, Integer page, Integer pageSize) {
+        return userDao.selectBaseRoles( id,did, page, pageSize);
+    }
+    /**
      * 内部api-将某个用户的权限信息装载到Redis中
      * @param userId: 用户 id
      * @return Object 装载的用户id
@@ -752,5 +805,24 @@ public class UserService {
     }
 
 
+    /**
+     * 赋予用户角色
+     * @param userid 用户id
+     * @param roleid 角色id
+     * @param did departid
+     * @return UserRoleRetVo
+     * @author 张晖婧
+     * */
+    @Transactional(rollbackFor = Exception.class)
+    public ReturnObject<VoObject> assignRole(Long creatorId, String creatorName, Long userid, Long roleid, Long did) {
+        UserRole userRole = new UserRole();
+        userRole.setUserId(userid);
+        userRole.setRoleId(roleid);
+        Common.setPoCreatedFields(userRole, creatorId, creatorName);
+        Common.setPoModifiedFields(userRole, creatorId, creatorName);
 
+        ReturnObject returnObject = userDao.assignRole(userRole, did);
+
+        return Common.getRetVo(returnObject,UserRoleSimpleRetVo.class);
+    }
 }
