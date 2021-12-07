@@ -224,15 +224,12 @@ public class PrivilegeDao {
             //生成签名
             PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
             poMapper.updateByPrimaryKeySelective(newpo);
-            if (bo.getState() == FORBIDEN) {
-                //禁用权限 清除权限
-                for (String key : keys) {
+            for (String key : keys) {
                     redisUtil.del(key);
-                }
-                //清除缓存中的权限
-                String pkey = String.format(PRIVKEY, po.getUrl(), po.getRequestType());
-                redisUtil.del(pkey);
             }
+            //清除缓存中的权限
+            String pkey = String.format(PRIVKEY, po.getUrl(), po.getRequestType());
+            redisUtil.del(pkey);
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
