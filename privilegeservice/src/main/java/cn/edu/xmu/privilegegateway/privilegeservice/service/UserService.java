@@ -45,7 +45,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -361,7 +360,7 @@ public class UserService {
     private void banJwt(String jwt) {
         String[] banSetName = {"BanJwt_0", "BanJwt_1"};
         String banIndexKey = "banIndex";
-        String scriptPath = "ban-jwt.lua";
+        String scriptPath = "scripts/ban-jwt.lua";
 
         DefaultRedisScript<Void> script = new DefaultRedisScript<>();
 
