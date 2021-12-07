@@ -143,7 +143,7 @@ public class PrivilegeController {
             @ApiResponse(code=0,message="成功")
     })
     @Audit(departName = "departs")
-    @DeleteMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
+    @DeleteMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
     public Object delBaseRolePriv(@PathVariable Long did,
                                   @PathVariable Long roleid,
                                   @PathVariable("privilegeid") Long pid)
@@ -1291,7 +1291,7 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit(departName = "daparts")
-    @PostMapping("/departs/{did}/roles/{roleid}/privileges/{privilegeid}")
+    @PostMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
     public Object addRolePriv(@PathVariable("did") Long did,
                               @PathVariable Long roleid,
                               @PathVariable Long privilegeid,
@@ -1528,7 +1528,7 @@ public class PrivilegeController {
     }
     @Audit
     @PutMapping("internal/privileges/load")
-    public Object loadPrivilege(@Validated @RequestBody PrivilegeVo privilegeVo){
-        return privilegeService.loadPrivilege(privilegeVo);
+    public Object loadPrivilege(@Validated @RequestBody PrivilegeRedisVo privilegeVo){
+        return Common.decorateReturnObject(privilegeService.loadPrivilege(privilegeVo));
     }
 }

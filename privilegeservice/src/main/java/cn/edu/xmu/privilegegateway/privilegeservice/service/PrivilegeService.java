@@ -23,6 +23,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.PrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRedisVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import com.github.pagehelper.PageHelper;
@@ -84,7 +85,7 @@ public class PrivilegeService {
      * @return
      */
     @Transactional(readOnly = true)
-    public ReturnObject<PageInfo<BasePrivilegeRetVo>> GetPriv(String url , Byte requestType, Integer pagenum, Integer pagesize)
+    public ReturnObject GetPriv(String url , Byte requestType, Integer pagenum, Integer pagesize)
     {
         return privilegeDao.getPriv(url,requestType,pagenum,pagesize);
     }
@@ -121,7 +122,7 @@ public class PrivilegeService {
         return privilegeDao.changePrivState(privilege);
     }
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject loadPrivilege(PrivilegeVo privilegeVo) {
+    public ReturnObject loadPrivilege(PrivilegeRedisVo privilegeVo) {
         return privilegeDao.loadPrivilege(privilegeVo.getUrl(),privilegeVo.getRequestType());
     }
 }

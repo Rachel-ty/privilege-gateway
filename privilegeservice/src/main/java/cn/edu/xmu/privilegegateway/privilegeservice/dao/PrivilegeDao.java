@@ -26,18 +26,19 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.RolePrivilegePoExample;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -46,10 +47,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+
 /**
  * 权限DAO
  * @author Ming Qiu
@@ -69,10 +68,13 @@ public class PrivilegeDao {
     private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisTemplate<String, Serializable> redisTemplate;
+    @Autowired
+    @Lazy
+    private RoleDao roleDao;
 
     @Autowired
-    private RoleDao roleDao;
+    private RedisUtil redisUtil;
 
     @Autowired
     private BaseCoder baseCoder;
@@ -80,7 +82,7 @@ public class PrivilegeDao {
     final static List<String> newRolePrivilegeSignFields = new ArrayList<>(Arrays.asList("roleId", "privilegeId"));
     final static List<String> privilegeSignFields = new ArrayList<>(Arrays.asList("id", "url","requestType"));
 
-    private static final String PRIVKEY = "%s-%d";
+    public static final String PRIVKEY = "%s-%d";
     //功能角色
     public final static Byte FORBIDEN=1;
     public final static Byte NORMAL=0;
@@ -177,12 +179,9 @@ public class PrivilegeDao {
     }
 
     /**
-     * 修改权限
+     *修改权限
      * @modifiedBy 24320182203266
-     * modified by zhangyu
-     */
-    /**
-     *
+     * @modifiedBy by zhangyu
      * @param bo
      * @return
      */
@@ -192,11 +191,9 @@ public class PrivilegeDao {
             if(po==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             po.setState(bo.getState());
-            if(bo.getRequestType()!=null||bo.getUrl()!=null)
-            {
-                po.setUrl(bo.getUrl());
-                po.setRequestType(bo.getRequestType().getCode());
-            }
+            po.setUrl(bo.getUrl());
+            po.setRequestType(bo.getRequestType().getCode());
+            po.setName(bo.getName());
             //生成签名
             PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
             poMapper.updateByPrimaryKeySelective(newpo);
@@ -204,7 +201,7 @@ public class PrivilegeDao {
             String pkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
             redisUtil.del(pkey);
             return new ReturnObject(ReturnNo.OK);
-        }catch (DuplicateFormatFlagsException e)
+        }catch (DuplicateKeyException e)
         {
             return new ReturnObject(ReturnNo.URL_SAME);
         }
@@ -213,6 +210,13 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
     }
+
+    /**
+     * 修改权限状态
+     * @creator zhangyu
+     * @param bo
+     * @return
+     */
     public ReturnObject changePrivState(Privilege bo)
     {
         try {
@@ -225,7 +229,7 @@ public class PrivilegeDao {
             PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
             poMapper.updateByPrimaryKeySelective(newpo);
             for (String key : keys) {
-                    redisUtil.del(key);
+                redisUtil.del(key);
             }
             //清除缓存中的权限
             String pkey = String.format(PRIVKEY, po.getUrl(), po.getRequestType());
@@ -237,19 +241,9 @@ public class PrivilegeDao {
         }
 
     }
-    /*新建权限
-
-     */
-
-    /**
-     *
-     */
     /**
      * 新增权限
      * @author: zhangyu
-     */
-    /**
-     *
      * @param privilege
      * @return
      */
@@ -257,29 +251,29 @@ public class PrivilegeDao {
     {
         try {
 
-                PrivilegePo po=(PrivilegePo) Common.cloneVo(privilege,PrivilegePo.class);
-                poMapper.insertSelective(po);
-                PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
-                poMapper.updateByPrimaryKeySelective(newpo);
-                PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
-                PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
-                retVo.setSign(NOTMODIFIED);
-                return new ReturnObject(retVo);
-        }catch (DuplicateFormatFlagsException e)
+            PrivilegePo po=(PrivilegePo) Common.cloneVo(privilege,PrivilegePo.class);
+            poMapper.insertSelective(po);
+            PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
+            poMapper.updateByPrimaryKeySelective(newpo);
+            PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
+            PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
+            retVo.setSign(NOTMODIFIED);
+            return new ReturnObject(retVo);
+        }catch (DuplicateKeyException e)
         {
-            return new ReturnObject(ReturnNo.URL_SAME,e.getMessage());
+            return new ReturnObject(ReturnNo.URL_SAME,"权限url/RequestType重复");
         }catch (Exception e)
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
     }
-    /*获取权限*/
 
     /**
+     * 获取权限
      * @author zhangyu
      * @param url
-     * @param type
+     * @param type  请求类型
      * @param pagenum
      * @param pagesize
      * @return
@@ -306,19 +300,19 @@ public class PrivilegeDao {
                 retVo.setSign(sign);
                 vo.add(retVo);
             }
-            PageInfo<BasePrivilegeRetVo> pageInfo=new PageInfo(vo);
+            PageInfo pageInfo = PageInfo.of(polist);
+            pageInfo.setList(vo);
             ReturnObject returnObject= new ReturnObject(pageInfo);
-            return Common.getPageRetVo(returnObject,PrivilegeRetVo.class);
+            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
         }catch (Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));
         }
     }
-    /*删除权限*/
-
     /**
+     * 删除权限
      * @author zhangyu
-     * @param pid
+     * @param pid 权限id
      * @return
      */
     public ReturnObject delPriv(Long pid)
@@ -352,7 +346,7 @@ public class PrivilegeDao {
         }
     }
     /**
-     *
+     * @author zhangyu
      * @param roleid
      * @param privilegeid
      * @param creatorid
@@ -366,20 +360,20 @@ public class PrivilegeDao {
             RolePrivilegePo rolePrivilegePo=new RolePrivilegePo();
             rolePrivilegePo.setRoleId(roleid);
             rolePrivilegePo.setPrivilegeId(privilegeid);
-            Common.setPoModifiedFields(rolePrivilegePo,creatorid,creatorname);
+            Common.setPoCreatedFields(rolePrivilegePo,creatorid,creatorname);
             PrivilegePo privilege=poMapper.selectByPrimaryKey(privilegeid);
             if(privilege==null)
             {
                 return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
             }
-            RolePrivilegePo newpo=(RolePrivilegePo)baseCoder.code_sign(rolePrivilegePo,RolePrivilegePo.class,null,privilegeSignFields,"signature");
+            RolePrivilegePo newpo=(RolePrivilegePo)baseCoder.code_sign(rolePrivilegePo,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
             rolePrivilegePoMapper.insertSelective(newpo);
             RolePrivilegePo retpo=rolePrivilegePoMapper.selectByPrimaryKey(newpo.getId());
             //判断关系是否篡改
             RolePrivilegePo newretpo=(RolePrivilegePo) baseCoder.decode_check(retpo,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
             BaseRolePrivilegeRetVo vo=(BaseRolePrivilegeRetVo) Common.cloneVo(newretpo,BaseRolePrivilegeRetVo.class);
             //判断权限是否篡改
-            PrivilegePo newprivilege=(PrivilegePo)baseCoder.decode_check(privilege,PrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
+            PrivilegePo newprivilege=(PrivilegePo)baseCoder.decode_check(privilege,PrivilegePo.class,null,privilegeSignFields,"signature");
             Integer sign=NOTMODIFIED;
             //判断关系是否篡改                    权限是否篡改
             if(newretpo.getSignature()==null||newprivilege.getSignature()!=null)
@@ -395,23 +389,19 @@ public class PrivilegeDao {
             }
             return new ReturnObject(vo);
 
-        }catch (DuplicateFormatFlagsException e)
+        }catch (DuplicateKeyException e)
         {
-            return  new ReturnObject(ReturnNo.URL_SAME,e.getMessage());
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,"重复定义权限");
         }
         catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
     }
     /**
-     * @author: zhang yu
-     * @date: 2021/11/25 20:11
-     * @version: 1.0
-     */
-    /**
      * 由角色id,privilegeid删除角色对应权限
+     * @author zhangyu
      * @param rid
      * @param pid
      * @return
@@ -478,8 +468,9 @@ public class PrivilegeDao {
                 vo.setId(privilege.getId());
                 volist.add(vo);
             }
-            PageInfo<BaseRolePrivilegeRetVo> pageInfo=new PageInfo<>(volist);
-            ReturnObject returnObject=new ReturnObject(pageInfo);
+            PageInfo pageInfo = PageInfo.of(newpos);
+            pageInfo.setList(volist);
+            ReturnObject returnObject= new ReturnObject(pageInfo);
             return Common.getPageRetVo(returnObject,BaseRolePrivilegeRetVo.class);
         }catch(Exception e)
         {
@@ -518,11 +509,33 @@ public class PrivilegeDao {
      * 权限的影响力分析
      * 任务3-7
      * 删除和禁用某个权限时，返回所有影响的role，group和user的redisKey
+     * @author zihan zhou 19720192203768
      * @param privId 权限id
      * @return 影响的role，group和user的redisKey
      */
     public Collection<String> privilegeImpact(Long privId){
-        return null;
+        List<Long> roleIdList =findRoleId(privId);
+        Set<String> resultSet=new HashSet<>();
+        for (Long roleId : roleIdList) {
+            Collection<String> roleImpact=roleDao.roleImpact(roleId);
+            resultSet.addAll(roleImpact);
+        }
+        return resultSet;
+    }
+
+    public List<Long> findRoleId(Long privId) {
+        RolePrivilegePoExample example = new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
+        criteria.andPrivilegeIdEqualTo(privId);
+        List<RolePrivilegePo> gList = rolePrivilegePoMapper.selectByExample(example);
+        if(gList==null||gList.size()==0){
+            return new ArrayList<>();
+        }
+        List<Long> resultList = new ArrayList<>();
+        for (RolePrivilegePo po : gList) {
+            resultList.add(po.getRoleId());
+        }
+        return resultList;
     }
 
     /**

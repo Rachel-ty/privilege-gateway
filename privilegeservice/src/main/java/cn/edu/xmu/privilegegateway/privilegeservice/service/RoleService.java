@@ -129,7 +129,7 @@ public class RoleService {
      * @return
      */
     @Transactional(readOnly = true)
-    public ReturnObject<PageInfo<BasePrivilegeRetVo>> selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
+    public ReturnObject selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
     {
         if(roleDao.isBaseRole(roleid))
         {
