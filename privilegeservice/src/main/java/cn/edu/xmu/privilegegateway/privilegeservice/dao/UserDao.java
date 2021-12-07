@@ -22,10 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserProxy;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
@@ -108,6 +105,8 @@ public class UserDao{
 
     @Autowired@Lazy
     private GroupDao groupDao;
+    @Autowired
+    private  UserRoleDao userRoleDao;
     @Autowired
     private UserProxyPoMapper userProxyPoMapper;
     @Autowired
@@ -1436,17 +1435,14 @@ public class UserDao{
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配"));
             }
 
-            UserRolePoExample example = new UserRolePoExample();
-            UserRolePoExample.Criteria criteria = example.createCriteria();
-            criteria.andUserIdEqualTo(userId);
             // 分页查询
             PageHelper.startPage(page, pageSize);
             logger.debug("page = " + page + "pageSize = " + pageSize);
             // 查询用户所有角色
-            List<UserRolePo> userRolePos = userRolePoMapper.selectByExample(example);
+            List<UserRolePo> userRolePos = (List<UserRolePo>) userRoleDao.selectByUserId(userId);
             List<Role> roles = new ArrayList<>(userRolePos.size());
             for (UserRolePo po : userRolePos) {
-                UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
+                UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, null, userRoleSignFields, "signature");
                 Role role = (Role) Common.cloneVo(roleDao.getRolePoByRoleId(po.getRoleId()), Role.class);
                 if (userRole.getSignature() != null) {
                     role.setSign((byte)0);
@@ -1456,9 +1452,7 @@ public class UserDao{
                 roles.add(role);
             }
 
-            PageInfo info = PageInfo.of(roles);
-            info.setPageNum(page);
-            info.setPageSize(pageSize);
+            PageInfo info = new PageInfo<>(roles);
             return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
         } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
@@ -1476,19 +1470,14 @@ public class UserDao{
      * */
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid,Long did) {
         if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
-            UserRolePoExample userRolePoExample = new UserRolePoExample();
-            UserRolePoExample.Criteria criteria = userRolePoExample.createCriteria();
-            criteria.andUserIdEqualTo(userid);
-            criteria.andRoleIdEqualTo(roleid);
-
+            Collection<String> redisKeyToDeleted = userImpact(userid);
             try {
-                int state = userRolePoMapper.deleteByExample(userRolePoExample);
+                int state = userRoleDao.deleteByExample(userid, roleid);
                 if (state == 0) {
                     return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
                 } else {
                     //更新redis缓存
-                    Collection<String> redisKeyToDeleted = userImpact(userid);
-                    for(String key : redisKeyToDeleted) {
+                    for (String key : redisKeyToDeleted) {
                         redisUtil.del(key);
                     }
                     return new ReturnObject<>(ReturnNo.OK);
@@ -1518,25 +1507,24 @@ public class UserDao{
     public ReturnObject assignRole(UserRole userRole,Long did) {
 
         User user = getUserById(userRole.getUserId().longValue()).getData();
-
         User create = getUserById(userRole.getCreatorId().longValue()).getData();
         RolePo rolePo=roleDao.getRolePoByRoleId(userRole.getRoleId());
-
         //用户id或角色id不存在
         if (user == null || create == null || rolePo == null) {
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
+        //获取相关redisKey
+        Collection<String> redisKeyToDeleted = userImpact(userRole.getUserId());
 
         if (checkUserDid(userRole.getUserId(), did) && roleDao.checkRoleDid(userRole.getRoleId(), did) || did.equals(0L)) {
 
             ReturnObject<UserRole> retObj = null;
 
-            UserRolePo userRolePo = (UserRolePo) baseCoder.code_sign(userRole, UserRolePo.class, codeFields, userRoleSignFields, "signature");
+            UserRolePo userRolePo = (UserRolePo) baseCoder.code_sign(userRole, UserRolePo.class, null, userRoleSignFields, "signature");
             try {
-                int ret = userRolePoMapper.insertSelective(userRolePo);
+                int ret = userRoleDao.insertUserRolePo(userRolePo);
 
                 //更新redis缓存
-                Collection<String> redisKeyToDeleted = userImpact(userRole.getUserId());
                 for(String key : redisKeyToDeleted) {
                     redisUtil.del(key);
                 }
@@ -1585,19 +1573,18 @@ public class UserDao{
             }
 
             // 查找用户的功能角色
-            Set roleKeySet = redisUtil.getSet(String.format(FINALUSERKEY, userId));
-            if (roleKeySet == null) {
-                ReturnObject retObj = loadUser(userId);
+            if(!redisUtil.hasKey(String.format(USERKEY,userId))) {
+                ReturnObject retObj = loadSingleUser(userId);
                 if (retObj.getCode() != ReturnNo.OK) {
                     return retObj;
                 }
-                roleKeySet = redisUtil.getSet(String.format(FINALUSERKEY, userId));
             }
+            Set roleKeySet = redisUtil.getSet(String.format(USERKEY, userId));
 
             List<String> baseroleKeyIds = new ArrayList(roleKeySet);
             List<RolePo> pageBaseroles = new ArrayList<>();
             int lastIndex = page * pageSize - 1;
-            //如果数量不足
+            //手动分页
             if (baseroleKeyIds.size() < (page - 1) * pageSize) {
                 lastIndex = -1;
             } else {
@@ -1606,15 +1593,14 @@ public class UserDao{
                 }
             }
             for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
-                //去掉 br_
-                RolePo rolePo = roleDao.getRolePoByRoleId(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
+                //去掉 r_
+                RolePo rolePo = roleDao.getRolePoByRoleId(Long.parseLong(baseroleKeyIds.get(i).substring(2)));
                 pageBaseroles.add(rolePo);
             }
 
-            PageInfo info = PageInfo.of(pageBaseroles);
-            info.setPageNum(page);
+            PageInfo info = new PageInfo<>(pageBaseroles);
             info.setPageSize(pageSize);
-
+            info.setPageNum(page);
             return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
 
         } catch (Exception e) {

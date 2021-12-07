@@ -410,13 +410,11 @@ public class PrivilegeController {
         // 校验前端数据
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            logger.debug("validate fail");
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(returnObject));
         }
 
         Role role = (Role) Common.cloneVo(vo, Role.class);
         role.setDepartId(did);
-        role.setGmtCreate(LocalDateTime.now());
         Common.setPoCreatedFields(role, userId, userName);
 
         ReturnObject retObj = roleService.insertRole(role);
@@ -490,7 +488,7 @@ public class PrivilegeController {
         // 校验前端数据
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(returnObject));
         }
 
         Role role = (Role) Common.cloneVo(vo, Role.class);
