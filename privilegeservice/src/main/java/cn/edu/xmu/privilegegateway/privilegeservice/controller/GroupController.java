@@ -119,12 +119,8 @@ public class GroupController {
                                 @RequestParam(required = false) Integer pageSize,
                                 @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                                 @RequestParam(required = false) @LoginName @ApiIgnore String userName){
-        if(did==null || did<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"部门名不合法");
         ReturnObject returnObject =  groupService.getusersgroup(did,id,page,pageSize);
         return Common.decorateReturnObject(returnObject);
-
-
     }
 
     /**
@@ -157,8 +153,6 @@ public class GroupController {
         if(o != null){
             return o;
         }
-        if(id==null || did == null || did<0 || id<=0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"该用户组id或部门id不合法");
         Group group = (Group) Common.cloneVo(groupVo,Group.class);
         ReturnObject returnObject = groupService.changeGroup(did,id, group,userId,userName);
         return Common.decorateReturnObject(returnObject);
@@ -222,8 +216,6 @@ public class GroupController {
                                       @LoginUser Long userId,
                                       @LoginName String userName,
                                       @Depart Long departId) {
-        if(pid==null || sid==null || pid<0 || sid<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"父子用户组id不合法");
         ReturnObject retObject = groupService.insertGroupRelation(did,pid,sid,userId,userName);
         return Common.decorateReturnObject(retObject);
     }
@@ -258,10 +250,6 @@ public class GroupController {
                                       @Depart Long departId) {
         if(pid.equals(sid))
             return new ReturnObject(ReturnNo.FIELD_NOTVALID,"父子用户组id不能相同");
-        if(pid.equals(sid))
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"父子用户组id不能相同");
-        if(pid==null || sid==null || pid<0 || sid<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"父子用户组id不合法");
         ReturnObject retObject = groupService.deleteGroupRelation(did,pid,sid,userId,userName);
         return Common.decorateReturnObject(retObject);
     }
@@ -289,8 +277,6 @@ public class GroupController {
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                               @RequestParam(required = false) @LoginName @ApiIgnore String userName,
                               @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
-        if(id!=null && id<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户组id不合法");
         ReturnObject returnObject = groupService.deleteGroup(departId, id);
         return Common.decorateReturnObject(returnObject);
     }
@@ -334,8 +320,6 @@ public class GroupController {
                               @RequestParam(required = false) Integer pageSize,
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                               @RequestParam(required = false) @LoginName @ApiIgnore String userName){
-        if(id==null || id<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户组id不合法");
         ReturnObject returnObject =  groupService.getsubGroup(did,id,page,pageSize);
         return Common.decorateReturnObject(returnObject);
 
@@ -364,8 +348,6 @@ public class GroupController {
                               @RequestParam(required = false) Integer pageSize,
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                               @RequestParam(required = false) @LoginName @ApiIgnore String userName){
-        if(id==null || id<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户组id不合法");
         ReturnObject returnObject =  groupService.getparGroup(did,id,page,pageSize);
         return Common.decorateReturnObject(returnObject);
 
@@ -392,12 +374,7 @@ public class GroupController {
     @PostMapping("/departs/{did}/groups/{id}/users/{uid}")
     public Object insertusergroup(@PathVariable Long did,@PathVariable Long id,@PathVariable Long uid,
                                   @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                                  @RequestParam(required = false) @LoginName @ApiIgnore String userName) {if(id==null || id<0)
-        return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户组id不合法");
-        if(uid==null || uid<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户id不合法");
-        if(did==null || did<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"部门id不合法");
+                                  @RequestParam(required = false) @LoginName @ApiIgnore String userName) {
         ReturnObject retObject = groupService.insertUserGroup(uid,id,did,userId,userName);
         return Common.decorateReturnObject(retObject);
     }
@@ -424,12 +401,7 @@ public class GroupController {
     public Object deleteusergroup(@PathVariable Long did,@PathVariable Long id,@PathVariable Long uid,
                                   @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                                   @RequestParam(required = false) @LoginName @ApiIgnore String userName,
-                                  @Depart @ApiIgnore @RequestParam(required = false) Long departId) {if(id==null || id<0)
-        return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户组id不合法");
-        if(uid==null || uid<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"用户id不合法");
-        if(did==null || did<0)
-            return new ReturnObject(ReturnNo.FIELD_NOTVALID,"部门id不合法");
+                                  @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
         ReturnObject retObject = groupService.deleteUserGroup(uid,id,did,userId,userName);
         return Common.decorateReturnObject(retObject);
     }
@@ -483,7 +455,6 @@ public class GroupController {
     @PutMapping(value = "/departs/{did}/groups/{id}/release")
     @Audit(departName = "departs")
     public Object releaseGroup(@PathVariable("did") Long did,@PathVariable("id") Long id,@LoginUser Long loginUser,@LoginName String loginUsername){
-
         ReturnObject ret= groupService.releaseGroup(did,id, loginUser,loginUsername);
         return Common.decorateReturnObject(ret);
     }

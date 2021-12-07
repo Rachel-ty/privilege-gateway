@@ -24,16 +24,14 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRelationPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.GroupRolePoMapper;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Group;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.GroupRelation;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserGroup;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserGroupPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.GroupRelationVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RetGroup;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserGroup;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRelation;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -351,11 +349,7 @@ public class GroupDao {
             PageInfo pageInfo = new PageInfo(groupPos);
             ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), RetGroup.class);
             Map<String,Object> data = (Map<String, Object>) pageRetVo.getData();
-            if(!pageRetVo.getCode().equals(ReturnNo.RESOURCE_FALSIFY.getCode())){
-                return new ReturnObject(data);
-            }else {
-                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY,data);
-            }
+            return new ReturnObject(data);
         } catch (Exception e) {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
@@ -529,7 +523,21 @@ public class GroupDao {
             po = groupRelationPoMapper.selectByExample(example);////////////////////////////////////////////
             logger.debug("getGroupRelationBypidsid: pid = " + pid + "sid = " + sid+" sum = "+po.size());
             bos=Common.listDecode(po, GroupRelation.class,baseCoder,groupRelationCodeFields,groupRelationSignFields,"signature",true);
-            return new ReturnObject(bos);
+            int check=0;
+            for(GroupRelation bo:bos)
+            {
+                if (bo.getSignature() == null)
+                {
+                    bo.setSign((byte) 1);
+                    check=1;
+                }
+                else
+                    bo.setSign((byte)0);
+            }
+            if(check==0)
+                return new ReturnObject(bos);
+            else
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY,"签名错误",bos);
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
@@ -590,7 +598,21 @@ public class GroupDao {
             po = groupRelationPoMapper.selectByExample(example);////////////////////////////////////////////
             logger.debug("getGroupRelationBypidsid: pid = " + pid + "sid = " + sid+" sum = "+po.size());
             bos=Common.listDecode(po, GroupRelation.class,baseCoder,groupRelationCodeFields,groupRelationSignFields,"signature",true);
-            return new ReturnObject(bos);
+            int check=0;
+            for(GroupRelation bo:bos)
+            {
+                if (bo.getSignature() == null)
+                {
+                    bo.setSign((byte) 1);
+                    check=1;
+                }
+                else
+                    bo.setSign((byte)0);
+            }
+            if(check==0)
+                return new ReturnObject(bos);
+            else
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY,"签名错误",bos);
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
@@ -653,7 +675,6 @@ public class GroupDao {
         {
             if(baseCoder.decode_check(it,it.getClass(),groupUserCodeFields,groupUserSignFields,"signature")==null)
             {
-                logger.error("id为"+it.getId()+"的用户组用户信息被篡改！");
                 ret.add(Pair.of(it,(byte)1));
             }
             else
@@ -684,12 +705,12 @@ public class GroupDao {
 
         UserGroupPo userGroupPo;
         userGroupPo= (UserGroupPo) baseCoder.code_sign(userGroup,UserGroupPo.class,groupUserCodeFields,groupUserSignFields,"signature");
+        ids=userDao.userImpact(userGroupPo.getUserId());
         ReturnObject<UserGroup> retObj = null;
         try{
             Common.setPoCreatedFields(userGroupPo,userId,userName);
             int ret = userGroupPoMapper.insertSelective(userGroupPo);//////////////////////////////////////////
             userGroup.setId(userGroupPo.getId());
-            ids=userDao.userImpact(userGroupPo.getUserId());
             retObj = new ReturnObject<>(userGroup);
         }
         catch (DataAccessException e) {
@@ -717,7 +738,7 @@ public class GroupDao {
             UserGroupPo userGroupPo=userGroupPoMapper.selectByPrimaryKey(id);
             if(userGroupPo==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            ids=userDao.userImpact(userGroupPoMapper.selectByPrimaryKey(id).getUserId());
+            ids=userDao.userImpact(userGroupPo.getUserId());
             userGroupPoMapper.deleteByPrimaryKey(id);
             for(String key:ids)
             {
@@ -740,7 +761,7 @@ public class GroupDao {
      * @return
      * createdBy:  Weining Shi
      */
-    public ReturnObject<PageInfo<UserRelation>> getusersBygid(Long did, Long id, Integer page, Integer pageSize) {
+    public ReturnObject<PageInfo<Object>> getusersBygid(Long did, Long id, Integer page, Integer pageSize) {
 
         UserGroupPoExample example = new UserGroupPoExample();
         UserGroupPoExample.Criteria criteria = example.createCriteria();
@@ -749,13 +770,26 @@ public class GroupDao {
             criteria.andGroupIdEqualTo(id);
 
         List<UserGroupPo> po;
-        List<UserRelation> bos;
+        List<UserRelationBo> bos;
         try {
             PageHelper.startPage(page,pageSize);
             po = userGroupPoMapper.selectByExample(example);////////////////////////////////////////////
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + po.size());
-            bos=Common.listDecode(po,UserRelation.class,baseCoder,groupUserCodeFields,groupUserSignFields,"signature",true);
-            return Common.getPageRetVo(new ReturnObject(new PageInfo<>(bos)),UserRelation.class);
+            bos=Common.listDecode(po,UserRelationBo.class,baseCoder,groupUserCodeFields,groupUserSignFields,"signature",true);
+            int check=0;
+            for(UserRelationBo bo:bos) {
+                if (bo.getSignature() == null)
+                {
+                    bo.setSign((byte) 1);
+                    check=1;
+                }
+                else
+                    bo.setSign((byte)0);
+            }
+            if(check==1)
+                return Common.getPageRetVo(new ReturnObject(ReturnNo.RESOURCE_FALSIFY,"签名错误",new PageInfo<>(bos)),UserRelation.class);
+            else
+                return Common.getPageRetVo(new ReturnObject(new PageInfo<>(bos)),UserRelation.class);
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
@@ -771,17 +805,29 @@ public class GroupDao {
         UserGroupPoExample example = new UserGroupPoExample();
         UserGroupPoExample.Criteria criteria = example.createCriteria();
         criteria.andUserIdEqualTo(id);
-        List<UserGroup> bos=new ArrayList<>();
+        List<UserGroup> temp=new ArrayList<>();
+        List<UserGroupBo> bos=new ArrayList<>();
         try{
             PageHelper.startPage(page, pageSize);
             List<UserGroupPo> userGroupPoList = userGroupPoMapper.selectByExample(example);
             logger.debug("getGroupIdByUserId: userId = " + id + "groupNum = " + userGroupPoList.size());
-            bos=Common.listDecode(userGroupPoList,UserGroup.class,baseCoder,groupUserCodeFields,groupUserSignFields,"signature",true);
-            return bos;
+            bos=Common.listDecode(userGroupPoList, UserGroupBo.class,baseCoder,groupUserCodeFields,groupUserSignFields,"signature",true);
+            int check=0;
+            for(UserGroupBo bo:bos) {
+                if (bo.getSignature() == null)
+                {
+                    bo.setSign((byte) 1);
+                    check=1;
+                }
+                else
+                    bo.setSign((byte)0);
+            }
+            temp=Common.listDecode(bos,UserGroup.class,baseCoder,null,null,null,true);
+            return temp;
         }
         catch (Exception e){
             logger.error("getUserGroupByUserId: id =" + id);
-            return bos;
+            return temp;
         }
     }
 }

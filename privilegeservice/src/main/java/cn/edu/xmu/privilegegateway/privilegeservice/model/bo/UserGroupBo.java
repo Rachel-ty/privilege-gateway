@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @AllArgsConstructor
-public class UserGroup {
+public class UserGroupBo {
     private Long id;
     private Long userId;
     private Long groupId;
@@ -18,4 +18,5 @@ public class UserGroup {
     private LocalDateTime gmtCreate;
     private Long modifierId;
     private LocalDateTime gmtModified;
+    private Byte sign;
 }

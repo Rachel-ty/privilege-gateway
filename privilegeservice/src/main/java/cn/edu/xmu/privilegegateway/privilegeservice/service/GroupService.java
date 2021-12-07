@@ -8,13 +8,9 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Group;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.GroupRelation;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserGroup;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.GroupRelationVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.GroupVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RetGroup;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRelation;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
@@ -384,12 +380,9 @@ public class GroupService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getgroupsuser(Long did, Long id, Integer page, Integer pageSize) {
 
-        ReturnObject<PageInfo<UserRelation> > ret= groupDao.getusersBygid(did,id,page,pageSize);
-        if (ret.getData().getList()!=null) {
-            return ret;
-        } else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
+        ReturnObject<PageInfo<Object> > ret= groupDao.getusersBygid(did,id,page,pageSize);
+        ReturnObject newret=Common.getPageRetVo(ret,UserRelation.class);
+        return newret;
     }
     /**
      * 获得用户的组
