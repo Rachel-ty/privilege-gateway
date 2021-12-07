@@ -46,7 +46,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -273,15 +272,6 @@ public class UserService {
     }
 
     /**
-     * 修改权限
-     * @param id: 权限id
-     * @return
-     */
-    public ReturnObject changePriv(Long id, PrivilegeVo vo){
-        return privilegeDao.changePriv(id, vo);
-    }
-
-    /**
      * 登录
      * @param userName: 用户名
      * @param password: 密码
@@ -359,7 +349,7 @@ public class UserService {
     private void banJwt(String jwt) {
         String[] banSetName = {"BanJwt_0", "BanJwt_1"};
         String banIndexKey = "banIndex";
-        String scriptPath = "ban-jwt.lua";
+        String scriptPath = "scripts/ban-jwt.lua";
 
         DefaultRedisScript<Void> script = new DefaultRedisScript<>();
 
@@ -564,7 +554,7 @@ public class UserService {
         return userDao.changeUserDepart(id,did,loginUser,loginName);
     }
 
-    
+
 
 
     /**
