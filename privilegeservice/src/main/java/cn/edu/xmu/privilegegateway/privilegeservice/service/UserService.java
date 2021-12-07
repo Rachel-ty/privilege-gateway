@@ -274,15 +274,6 @@ public class UserService {
     }
 
     /**
-     * 修改权限
-     * @param id: 权限id
-     * @return
-     */
-    public ReturnObject changePriv(Long id, PrivilegeVo vo){
-        return privilegeDao.changePriv(id, vo);
-    }
-
-    /**
      * 登录
      * @param userName: 用户名
      * @param password: 密码
@@ -565,7 +556,7 @@ public class UserService {
         return userDao.changeUserDepart(id,did,loginUser,loginName);
     }
 
-    
+
 
 
     /**

@@ -26,7 +26,12 @@ import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
+import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
+import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -35,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.io.Serializable;
@@ -90,9 +94,6 @@ public class RoleDao {
     PrivilegeDao privDao;
 
     @Autowired
-    private RedisTemplate<String, Serializable> redisTemplate;
-
-    @Autowired
     private RedisUtil redisUtil;
 
     @Autowired
@@ -120,6 +121,8 @@ public class RoleDao {
 
     final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
+    public final static Integer MODIFIED=1;
+    public final static Integer NOTMODIFIED=0;
     /**
      * 根据角色Id,查询角色的所有权限
      * @author yue hao
@@ -692,6 +695,21 @@ public class RoleDao {
         return true;
     }
 
+    /**
+     * 判断是否为功能角色
+     * @param roleid
+     * @return
+     */
+    public boolean isBaseRole(Long roleid) {
+        RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
+        if (rolePo == null) {
+            return false;
+        }
+        if (rolePo.getDepartId() !=BASEROLE) {
+            return false;
+        }
+        return true;
+    }
     /**
      * 角色的影响力分析
      * 任务3-6
