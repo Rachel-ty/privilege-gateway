@@ -199,7 +199,7 @@ public class PrivilegeDao {
             }
             //生成签名
             PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
-            poMapper.insertSelective(newpo);
+            poMapper.updateByPrimaryKeySelective(newpo);
             //清除缓存中的权限
             String pkey=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
             redisUtil.del(pkey);
@@ -216,16 +216,16 @@ public class PrivilegeDao {
     public ReturnObject changePrivState(Privilege bo)
     {
         try {
+            Collection<String> keys = privilegeImpact(bo.getId());
             PrivilegePo po = poMapper.selectByPrimaryKey(bo.getId());
             if (po == null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             po.setState(bo.getState());
             //生成签名
             PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
-            poMapper.insertSelective(newpo);
+            poMapper.updateByPrimaryKeySelective(newpo);
             if (bo.getState() == FORBIDEN) {
                 //禁用权限 清除权限
-                Collection<String> keys = privilegeImpact(bo.getId());
                 for (String key : keys) {
                     redisUtil.del(key);
                 }
@@ -270,7 +270,7 @@ public class PrivilegeDao {
                 return new ReturnObject(retVo);
         }catch (DuplicateFormatFlagsException e)
         {
-            return new ReturnObject(ReturnNo.URL_SAME);
+            return new ReturnObject(ReturnNo.URL_SAME,e.getMessage());
         }catch (Exception e)
         {
             return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
