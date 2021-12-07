@@ -263,7 +263,7 @@ public class PrivilegeDao {
                 PrivilegePo po=(PrivilegePo) Common.cloneVo(privilege,PrivilegePo.class);
                 poMapper.insertSelective(po);
                 PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
-                poMapper.insertSelective(newpo);
+                poMapper.updateByPrimaryKeySelective(newpo);
                 PrivilegePo retpo=poMapper.selectByPrimaryKey(po.getId());
                 PrivilegeRetVo retVo=(PrivilegeRetVo)Common.cloneVo(po, PrivilegeRetVo.class);
                 retVo.setSign(NOTMODIFIED);
