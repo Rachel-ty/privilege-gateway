@@ -4,13 +4,14 @@ import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
-import org.apache.http.entity.ContentType;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import org.apache.http.entity.ContentType;
+import org.json.JSONException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -18,9 +19,6 @@ import org.skyscreamer.jsonassert.JSONAssert;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -30,20 +28,18 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.lang.*;
-import java.nio.charset.StandardCharsets;
-
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import javax.servlet.http.HttpServletRequest;
 
 
 /**
@@ -58,16 +54,23 @@ public class PrivilegeControllerTest {
     private static String pToken;
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
-
+    public final static String ROLEKEY = "r_%d";
     @MockBean
     private HttpServletRequest request;
     @Autowired
+    private RoleDao roleDao;
+    @Autowired
     private UserDao userDao;
+    @Autowired
+    GroupDao groupDao;
     @Autowired
     private MockMvc mvc;
     @MockBean
     private RedisUtil redisUtil;
 
+    public final static String GROUPKEY="g_%d";
+
+    private final static String USERKEY = "u_%d";
     @BeforeEach
     void init() {
         token = jwtHelper.createToken(46L, "个", 0L, 1, 36000);
@@ -455,7 +458,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
-                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -475,7 +478,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                .contentType("application/json;charset=UTF-8").content(json))
+                        .contentType("application/json;charset=UTF-8").content(json))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -490,7 +493,7 @@ public class PrivilegeControllerTest {
         String json1 = JacksonUtil.toJson(loginVo1);
         //密码错误
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                .contentType("application/json;charset=UTF-8").content(json1))
+                        .contentType("application/json;charset=UTF-8").content(json1))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         expectedString = "{\n" +
@@ -509,7 +512,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
-                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -633,7 +636,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-       expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
     }
     @Test
@@ -712,5 +715,46 @@ public class PrivilegeControllerTest {
         assertEquals(newUserPo.getEmail(),userPo.getEmail());
         assertEquals(newUserPo.getMobile(),userPo.getMobile());
 
+    }
+
+    @Test
+    public void deleteUserRedis() throws Exception{
+        List<String> userResults = (List<String>) userDao.userImpact(51L);
+        List<String> userExpectResults = new ArrayList<>();
+        userExpectResults.add(String.format(USERKEY,49L));
+        userExpectResults.add(String.format(USERKEY,51L));
+        userExpectResults.add(String.format(USERKEY,60L));
+        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
+    }
+
+    @Test
+    public void deleteGroupRelationRedis() throws Exception{
+        List<String> userResults = (List<String>) groupDao.groupImpact(10L);
+        List<String> userExpectResults = new ArrayList<>();
+        userExpectResults.add(String.format(GROUPKEY,10L));
+        userExpectResults.add(String.format(USERKEY,51L));
+        userExpectResults.add(String.format(USERKEY,49L));
+        userExpectResults.add(String.format(USERKEY,60L));
+        userExpectResults.add(String.format(GROUPKEY,11L));
+        userExpectResults.add(String.format(GROUPKEY,12L));
+        userExpectResults.add(String.format(GROUPKEY,13L));
+        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
+    }
+    @Test
+    public void roleImp() throws JSONException {
+        List list=new ArrayList();
+        list.add(String.format(USERKEY,60L));
+        list.add(String.format(ROLEKEY,2L));
+        list.add(String.format(GROUPKEY,10L));
+        list.add(String.format(ROLEKEY,3L));
+        list.add(String.format(ROLEKEY,6L));
+        list.add(String.format(GROUPKEY,12L));
+        list.add(String.format(USERKEY,49L));
+        list.add(String.format(ROLEKEY,5L));
+        list.add(String.format(ROLEKEY,23L));
+        String except="[r_2, u_1, g_10, r_3, g_11, r_6, g_12, r_5, g_13, u_51, u_3123, u_4356, u_60, u_2234, u_59, u_49, u_57, r_23]";
+        String result=roleDao.roleImpact(23L).toString();
+        System.out.println(result);
+        JSONAssert.assertEquals(result, except,false);
     }
 }
