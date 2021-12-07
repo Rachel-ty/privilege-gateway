@@ -1439,7 +1439,7 @@ public class UserDao{
             PageHelper.startPage(page, pageSize);
             logger.debug("page = " + page + "pageSize = " + pageSize);
             // 查询用户所有角色
-            List<UserRolePo> userRolePos = (List<UserRolePo>) userRoleDao.selectByUserId(userId);
+            List<UserRolePo> userRolePos = (List<UserRolePo>) userRoleDao.selectByUserId(userId).getData();
             List<Role> roles = new ArrayList<>(userRolePos.size());
             for (UserRolePo po : userRolePos) {
                 UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, null, userRoleSignFields, "signature");
@@ -1471,15 +1471,15 @@ public class UserDao{
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid,Long did) {
         try {
             if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
+                //更新redis缓存
+                Collection<String> redisKeyToDeleted = userImpact(userid);
+                for (String key : redisKeyToDeleted) {
+                    redisUtil.del(key);
+                }
                 int state = userRoleDao.deleteByExample(userid, roleid);
                 if (state == 0) {
                     return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
                 } else {
-                    //更新redis缓存
-                    Collection<String> redisKeyToDeleted = userImpact(userid);
-                    for (String key : redisKeyToDeleted) {
-                        redisUtil.del(key);
-                    }
                     return new ReturnObject<>(ReturnNo.OK);
                 }
             } else {
@@ -1504,27 +1504,22 @@ public class UserDao{
      * @author 张晖婧
      * */
     public ReturnObject assignRole(UserRole userRole,Long did) {
+        try {
+            RolePo rolePo = roleDao.getRolePoByRoleId(userRole.getRoleId());
 
-        User user = getUserById(userRole.getUserId().longValue()).getData();
-        User create = getUserById(userRole.getCreatorId().longValue()).getData();
-        RolePo rolePo=roleDao.getRolePoByRoleId(userRole.getRoleId());
-        //用户id或角色id不存在
-        if (user == null || create == null || rolePo == null) {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        //获取相关redisKey
-        Collection<String> redisKeyToDeleted = userImpact(userRole.getUserId());
 
-        if (checkUserDid(userRole.getUserId(), did) && roleDao.checkRoleDid(userRole.getRoleId(), did) || did.equals(0L)) {
+            if (checkUserDid(userRole.getUserId(), did) && roleDao.checkRoleDid(userRole.getRoleId(), did) || rolePo.getBaserole() == roleDao.BASEROLE) {
+                //获取相关redisKey
+                Collection<String> redisKeyToDeleted = userImpact(userRole.getUserId());
 
-            ReturnObject<UserRole> retObj = null;
+                ReturnObject<UserRole> retObj = null;
 
-            UserRolePo userRolePo = (UserRolePo) baseCoder.code_sign(userRole, UserRolePo.class, null, userRoleSignFields, "signature");
-            try {
+                UserRolePo userRolePo = (UserRolePo) baseCoder.code_sign(userRole, UserRolePo.class, null, userRoleSignFields, "signature");
+
                 int ret = userRoleDao.insertUserRolePo(userRolePo);
 
                 //更新redis缓存
-                for(String key : redisKeyToDeleted) {
+                for (String key : redisKeyToDeleted) {
                     redisUtil.del(key);
                 }
 
@@ -1536,21 +1531,22 @@ public class UserDao{
 
                 return new ReturnObject(userRoleBo);
 
-            } catch (DataAccessException e) {
-                // 数据库错误
-                if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                    return new ReturnObject<>(ReturnNo.ROLE_RELATION_EXIST, "重复赋予角色");
-                }
 
-                logger.error("数据库错误：" + e.getMessage());
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
-            } catch (Exception e) {
-                // 属未知错误
-                logger.error("严重错误：" + e.getMessage());
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            } else {
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
-        } else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        } catch (DataAccessException e) {
+            // 数据库错误
+            if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
+                return new ReturnObject<>(ReturnNo.ROLE_RELATION_EXIST, "重复赋予角色");
+            }
+
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
 
@@ -1580,7 +1576,7 @@ public class UserDao{
             }
             Set roleKeySet = redisUtil.getSet(String.format(USERKEY, userId));
 
-            List<String> baseroleKeyIds = new ArrayList(roleKeySet);
+            List baseroleKeyIds = new ArrayList(roleKeySet);
             List<RolePo> pageBaseroles = new ArrayList<>();
             int lastIndex = page * pageSize - 1;
             //手动分页
@@ -1592,9 +1588,12 @@ public class UserDao{
                 }
             }
             for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
-                //去掉 r_
-                RolePo rolePo = roleDao.getRolePoByRoleId(Long.parseLong(baseroleKeyIds.get(i).substring(2)));
-                pageBaseroles.add(rolePo);
+                Object obj = baseroleKeyIds.get(i);
+                if (obj instanceof String) {
+                    //去掉"br_"
+                    RolePo rolePo = roleDao.getRolePoByRoleId(Long.parseLong(((String) obj).substring(3)));
+                    pageBaseroles.add(rolePo);
+                }
             }
 
             PageInfo info = new PageInfo<>(pageBaseroles);
@@ -1607,6 +1606,9 @@ public class UserDao{
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
+
+
+
 
     /**
      * 用户的影响力分析

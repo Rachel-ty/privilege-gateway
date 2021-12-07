@@ -121,7 +121,7 @@ public class RoleDao {
      */
     private final static int BANED = 2;
 
-    private final static int BASEROLE = 1;
+    public final static int BASEROLE = 1;
     @Autowired
     private BaseCoder baseCoder;
 
@@ -338,6 +338,12 @@ public class RoleDao {
      */
     public ReturnObject deleteRole(Long roleId, Long did) {
         try {
+            //删除相关的redis缓存
+            Collection<String> relations = roleImpact(roleId);
+            for (String s : relations) {
+                redisUtil.del(s);
+            }
+
             RolePoExample exampleR = new RolePoExample();
             RolePoExample.Criteria criteriaR = exampleR.createCriteria();
             criteriaR.andIdEqualTo(roleId);
@@ -359,11 +365,6 @@ public class RoleDao {
                 int retNum = userRolePoMapper.deleteByExample(exampleUR);
                 logger.debug("deleteRole: delete user-role num = " + retNum);
 
-                //删除相关的redis缓存
-                Collection<String> relations = roleImpact(roleId);
-                for (String s : relations) {
-                    redisUtil.del(s);
-                }
                 return new ReturnObject<>();
             }
         } catch (Exception e) {
@@ -385,7 +386,7 @@ public class RoleDao {
     public ReturnObject updateRole(Role role) {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
         try {
-            if (roleExist(role.getDepartId(), role.getName())) {
+            if (role.getName() != null && roleExist(role.getDepartId(), role.getName())) {
                 return new ReturnObject(ReturnNo.ROLE_EXIST);
             }
 
@@ -408,6 +409,7 @@ public class RoleDao {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
     }
+
 
     /**
      * 查询角色中用户
@@ -648,6 +650,12 @@ public class RoleDao {
             RoleInheritedPo roleInheritedPo =(RoleInheritedPo) baseCoder.code_sign(roleInherited, RoleInheritedPo.class, codeFields, roleInheritedSignFields, "signature");
 
             try {
+                //删除redis中子角色的相关缓存
+                Collection<String> relations=roleImpact(roleInherited.getRoleCId());
+                for(String s:relations){
+                    redisUtil.del(s);
+                }
+
                 roleInheritedPoMapper.insertSelective(roleInheritedPo);
 
                 RoleInherited roleInheritedBo=(RoleInherited) Common.cloneVo(roleInheritedPo,RoleInherited.class);
@@ -656,11 +664,6 @@ public class RoleDao {
                 roleInheritedBo.setId(crolePo.getId());
                 roleInheritedBo.setName(crolePo.getName());
 
-                //删除redis中子角色的相关缓存
-                Collection<String> relations=roleImpact(roleInherited.getRoleCId());
-                for(String s:relations){
-                    redisUtil.del(s);
-                }
 
                 return new ReturnObject<>(roleInheritedBo);
 
@@ -698,7 +701,7 @@ public class RoleDao {
             Set set = redisUtil.getSet(String.format(ROLEKEY, id));
 
             //手动分页
-            List<String> baseroleKeyIds = new ArrayList(set);
+            List baseroleKeyIds = new ArrayList(set);
             List<RolePo> pageBaseroles = new ArrayList<>();
             int lastIndex = page * pageSize - 1;
 
@@ -713,7 +716,8 @@ public class RoleDao {
 
             for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
                 //去掉"br_"
-                RolePo rolePo = roleMapper.selectByPrimaryKey(Long.parseLong(baseroleKeyIds.get(i).substring(3)));
+                Object obj = baseroleKeyIds.get(i);
+                RolePo rolePo = roleMapper.selectByPrimaryKey(Long.parseLong(((String) obj).substring(3)));
                 pageBaseroles.add(rolePo);
             }
 

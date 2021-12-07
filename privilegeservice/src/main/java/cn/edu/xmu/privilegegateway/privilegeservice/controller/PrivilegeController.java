@@ -329,22 +329,22 @@ public class PrivilegeController {
      * @param did 部门id
      * @return
      */
-    @ApiOperation(value = "取消用户角色")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(name="id", value="角色id", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
-
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 504, message = "操作id不存在")
-    })
-    @Audit(departName = "departs")
-    @DeleteMapping("/departs/{did}/adminusers/{userid}/roles/{roleid}")
-    public Object revokeRole(@PathVariable Long did, @PathVariable Long userid, @PathVariable Long roleid){
-        return Common.decorateReturnObject(userService.revokeRole(userid, roleid, did));
-    }
+//    @ApiOperation(value = "取消用户角色")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+//            @ApiImplicitParam(name="id", value="角色id", required = true, dataType="Integer", paramType="path"),
+//            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+//
+//    })
+//    @ApiResponses({
+//            @ApiResponse(code = 0, message = "成功"),
+//            @ApiResponse(code = 504, message = "操作id不存在")
+//    })
+//    @Audit(departName = "departs")
+//    @DeleteMapping("/departs/{did}/adminusers/{userid}/roles/{roleid}")
+//    public Object revokeRole(@PathVariable Long did, @PathVariable Long userid, @PathVariable Long roleid){
+//        return Common.decorateReturnObject(userService.revokeRole(userid, roleid, did));
+//    }
 
     /***
      * 赋予用户权限
