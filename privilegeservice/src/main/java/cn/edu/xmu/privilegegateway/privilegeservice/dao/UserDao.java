@@ -1469,33 +1469,32 @@ public class UserDao{
      * @modifier 张晖婧
      * */
     public ReturnObject<VoObject> revokeRole(Long userid, Long roleid,Long did) {
-        if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
-            Collection<String> redisKeyToDeleted = userImpact(userid);
-            try {
+        try {
+            if ((checkUserDid(userid, did) && roleDao.checkRoleDid(roleid, did)) || did == Long.valueOf(0)) {
                 int state = userRoleDao.deleteByExample(userid, roleid);
                 if (state == 0) {
                     return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, "不存在该用户角色");
                 } else {
                     //更新redis缓存
+                    Collection<String> redisKeyToDeleted = userImpact(userid);
                     for (String key : redisKeyToDeleted) {
                         redisUtil.del(key);
                     }
                     return new ReturnObject<>(ReturnNo.OK);
                 }
-            } catch (DataAccessException e) {
-                // 数据库错误
-                logger.error("数据库错误：" + e.getMessage());
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                        String.format("发生了严重的数据库错误：%s", e.getMessage()));
-            } catch (Exception e) {
-                // 属未知错误
-                logger.error("严重错误：" + e.getMessage());
-                return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                        String.format("发生了严重的未知错误：%s", e.getMessage()));
+            } else {
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
-
-        } else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        } catch (DataAccessException e) {
+            // 数据库错误
+            logger.error("数据库错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            // 属未知错误
+            logger.error("严重错误：" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
+                    String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
     }
 

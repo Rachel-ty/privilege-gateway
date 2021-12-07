@@ -726,7 +726,7 @@ public class RoleDao {
 
         PageHelper.startPage(page,pageSize);
         // 查询角色所有直系非直系父继承关系
-        List<RoleInherited> roleInheritedBos = (List<RoleInherited>) getParentRoleInherited(id);
+        List<RoleInherited> roleInheritedBos = (List<RoleInherited>) getParentRoleInherited(id).getData();
 
         int lastIndex = page * pageSize - 1;
         //手动分页
@@ -759,17 +759,16 @@ public class RoleDao {
     /**
     不分页递归地查询所有父角色id（直系和非直系）
     */
-    public ReturnObject getParentRoleInherited(Long roleId){
+    public ReturnObject getParentRoleInherited(Long roleId) {
         RoleInheritedPoExample example = new RoleInheritedPoExample();
         RoleInheritedPoExample.Criteria criteria = example.createCriteria();
         criteria.andRoleCIdEqualTo(roleId);
 
-        List<RoleInherited> roleInheritedBos=new ArrayList<>();
+        List<RoleInherited> roleInheritedBos = new ArrayList<>();
         // 查询角色所有直系父角色id
         List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
         for (RoleInheritedPo po : roleInheritedPos) {
             RoleInherited roleInherited = (RoleInherited) baseCoder.decode_check(po, RoleInherited.class, codeFields, roleInheritedSignFields, "signature");
-            RolePo rolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleId());
 
             if (roleInherited.getSignature() != null) {
                 roleInherited.setSign((byte) 0);
@@ -778,7 +777,7 @@ public class RoleDao {
             }
 
             roleInheritedBos.add(roleInherited);
-            List<RoleInherited> subRoleInherited=(List<RoleInherited>) getParentRoleInherited(po.getRoleId());
+            List<RoleInherited> subRoleInherited = (List<RoleInherited>) getParentRoleInherited(po.getRoleId()).getData();
             roleInheritedBos.addAll(subRoleInherited);
         }
         return new ReturnObject(roleInheritedBos);
