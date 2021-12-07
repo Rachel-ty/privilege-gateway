@@ -224,7 +224,7 @@ public class PrivilegeController {
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        return privilegeService.GetPriv(url,requestType,page,pageSize);
+        return Common.decorateReturnObject(privilegeService.GetPriv(url,requestType,page,pageSize));
     }
     /*删除权限*/
 
