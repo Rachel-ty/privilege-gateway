@@ -258,7 +258,8 @@ public class GroupDao {
      * 任务3-5
      * 删除和禁用某个权限时，返回所有影响的group和user的redisKey
      * @param groupId 组id
-     * @return 影响的group和user的redisKey
+     * @return 
+     * @author BingShuai Liu 22920192204245
      */
     public Collection<String> groupImpact(Long groupId){
         Collection<String> keys = new ArrayList<>();
@@ -268,9 +269,7 @@ public class GroupDao {
         groupIds.add(groupId);
         for (Long gId: groupIds){
             String gKey= String.format(GROUPKEY,gId);
-            if(redisUtil.hasKey(gKey)){
-                keys.add(gKey);
-            }
+            keys.add(gKey);
             UserGroupPoExample example = new UserGroupPoExample();
             UserGroupPoExample.Criteria criteria = example.createCriteria();
             criteria.andGroupIdEqualTo(gId);
@@ -279,16 +278,12 @@ public class GroupDao {
                 Collection<String> uKeys = userDao.userImpact(userGroupPo.getUserId());
                 if (userIds.add(userGroupPo.getUserId())){
                     String uKey = String.format(UserDao.USERKEY,userGroupPo.getUserId());
-                    if (redisUtil.hasKey(uKey)){
-                        keys.add(uKey);
-                    }
+                    keys.add(uKey);
                 }
                 for (String uKey : uKeys){
                     String id = uKey.substring(UserDao.USERKEY.length()-2);
                     if (userIds.add(Long.parseLong(id))){
-                        if (redisUtil.hasKey(uKey)){
-                            keys.add(uKey);
-                        }
+                        keys.add(uKey);
                     }
                 }
             }
@@ -296,6 +291,9 @@ public class GroupDao {
         return keys;
     }
 
+    /**
+     * @author BingShuai Liu 22920192204245
+    */
     public void getAllGroups(Long groupId,HashSet<Long> groupIds){
         GroupRelationPoExample example = new GroupRelationPoExample();
         GroupRelationPoExample.Criteria criteria = example.createCriteria();
