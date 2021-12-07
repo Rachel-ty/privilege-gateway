@@ -210,7 +210,7 @@ public class PrivilegeDao {
         }
         catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
     }
     public ReturnObject changePrivState(Privilege bo)
@@ -236,7 +236,7 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
     }
@@ -273,7 +273,7 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.URL_SAME,e.getMessage());
         }catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
     }
@@ -400,11 +400,11 @@ public class PrivilegeDao {
 
         }catch (DuplicateFormatFlagsException e)
         {
-            return  new ReturnObject(ReturnNo.URL_SAME);
+            return  new ReturnObject(ReturnNo.URL_SAME,e.getMessage());
         }
         catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+            return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST,e.getMessage());
         }
 
     }
@@ -438,7 +438,7 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
     }
     /**
@@ -576,7 +576,7 @@ public class PrivilegeDao {
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
         {
-            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
 
     }
