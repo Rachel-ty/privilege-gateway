@@ -187,6 +187,8 @@ public class GroupController {
         if (null != returnObject) {
             return returnObject;
         }
+        if(!did.equals(depart_id))
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         ReturnObject retObject = groupService.insertGroup(vo,did,userId,userName);
         return Common.decorateReturnObject(retObject);
 
@@ -277,6 +279,8 @@ public class GroupController {
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
                               @RequestParam(required = false) @LoginName @ApiIgnore String userName,
                               @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
+        if(!did.equals(departId))
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         ReturnObject returnObject = groupService.deleteGroup(departId, id);
         return Common.decorateReturnObject(returnObject);
     }

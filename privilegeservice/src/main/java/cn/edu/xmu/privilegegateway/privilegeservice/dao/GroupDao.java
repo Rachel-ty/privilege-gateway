@@ -786,10 +786,12 @@ public class GroupDao {
                 else
                     bo.setSign((byte)0);
             }
+            ReturnObject ret=new ReturnObject(new PageInfo<>(bos));
             if(check==1)
                 return Common.getPageRetVo(new ReturnObject(ReturnNo.RESOURCE_FALSIFY,"签名错误",new PageInfo<>(bos)),UserRelation.class);
-            else
-                return Common.getPageRetVo(new ReturnObject(new PageInfo<>(bos)),UserRelation.class);
+            else{
+                return Common.getPageRetVo(ret,UserRelation.class);
+            }
         } catch (Exception e) {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }

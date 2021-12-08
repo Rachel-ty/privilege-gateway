@@ -103,39 +103,8 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 新增组已存在
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void addgroupexist() throws Exception{
 
-        String requestJson = "{\"name\": \"测试\"}";
-        String responseString = this.mvc.perform(post("/departs/0/groups").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":735,\"errmsg\":\"组名在部门内已存在\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
 
-    /**
-     * 新增组的部门名错误
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void addgroup_wrongdid() throws Exception{
-
-        String requestJson = "{\"name\": \"测试1\"}";
-        String responseString = this.mvc.perform(post("/departs/-1/groups").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"部门id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
     @Test
     @Transactional
     public void addgroup_wrongdid1() throws Exception{
@@ -146,7 +115,7 @@ class GroupControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
     /**
@@ -166,22 +135,6 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
     /**
-     * 修改用户组信息,组号不合法
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void updategroup_wrongid() throws Exception{
-
-        String requestJson = "{\"name\": \"测试1\"}";
-        String responseString = this.mvc.perform(put("/departs/0/groups/-1").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"该用户组id或部门id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
-    /**
      * 修改用户组信息,组号不存在
      * @throws Exception
      */
@@ -199,23 +152,6 @@ class GroupControllerTest {
     }
 
     /**
-     * 修改用户组信息,禁用态
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void updategroup_wrongstate() throws Exception{
-
-        String requestJson = "{\"name\": \"测试1\"}";
-        String responseString = this.mvc.perform(put("/departs/0/groups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":507,\"errmsg\":\"用户组处于禁用\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
-
-    /**
      * 删除用户组
      * @throws Exception
      */
@@ -227,20 +163,6 @@ class GroupControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
-    /**
-     * 删除用户组，用户组id不合法
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void deletegroup_wrongid() throws Exception{
-        String responseString = this.mvc.perform(delete("/departs/0/groups/-1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"用户组id不合法\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
     /**
@@ -268,38 +190,10 @@ class GroupControllerTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配：1\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 删除用户组，用户继承签名有误
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void deletegroup_wrongdsign() throws Exception{
-        String responseString = this.mvc.perform(delete("/departs/0/groups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is5xxServerError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":500,\"errmsg\":\"用户组继承关系签名错误\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
-    /**
-     * 删除用户组，用户组角色签名有误
-     * @throws Exception
-     */
-    @Test
-    @Transactional
-    public void deletegroup_wrongrsign() throws Exception{
-        String responseString = this.mvc.perform(delete("/departs/0/groups/3").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":511,\"errmsg\":\"用户组角色签名错误\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
 
 
     /**
@@ -332,35 +226,6 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 增加用户组关系 重复
-     */
-    @Test
-    @Transactional
-    public void addgroupRelation_pssame() throws Exception{
-
-        String responseString = this.mvc.perform(post("/departs/0/groups/2/subgroups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"父子用户组id不能相同\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
-
-    /**
-     * 增加用户组关系 不合法
-     */
-    @Test
-    @Transactional
-    public void addgroupRelation_psinlegal() throws Exception{
-
-        String responseString = this.mvc.perform(post("/departs/0/groups/-1/subgroups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"父子用户组id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
 
 
     /**
@@ -393,35 +258,6 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 删除用户组关系 重复
-     */
-    @Test
-    @Transactional
-    public void deletegroupRelation_pssame() throws Exception{
-
-        String responseString = this.mvc.perform(delete("/departs/0/groups/2/subgroups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"父子用户组id不能相同\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
-
-    /**
-     * 删除用户组关系 不合法
-     */
-    @Test
-    @Transactional
-    public void deletegroupRelation_psinlegal() throws Exception{
-
-        String responseString = this.mvc.perform(post("/departs/0/groups/-1/subgroups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"父子用户组id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
 
     /**
      * 获得用户组的所有子用户组
@@ -452,6 +288,51 @@ class GroupControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    /**
+     * 禁用用户组
+     * @throws Exception
+     */
+    @Test
+    @Transactional
+    public void releasegroup() throws Exception{
+
+        String responseString = this.mvc.perform(put("/departs/0/groups/1/release").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    /**
+     * 禁用用户组
+     * @throws Exception
+     */
+    @Test
+    @Transactional
+    public void releasegroupnone() throws Exception{
+
+        String responseString = this.mvc.perform(put("/departs/0/groups/20/release").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    /**
+     * 禁用用户组
+     * @throws Exception
+     */
+    @Test
+    @Transactional
+    public void releasegroupdid() throws Exception{
+
+        String responseString = this.mvc.perform(put("/departs/2/groups/1/release").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().is4xxClientError())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -515,32 +396,6 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 将用户加入组 不合法的id
-     */
-    @Test
-    @Transactional
-    public void addusergroup_wrong() throws Exception{
-
-        String responseString = this.mvc.perform(post("/departs/-1/groups/1/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"部门id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-        responseString = this.mvc.perform(post("/departs/0/groups/-1/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":503,\"errmsg\":\"用户组id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-        responseString = this.mvc.perform(post("/departs/0/groups/1/users/-1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":503,\"errmsg\":\"用户id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
 
     /**
      * 增加用户组关系 不存在
@@ -594,33 +449,6 @@ class GroupControllerTest {
     }
 
     /**
-     * 将用户加入组 不合法的id
-     */
-    @Test
-    @Transactional
-    public void deleteusergroup_wrong() throws Exception{
-
-        String responseString = this.mvc.perform(delete("/departs/-1/groups/1/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"部门id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-        responseString = this.mvc.perform(delete("/departs/0/groups/-1/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":503,\"errmsg\":\"用户组id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-        responseString = this.mvc.perform(delete("/departs/0/groups/1/users/-1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":503,\"errmsg\":\"用户id不合法\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
-
-    /**
      * 增加用户组关系 不存在
      */
     @Test
@@ -655,23 +483,4 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
 
     }
-
-    /**
-     * 增加用户组关系 签名错误
-     */
-    @Test
-    @Transactional
-    public void deleteusergroup_notexitwrong() throws Exception{
-
-        String responseString = this.mvc.perform(delete("/departs/0/groups/3/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":503,\"errmsg\":\"签名错误\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-
-    }
-
-
-
 }
