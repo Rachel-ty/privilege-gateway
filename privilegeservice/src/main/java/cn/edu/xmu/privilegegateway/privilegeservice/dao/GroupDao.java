@@ -486,7 +486,7 @@ public class GroupDao {
             GroupRolePoExample groupRolePoExample = new GroupRolePoExample();
             GroupRolePoExample.Criteria criteria3 = groupRolePoExample.createCriteria();
             criteria3.andGroupIdEqualTo(id);
-//            groupRolePoMapper.deleteByExample(groupRolePoExample);
+            groupRolePoMapper.deleteByExample(groupRolePoExample);
             groupPoMapper.deleteByPrimaryKey(id);
             for(String key:ids)
             {
