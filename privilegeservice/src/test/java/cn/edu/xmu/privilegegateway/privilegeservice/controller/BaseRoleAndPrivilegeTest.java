@@ -206,7 +206,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expected="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        String expected="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/departs/{id}/adminusers/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01T09:52:20.000\",\"gmtModified\":\"2020-11-02T21:51:45.000\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expected, responseString,false);
     }
 
