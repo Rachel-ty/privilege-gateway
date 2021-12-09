@@ -1,5 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.vo;
 
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import lombok.Data;
 
@@ -13,8 +14,14 @@ public class StateVo {
     private Long Code;
 
     private String name;
-    public StateVo(User.State state){
-        Code=Long.valueOf(state.getCode());
-        name=state.getDescription();
+
+    public StateVo(User.State state) {
+        Code = Long.valueOf(state.getCode());
+        name = state.getDescription();
+    }
+
+    public StateVo(Role.State state) {
+        Code = Long.valueOf(state.getCode());
+        name = state.getDescription();
     }
 }

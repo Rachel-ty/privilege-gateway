@@ -590,4 +590,16 @@ public class PrivilegeDao {
         }
 
     }
+    /**
+     * 通过角色id删除对应的角色权限
+     * @return ReturnObject
+     * @author 张晖婧
+     * */
+    public int deleteRolePrivByRoleId(Long roleId) {
+        RolePrivilegePoExample exampleRP = new RolePrivilegePoExample();
+        RolePrivilegePoExample.Criteria criteriaRP = exampleRP.createCriteria();
+        criteriaRP.andRoleIdEqualTo(roleId);
+        return rolePrivilegePoMapper.deleteByExample(exampleRP);
+    }
+
 }
