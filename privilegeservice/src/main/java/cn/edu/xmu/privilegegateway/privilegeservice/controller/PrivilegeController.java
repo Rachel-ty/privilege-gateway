@@ -656,7 +656,6 @@ public class PrivilegeController {
     })
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 736, message = "角色名已存在"),
     })
     @Audit(departName = "departs")
     @PostMapping("/departs/{did}/roles")
@@ -675,9 +674,87 @@ public class PrivilegeController {
 
         Role role = (Role) Common.cloneVo(vo, Role.class);
         role.setDepartId(did);
+        role.setBaserole((byte) 0);
         Common.setPoCreatedFields(role, userId, userName);
 
         ReturnObject retObj = roleService.insertRole(role);
+        return Common.decorateReturnObject(retObj);
+    }
+
+    /**
+     * 新增一个功能角色
+     *
+     * @author 22920192204289 王文凯
+     * @param vo 角色视图
+     * @param bindingResult 校验错误
+     * @param userId 当前用户id
+     * @return Object 角色返回视图
+     */
+    @ApiOperation(value = "新增功能角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "body", dataType = "RoleVo", name = "vo", value = "可修改的用户信息", required = true)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @PostMapping("/departs/{did}/baseroles")
+    public Object insertBaseRole(@PathVariable("did") Long did,
+                                 @Validated @RequestBody RoleVo vo,
+                                 BindingResult bindingResult,
+                                 @LoginUser Long userId,
+                                 @LoginName String userName,
+                                 @Depart Long departId) {
+        logger.debug("insert role by userId:" + userId);
+        // 校验前端数据
+        Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if (null != returnObject) {
+            return Common.decorateReturnObject(new ReturnObject(returnObject));
+        }
+
+        if (did != 0L) {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+
+        Role role = (Role) Common.cloneVo(vo, Role.class);
+        role.setDepartId(did);
+        role.setBaserole((byte)1);
+        Common.setPoCreatedFields(role, userId, userName);
+
+        ReturnObject retObj = roleService.insertBaseRole(role);
+        return Common.decorateReturnObject(retObj);
+    }
+
+    /**
+     * 查询功能角色
+     *
+     * @author 22920192204289 王文凯
+     */
+    @ApiOperation(value = "查询角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "did", value = "部门id", required = true),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "page", value = "页码", required = false),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "每页数目", required = false)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/departs/{did}/roles")
+    public Object selectBaseRoles(@LoginUser Long userId,
+                                  @Depart Long departId,
+                                  @PathVariable("did") Long did,
+                                  @RequestParam(required = false) Integer page,
+                                  @RequestParam(required = false) Integer pageSize) {
+        logger.debug("selectAllRoles: page = " + page + "  pageSize =" + pageSize);
+
+        if (did != 0L) {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+
+        ReturnObject retObj = roleService.selectBaseRoles(page, pageSize);
         return Common.decorateReturnObject(retObj);
     }
 
@@ -933,6 +1010,7 @@ public class PrivilegeController {
         logger.debug("selectUserByRole");
         return Common.decorateReturnObject(roleService.selectUserByRole(id, did, page, pageSize));
     }
+
     //endregion
     /* auth008 end*/
 

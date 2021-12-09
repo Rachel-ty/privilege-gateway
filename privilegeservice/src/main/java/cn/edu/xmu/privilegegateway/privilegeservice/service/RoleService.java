@@ -25,12 +25,12 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.BasePrivilegeRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RoleInherited;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleInheritedRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.StateVo;
 import com.github.pagehelper.PageInfo;
+import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -76,6 +76,17 @@ public class RoleService {
         return roleDao.selectAllRole(did, page, pageSize);
     }
 
+
+    /**
+     * 查询功能角色
+     *
+     * @author 22920192204289 王文凯
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject selectBaseRoles(Integer page, Integer pageSize) {
+        return roleDao.selectBaseRole(page, pageSize);
+    }
+
     /**
      * 新增角色
      *
@@ -88,6 +99,23 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject insertRole(Role bo) {
+        ReturnObject retObj = roleDao.insertRole(bo);
+
+        return Common.getRetVo(retObj, RoleRetVo.class);
+    }
+
+    /**
+     * 新增功能角色
+     *
+     * @author 24320182203281 王纬策
+     * @param bo 角色视图
+     * @return ReturnObject<VoObject> 角色返回视图
+     * createdBy 王纬策 2020/11/04 13:57
+     * modifiedBy 王纬策 2020/11/7 19:20
+     * modifiedBy 王文凯 2021/11/26 11:03
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public ReturnObject insertBaseRole(Role bo) {
         ReturnObject retObj = roleDao.insertRole(bo);
 
         return Common.getRetVo(retObj, RoleRetVo.class);
