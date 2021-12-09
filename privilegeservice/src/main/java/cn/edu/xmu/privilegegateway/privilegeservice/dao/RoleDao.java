@@ -43,6 +43,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -277,6 +278,7 @@ public class RoleDao {
         RolePoExample example = new RolePoExample();
         RolePoExample.Criteria criteria = example.createCriteria();
         criteria.andDepartIdEqualTo(did);
+        criteria.andBaseroleEqualTo((byte)0);
         // 分页查询
         logger.debug("page = " + page + "pageSize = " + pageSize);
         PageHelper.startPage(page, pageSize);
@@ -291,6 +293,28 @@ public class RoleDao {
         }
     }
 
+    /**
+     * 查询功能角色
+     *
+     * @author 22920192204289 王文凯
+     */
+    public ReturnObject selectBaseRole(Integer page, Integer pageSize) {
+        RolePoExample example = new RolePoExample();
+        RolePoExample.Criteria criteria = example.createCriteria();
+        criteria.andBaseroleEqualTo((byte)1);
+        // 分页查询
+        logger.debug("page = " + page + "pageSize = " + pageSize);
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<RolePo> pos = roleMapper.selectByExample(example);
+
+            PageInfo info = new PageInfo<>(pos);
+            return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
+        } catch (Exception e) {
+            logger.error("other exception : " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        }
+    }
 
     /**
      * 增加一个角色
@@ -305,10 +329,6 @@ public class RoleDao {
     public ReturnObject insertRole(Role role) {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
         try {
-            if (roleExist(role.getDepartId(), role.getName())) {
-                return new ReturnObject(ReturnNo.ROLE_EXIST);
-            }
-
             int ret = roleMapper.insertSelective(rolePo);
             if (ret == 0) {
                 // 插入失败
