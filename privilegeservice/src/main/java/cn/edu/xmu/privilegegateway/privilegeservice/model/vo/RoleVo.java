@@ -34,7 +34,7 @@ public class RoleVo {
      */
     public Role createRole() {
         Role role = new Role();
-        role.setDescribe(this.descr);
+        role.setDescr(this.descr);
         role.setName(this.name);
         return role;
     }

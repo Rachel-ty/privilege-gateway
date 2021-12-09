@@ -21,15 +21,14 @@ import cn.edu.xmu.privilegegateway.annotation.aop.Depart;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginName;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginUser;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.NewUserService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.RoleService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.UserProxyService;
-import cn.edu.xmu.privilegegateway.privilegeservice.service.UserService;
+import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
+import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
@@ -49,6 +48,7 @@ import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -84,6 +84,244 @@ public class PrivilegeController {
     @Autowired
     private UserProxyService userProxyService;
 
+    @Autowired
+    private PrivilegeService privilegeService;
+
+    /**
+     * @author: zhang yu
+     * @date: 2021/11/24 16:28
+     * @version: 1.0
+    */
+    /*获取权限状态*/
+
+    /**
+     *
+     * @return
+     */
+    @ApiOperation(value = "查询权限状态")
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功")
+    })
+    @GetMapping("/privileges/states")
+    public Object GetPrivilegesStates()
+    {
+        ReturnObject<List> ret=privilegeService.getPrivilegeStates();
+        return Common.decorateReturnObject(ret);
+    }
+    /*查询功能角色权限*/
+
+    /**
+     * @author zhangyu
+     * @param did
+     * @param roleid
+     * @param page
+     * @param pagesize
+     * @return
+     */
+    @ApiOperation(value="查询功能角色权限")
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/departs/{did}/baseroles/{id}/privileges")
+    public Object GetBaseRolePriv(@PathVariable("did") Long did,
+                                  @PathVariable("id") Long roleid,
+                                 @RequestParam(required = true,value = "page") Integer page,
+                                  @RequestParam(required = true,value="pageSize") Integer pagesize)
+    {
+        if(did!=0)
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
+    }
+    /*取消功能角色权限,删除功能角色权限
+    * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
+    * */
+    @ApiOperation(value="取消功能角色权限")
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @Audit(departName = "departs")
+    @DeleteMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
+    public Object delBaseRolePriv(@PathVariable Long did,
+                                  @PathVariable Long roleid,
+                                  @PathVariable("privilegeid") Long pid)
+    {
+        if(did!=0)
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        else
+        {
+            return Common.decorateReturnObject(roleService.delBaseRolePriv(roleid,pid));
+        }
+    }
+    /*新建权限，新增权限*/
+
+    /**
+     * @author: zhangyu
+     * @param did
+     * @param vo
+     * @param bindingResult
+     * @return
+     */
+    @ApiOperation(value="新建权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "roleid", value = "角色id", required = true, dataType = "Integer", paramType = "path")
+            })
+    @ApiResponses({
+            @ApiResponse(code = 742, message = "权限url/RequestType重复"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @Audit(departName = "departs")
+    @PostMapping("/departs/{did}/privileges")
+    public Object AddPriv(
+                        @PathVariable("did") Long did,
+                        @Valid @RequestBody PrivilegeVo vo,
+                          BindingResult bindingResult,
+                          @LoginUser Long creatorid,
+                        @LoginName String creatorname)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        ReturnObject<VoObject> returnObject=privilegeService.AddPrivileges(vo,creatorid,creatorname);
+        return Common.decorateReturnObject(returnObject);
+
+    }
+    /*查询权限*/
+
+    /**
+     * @author zhangyu
+     * @param did
+     * @param url
+     * @param requestType
+     * @return
+     */
+    @ApiOperation(value="查询权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name = "did", value = "部门id", required = true, dataType = "Integer", paramType = "path"),
+            @ApiImplicitParam(name = "url", value = "访问url", required = true, dataType = "String", paramType = "path"),
+            @ApiImplicitParam(name = "requestType", value = "请求类型", required = true, dataType = "Integer", paramType = "path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 505, message = "did不为0"),
+            @ApiResponse(code=0,message="成功")
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/departs/{did}/privileges")
+    public Object getPrivs(@PathVariable Long did,
+                           @RequestParam String url,
+                           @RequestParam Byte requestType,
+                            @RequestParam(required = true,value="page") Integer page,
+                           @RequestParam(required = true,value="pageSize") Integer pageSize)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return Common.decorateReturnObject(privilegeService.GetPriv(url,requestType,page,pageSize));
+    }
+    /*删除权限*/
+
+    /**
+     * @author zhangyu
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation(value = "删除权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @Audit(departName = "departs")
+    @DeleteMapping("/departs/{did}/privileges/{id}")
+    public Object DeletePriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return  Common.decorateReturnObject(privilegeService.DelPriv(pid));
+    }
+    /*禁用权限*/
+
+    /**
+     *
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation("禁用权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @Audit(departName = "departs")
+    @PutMapping("/departs/{did}/privileges/{id}/forbid")
+    public Object ForbidPriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid,
+                             @LoginUser Long modifiedId,
+                             @LoginName String modifiedName)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return Common.decorateReturnObject(privilegeService.ForbidPriv(pid,modifiedId,modifiedName));
+    }
+    /*解禁权限*/
+
+    /**
+     *
+     * @param did
+     * @param pid
+     * @return
+     */
+    @ApiOperation("解禁权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="权限id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 505, message = "操作id不是自己的对象")
+    })
+    @Audit(departName = "departs")
+    @PutMapping("/departs/{did}/privileges/{id}/release")
+    public Object ReleasePriv(@PathVariable("did") Long did,
+                             @PathVariable("id") Long pid,
+                              @LoginUser Long mid,
+                              @LoginName String mname)
+    {
+        if(did!=Long.valueOf(0))
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
+        return Common.decorateReturnObject(privilegeService.ReleasePriv(pid,mid,mname));
+
+    }
+
     /***
      * 取消用户权限
      * @param userid 用户id
@@ -91,22 +329,22 @@ public class PrivilegeController {
      * @param did 部门id
      * @return
      */
-    @ApiOperation(value = "取消用户角色")
-    @ApiImplicitParams({
-            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
-            @ApiImplicitParam(name="id", value="角色id", required = true, dataType="Integer", paramType="path"),
-            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
-
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-            @ApiResponse(code = 504, message = "操作id不存在")
-    })
-    @Audit(departName = "departs")
-    @DeleteMapping("/departs/{did}/adminusers/{userid}/roles/{roleid}")
-    public Object revokeRole(@PathVariable Long did, @PathVariable Long userid, @PathVariable Long roleid){
-        return Common.decorateReturnObject(userService.revokeRole(userid, roleid, did));
-    }
+//    @ApiOperation(value = "取消用户角色")
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+//            @ApiImplicitParam(name="id", value="角色id", required = true, dataType="Integer", paramType="path"),
+//            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+//
+//    })
+//    @ApiResponses({
+//            @ApiResponse(code = 0, message = "成功"),
+//            @ApiResponse(code = 504, message = "操作id不存在")
+//    })
+//    @Audit(departName = "departs")
+//    @DeleteMapping("/departs/{did}/adminusers/{userid}/roles/{roleid}")
+//    public Object revokeRole(@PathVariable Long did, @PathVariable Long userid, @PathVariable Long roleid){
+//        return Common.decorateReturnObject(userService.revokeRole(userid, roleid, did));
+//    }
 
     /***
      * 赋予用户权限
@@ -229,11 +467,13 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit(departName = "departs")
-    @PutMapping("/departs/did/privileges/{id}")
-    public Object changePriv(@PathVariable Long id, @Validated @RequestBody PrivilegeVo vo, BindingResult bindingResult, @LoginUser Long userId, @Depart Long departId,
-                             HttpServletResponse httpServletResponse){
-        logger.debug("changePriv: id = "+ id +" vo" + vo);
-        logger.debug("getAllPrivs: userId = " + userId +" departId = "+departId);
+    @PutMapping("/departs/{did}/privileges/{id}")
+    public Object changePriv(@PathVariable("id") Long id,
+                             @Validated @RequestBody PrivilegeVo vo,
+                             BindingResult bindingResult,
+                             @LoginUser Long ModifierId,
+                             @LoginName String ModifierName,
+                             @PathVariable("did") Long departId){
         /* 处理参数校验错误 */
         Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
         if(o != null){
@@ -243,13 +483,9 @@ public class PrivilegeController {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 
-        ReturnObject<VoObject> returnObject = userService.changePriv(id, vo);
+        ReturnObject<VoObject> returnObject = privilegeService.changePriv(id,vo,ModifierId,ModifierName);
+        return Common.decorateReturnObject(returnObject);
 
-        if (returnObject.getCode() == ReturnNo.OK) {
-            return Common.getRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
     }
 
     /**
@@ -376,6 +612,7 @@ public class PrivilegeController {
      * @return Object 角色分页查询结果
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
+     * modifiedBy 王文凯 2020/11/26 10:55
      */
     @ApiOperation(value = "查询角色", produces = "application/json")
     @ApiImplicitParams({
@@ -389,19 +626,15 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs")
     @GetMapping("/departs/{did}/roles")
-    public Object selectAllRoles(@LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                                 @Depart @ApiIgnore @RequestParam(required = false) Long departId,
+    public Object selectAllRoles(@LoginUser Long userId,
+                                 @Depart Long departId,
                                  @PathVariable("did") Long did,
-                                 @RequestParam(required = false, defaultValue = "1") Integer page,
-                                 @RequestParam(required = false, defaultValue = "10") Integer pageSize) {
-        logger.debug("selectAllRoles: page = "+ page +"  pageSize ="+pageSize);
-        if(did.equals(departId)){
-            ReturnObject<PageInfo<VoObject>> returnObject =  roleService.selectAllRoles(departId, page, pageSize);
-            return Common.getPageRetObject(returnObject);
-        }
-        else{
-            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配：" + did)));
-        }
+                                 @RequestParam(required = false) Integer page,
+                                 @RequestParam(required = false) Integer pageSize) {
+        logger.debug("selectAllRoles: page = " + page + "  pageSize =" + pageSize);
+
+        ReturnObject retObj = roleService.selectAllRoles(did, page, pageSize);
+        return Common.decorateReturnObject(retObj);
     }
 
     /**
@@ -414,6 +647,7 @@ public class PrivilegeController {
      * @return Object 角色返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
+     * modifiedBy 王文凯 2021/11/26 11:02
      */
     @ApiOperation(value = "新增角色", produces = "application/json")
     @ApiImplicitParams({
@@ -427,32 +661,24 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @PostMapping("/departs/{did}/roles")
     public Object insertRole(@PathVariable("did") Long did,
-                             @Validated @RequestBody RoleVo vo, BindingResult bindingResult,
-                             @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                             @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
+                             @Validated @RequestBody RoleVo vo,
+                             BindingResult bindingResult,
+                             @LoginUser Long userId,
+                             @LoginName String userName,
+                             @Depart Long departId) {
         logger.debug("insert role by userId:" + userId);
-        //校验前端数据
+        // 校验前端数据
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            logger.debug("validate fail");
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(returnObject));
         }
-        if(did.equals(departId)){
-            Role role = vo.createRole();
-            role.setCreatorId(userId);
-            role.setDepartId(departId);
-            role.setGmtCreate(LocalDateTime.now());
-            ReturnObject retObject = roleService.insertRole(role);
-            if (retObject.getCode() == ReturnNo.OK) {
-                httpServletResponse.setStatus(HttpStatus.CREATED.value());
-                return Common.getRetObject(retObject);
-            } else {
-                return Common.decorateReturnObject(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()));
-            }
-        }
-        else{
-            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配：" + did)));
-        }
+
+        Role role = (Role) Common.cloneVo(vo, Role.class);
+        role.setDepartId(did);
+        Common.setPoCreatedFields(role, userId, userName);
+
+        ReturnObject retObj = roleService.insertRole(role);
+        return Common.decorateReturnObject(retObj);
     }
 
     /**
@@ -463,6 +689,7 @@ public class PrivilegeController {
      * @return Object 删除结果
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
+     * modifiedBy 王文凯 2021/11/26 11:15
      */
     @ApiOperation(value = "删除角色", produces = "application/json")
     @ApiImplicitParams({
@@ -475,17 +702,13 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs")
     @DeleteMapping("/departs/{did}/roles/{id}")
-    public Object deleteRole(@PathVariable("did") Long did, @PathVariable("id") Long id,
-                             @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                             @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
+    public Object deleteRole(@PathVariable("did") Long did,
+                             @PathVariable("id") Long id,
+                             @LoginUser Long userId,
+                             @Depart Long departId) {
         logger.debug("delete role");
-        if(did.equals(departId)){
-            ReturnObject returnObject = roleService.deleteRole(departId, id);
-            return Common.decorateReturnObject(returnObject);
-        }
-        else{
-            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配：" + did)));
-        }
+        ReturnObject retObj = roleService.deleteRole(id, did);
+        return Common.decorateReturnObject(retObj);
     }
 
     /**
@@ -499,6 +722,7 @@ public class PrivilegeController {
      * @return Object 角色返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
+     * modifiedBy 王文凯 2021/11/26 11:23
      */
     @ApiOperation(value = "修改角色信息", produces = "application/json")
     @ApiImplicitParams({
@@ -511,34 +735,203 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
             @ApiResponse(code = 736, message = "角色名已存在"),
     })
-    @Audit
-    @PutMapping("/shops/{did}/roles/{id}")
-    public Object updateRole(@PathVariable("did") Long did, @PathVariable("id") Long id, @Validated @RequestBody RoleVo vo, BindingResult bindingResult,
-                             @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                             @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
+    @Audit(departName = "departs")
+    @PutMapping("/departs/{did}/roles/{id}")
+    public Object updateRole(@PathVariable("did") Long did,
+                             @PathVariable("id") Long id,
+                             @Validated @RequestBody RoleVo vo,
+                             BindingResult bindingResult,
+                             @LoginUser Long userId,
+                             @LoginName String userName,
+                             @Depart Long departId) {
         logger.debug("update role by userId:" + userId);
-        //校验前端数据
+        // 校验前端数据
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
-            return returnObject;
+            return Common.decorateReturnObject(new ReturnObject(returnObject));
         }
-        if(did.equals(departId)){
-            Role role = vo.createRole();
-            role.setId(id);
-            role.setDepartId(departId);
-            role.setCreatorId(userId);
-            role.setGmtModified(LocalDateTime.now());
 
-            ReturnObject retObject = roleService.updateRole(role);
-            if (retObject.getData() != null) {
-                return Common.getRetObject(retObject);
-            } else {
-                return Common.decorateReturnObject(new ReturnObject<>(retObject.getCode(), retObject.getErrmsg()));
-            }
-        }
-        else{
-            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, String.format("部门id不匹配：" + did)));
-        }
+        Role role = (Role) Common.cloneVo(vo, Role.class);
+        role.setId(id);
+        role.setDepartId(did);
+        role.setGmtModified(LocalDateTime.now());
+        Common.setPoModifiedFields(role, userId, userName);
+
+        ReturnObject retObj = roleService.updateRole(role);
+        return Common.decorateReturnObject(retObj);
+    }
+
+    /**
+     * 查看任意用户的角色
+     *
+     * @author 22920192204289 王文凯
+     * @param did 部门id
+     * @param id 用户id
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @ApiOperation(value = "查看任意用户的角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "did", value = "部门id", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "id", value = "用户id", required = true),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "page", value = "页码", required = false),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "每页数目", required = false)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/departs/{did}/users/{id}/roles")
+    public Object selectRoles(@LoginUser Long userId,
+                              @Depart Long departId,
+                              @PathVariable("did") Long did,
+                              @PathVariable("id") Long id,
+                              @RequestParam(required = false) Integer page,
+                              @RequestParam(required = false) Integer pageSize) {
+        logger.debug("selectRoles: page = " + page + "  pageSize =" + pageSize);
+        ReturnObject retObj = userService.selectRoles(id, did, page, pageSize);
+        return Common.decorateReturnObject(retObj);
+    }
+
+    /**
+     * 查看自己的角色
+     *
+     * @author 22920192204289 王文凯
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @ApiOperation(value = "查看自己的角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "page", value = "页码", required = false),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "每页数目", required = false)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/self/roles")
+    public Object selectSelfRoles(@LoginUser Long userId,
+                                  @Depart Long departId,
+                                  @RequestParam(required = false) Integer page,
+                                  @RequestParam(required = false) Integer pageSize) {
+        logger.debug("selectSelfRoles: page = " + page + "  pageSize =" + pageSize);
+        return Common.decorateReturnObject(userService.selectSelfRoles(userId, departId, page, pageSize));
+    }
+
+    /**
+     * 查看自己的功能角色
+     *
+     * @author 22920192204289 王文凯
+     * @param page 页数
+     * @param pageSize 每页大小
+     * @return Object 角色返回视图
+     * createdBy 王文凯 2021/11/26 11:44
+     */
+    @ApiOperation(value = "查看自己的功能角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "page", value = "页码", required = false),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "每页数目", required = false)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/self/baseroles")
+    public Object selectSelfBaseRoles(@LoginUser Long userId,
+                                      @Depart Long departId,
+                                      @RequestParam(required = false) Integer page,
+                                      @RequestParam(required = false) Integer pageSize) {
+        logger.debug("selectBaseRoles: page = " + page + "  pageSize =" + pageSize);
+        return Common.decorateReturnObject(userService.selectSelfBaseRoles(userId, departId, page, pageSize));
+    }
+
+    /**
+     * 禁用角色
+     *
+     * @author 22920192204289 王文凯
+     */
+    @ApiOperation(value = "禁用角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "did", value = "部门id", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "id", value = "角色id", required = true),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @PutMapping("/departs/{did}/roles/{id}/forbid")
+    public Object forbidRole(@PathVariable Long did,
+                             @PathVariable Long id) {
+        logger.debug("forbidRole");
+
+        Role bo = new Role();
+        bo.setId(id);
+        bo.setDepartId(did);
+        bo.setState(Role.State.FORBID.getCode());
+
+        return Common.decorateReturnObject(roleService.forbidRole(bo));
+    }
+
+    /**
+     * 解禁角色
+     *
+     * @author 22920192204289 王文凯
+     */
+    @ApiOperation(value = "解禁角色", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "did", value = "部门id", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "id", value = "角色id", required = true),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @PutMapping("/departs/{did}/roles/{id}/release")
+    public Object releaseRole(@PathVariable Long did,
+                              @PathVariable Long id) {
+        logger.debug("releaseRole");
+
+        Role bo = new Role();
+        bo.setId(id);
+        bo.setDepartId(did);
+        bo.setState(Role.State.NORM.getCode());
+
+        return Common.decorateReturnObject(roleService.releaseRole(bo));
+    }
+
+    /**
+     * 查询角色中用户
+     *
+     * @author 22920192204289 王文凯
+     */
+    @ApiOperation(value = "查询角色中用户", produces = "application/json")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "did", value = "部门id", required = true),
+            @ApiImplicitParam(paramType = "path", dataType = "int", name = "id", value = "角色id", required = true),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "page", value = "页码", required = false),
+            @ApiImplicitParam(paramType = "query", dataType = "int", name = "pageSize", value = "每页数目", required = false)
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/departs/{did}/roles/{id}/users")
+    public Object selectUserByRole(@PathVariable Long did,
+                                   @PathVariable Long id,
+                                   @PathVariable(required = false) Integer page,
+                                   @PathVariable(required = false) Integer pageSize) {
+        logger.debug("selectUserByRole");
+        return Common.decorateReturnObject(roleService.selectUserByRole(id, did, page, pageSize));
     }
     //endregion
     /* auth008 end*/
@@ -1012,34 +1405,15 @@ public class PrivilegeController {
 
 
     /**
-     * 取消角色权限
+     * 取消功能角色权限
      * @return Object
      * createdBy 王琛 24320182203277
+     * modifiedby 张宇
      */
-    @ApiOperation(value = "取消角色权限")
+    @ApiOperation(value = "取消功能角色权限")
     @ApiImplicitParams({
             @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @DeleteMapping("roleprivileges/{id}")
-    public Object delRolePriv(@PathVariable Long id){
-        logger.debug("delRolePriv: id = "+ id);
-        ReturnObject returnObject = roleService.delRolePriv(id);
-        return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
-    }
-
-    /**
-     * 增加角色权限
-     * @return Object
-     * createdBy 王琛 24320182203277
-     */
-    @ApiOperation(value = "新增角色权限")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
             @ApiImplicitParam(name="roleid", required = true, dataType="String", paramType="path"),
             @ApiImplicitParam(name="privilegeid", required = true, dataType="String", paramType="path")
     })
@@ -1047,16 +1421,48 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit
-    @PostMapping("roles/{roleid}/privileges/{privilegeid}")
-    public Object addRolePriv(@PathVariable Long roleid, @PathVariable Long privilegeid, @LoginUser @ApiIgnore @RequestParam(required = false, defaultValue = "0") Long userId){
-        logger.debug("addRolePriv: id = "+ roleid+" userid: id = "+ userId);
-        ReturnObject<VoObject> returnObject = roleService.addRolePriv(roleid, privilegeid, userId);
-
-        if (returnObject.getCode() == ReturnNo.OK) {
-            return Common.getRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
+    @DeleteMapping("/departs/{did}/baseroles/{id}/privileges")
+    public Object delRolePriv(@PathVariable Long did,
+                              @PathVariable Long roleid,
+                              @PathVariable Long privilegeid){
+        logger.debug("delRolePriv: id = "+ did+roleid+privilegeid);
+        if(did!=0)
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = roleService.delBaseRolePriv(roleid,privilegeid);
+        return Common.decorateReturnObject(returnObject);
+    }
+    /**
+     * 增加功能角色权限，给功能角色新增权限
+     * @return Object
+     * createdBy 王琛 24320182203277
+     * modified by 张宇
+     */
+    @ApiOperation(value = "新增功能角色权限")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="roleid", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="privilegeid", required = true, dataType="String", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "daparts")
+    @PostMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
+    public Object addRolePriv(@PathVariable("did") Long did,
+                              @PathVariable Long roleid,
+                              @PathVariable Long privilegeid,
+                              @LoginUser Long creatorid,
+                              @LoginName String creatorname
+                                )
+    {
+        if(did!=0)
+        {
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
+        ReturnObject returnObject = roleService.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
+        return Common.decorateReturnObject(returnObject);
+
     }
 
 
@@ -1277,5 +1683,202 @@ public class PrivilegeController {
         ReturnObject ret =userService.showUserName(id);
         return Common.decorateReturnObject(ret);
     }
+    @Audit
+    @PutMapping("internal/privileges/load")
+    public Object loadPrivilege(@Validated @RequestBody PrivilegeRedisVo privilegeVo){
+        return Common.decorateReturnObject(privilegeService.loadPrivilege(privilegeVo));
+    }
 
+    /**
+     * 获得角色的所有状态
+     * @author 张晖婧 22920192204320
+     * @return Object
+     */
+    @ApiOperation(value="获得角色的所有状态")
+    @Audit
+    @GetMapping("/roles/states")
+    public Object getRoleAllStates() {
+        return Common.decorateReturnObject(roleService.getAllStates());
+    }
+
+    /**
+     * 获得用户的功能角色
+     * @author 张晖婧 22920192204320
+     * @param did: 部门 id
+     * @param id: 用户 id
+     * @return Object
+     */
+    @ApiOperation(value = "获得用户的功能角色")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="page", required = true, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="pageSize", required = true, dataType="Integer", paramType="query")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")       //需要加一个部门id不存在
+    })
+    @Audit(departName = "departs") // 需要认证
+    @GetMapping("/departs/{did}/users/{id}/baseroles")
+    public Object getBaserolesByUserId(@LoginUser Long userId,
+                                       @Depart Long departId,
+                                       @RequestParam(required = false) Integer page,
+                                       @RequestParam(required = false) Integer pageSize,
+                                       @PathVariable Long did,
+                                       @PathVariable Long id) {
+        ReturnObject ret = userService.findBaserolesByUserId(did, id, page, pageSize);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 查询角色的功能角色
+     * @author 张晖婧 22920192204320
+     * @param did: 部门 id
+     * @param id: 用户 id
+     * @return Object
+     */
+    @ApiOperation(value = "查询角色的功能角色")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="page", required = true, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="pageSize", required = true, dataType="Integer", paramType="query")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")       //需要加一个部门id不存在
+    })
+    @Audit(departName = "departs") // 需要认证
+    @GetMapping("/departs/{did}/roles/{id}/baseroles")
+    public Object getBaserolesByRoleId(@RequestParam(required = false) Integer page,
+                                       @RequestParam(required = false) Integer pageSize,
+                                       @PathVariable Long did,
+                                       @PathVariable Long id) {
+
+        ReturnObject ret = roleService.findBaserolesByRoleId(did, id, page, pageSize);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
+     * 设置角色的继承关系
+     * @param pid 父角色id
+     * @param cid 子角色id
+     * @param createId 创建者id
+     * @param departId 创建者部门id
+     * @param did 部门id
+     * @author 22920192204320 张晖婧
+     */
+    @ApiOperation(value = "设置角色的继承关系")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="pid", value="父角色id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="cid", value="子角色id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @Audit(departName = "departs")
+    @PostMapping("/departs/{did}/roles/{pid}/childroles/{cid}")
+    public Object createRoleInherited(@LoginUser Long createId,
+                                      @Depart Long departId,
+                                      @LoginName String createName,
+                                      @PathVariable Long did,
+                                      @PathVariable Long pid,
+                                      @PathVariable Long cid) {
+        ReturnObject<VoObject> returnObject = roleService.createRoleInherited(createId,createName,did, pid, cid);
+        return Common.decorateReturnObject(returnObject);
+    }
+
+    /**
+     * 赋予用户角色
+     * @author 张晖婧 22920192204320
+     * @param userid 用户id
+     * @param roleid 角色id
+     * @param createId 创建者id
+     * @param did 部门id
+     * @return
+     */
+    @ApiOperation(value = "赋予用户角色")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="userid", value="用户id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="roleid", value="角色id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @Audit(departName = "departs")
+    @PostMapping("/departs/{did}/users/{userid}/roles/{roleid}")
+    public Object assignRole(@LoginUser Long createId,
+                             @LoginName String createName,
+                             @PathVariable Long did,
+                             @PathVariable Long userid,
+                             @PathVariable Long roleid){
+        ReturnObject<VoObject> returnObject =  userService.assignRole(createId,createName, userid, roleid, did);
+        return Common.decorateReturnObject(returnObject);
+    }
+
+    /**
+     * 取消用户角色
+     * @author 张晖婧 22920192204320
+     * @param userid 用户id
+     * @param roleid 角色id
+     * @param did 部门id
+     * @return
+     */
+    @ApiOperation(value = "取消用户角色")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+            @ApiImplicitParam(name="id", value="角色id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="did", value="部门id", required = true, dataType="Integer", paramType="path"),
+            @ApiImplicitParam(name="roleid", value="角色id", required = true, dataType="Integer", paramType="path")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")
+    })
+    @Audit(departName = "departs")
+    @DeleteMapping("/departs/{did}/users/{userid}/roles/{roleid}")
+    public Object revokeRole(@PathVariable Long did,
+                             @PathVariable Long userid,
+                             @PathVariable Long roleid) {
+        return Common.decorateReturnObject(userService.revokeRole(userid, roleid, did));
+    }
+
+    /**
+     * 查询父角色
+     * @author 张晖婧 22920192204320
+     * @param did: 部门 id
+     * @param id: 角色 id
+     * @return Object
+     */
+    @ApiOperation(value = "查询父角色")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
+            @ApiImplicitParam(name="did", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path"),
+            @ApiImplicitParam(name="page", required = true, dataType="Integer", paramType="query"),
+            @ApiImplicitParam(name="pageSize", required = true, dataType="Integer", paramType="query")
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+            @ApiResponse(code = 504, message = "操作id不存在")       //需要加一个部门id不存在
+    })
+    @Audit(departName = "departs") // 需要认证
+    @GetMapping("/departs/{did}/roles/{id}/parents")
+    public Object getParentRoles(@RequestParam(required = false) Integer page,
+                                 @RequestParam(required = false) Integer pageSize,
+                                 @PathVariable Long did,
+                                 @PathVariable Long id) {
+
+        ReturnObject ret = roleService.findParentRoles(did, id, page, pageSize);
+        return Common.decorateReturnObject(ret);
+    }
 }
