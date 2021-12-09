@@ -303,7 +303,7 @@ public class PrivilegeDao {
             PageInfo pageInfo = PageInfo.of(polist);
             pageInfo.setList(vo);
             ReturnObject returnObject= new ReturnObject(pageInfo);
-            return Common.getPageRetVo(returnObject,BasePrivilegeRetVo.class);
+            return Common.getPageRetVo(returnObject,PrivilegeRetVo.class);
         }catch (Exception e)
         {
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库错误",e.getMessage()));
