@@ -174,8 +174,11 @@ public class RoleService {
      * modifiedby zhangyu
      */
     /**
-     *
-     * @param vo
+     * 获取功能角色权限
+     * @param roleid
+     * @param privilegeid
+     * @param creatorid
+     * @param creatorname
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
