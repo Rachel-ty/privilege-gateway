@@ -742,7 +742,7 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit(departName = "departs")
-    @GetMapping("/departs/{did}/roles")
+    @GetMapping("/departs/{did}/baseroles")
     public Object selectBaseRoles(@LoginUser Long userId,
                                   @Depart Long departId,
                                   @PathVariable("did") Long did,
