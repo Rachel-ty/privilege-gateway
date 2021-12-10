@@ -642,7 +642,7 @@ public class RoleDao {
         if (rolePo == null) {
             return false;
         }
-        if (rolePo.getDepartId() !=BASEROLE) {
+        if (rolePo.getBaserole() !=BASEROLE) {
             return false;
         }
         return true;

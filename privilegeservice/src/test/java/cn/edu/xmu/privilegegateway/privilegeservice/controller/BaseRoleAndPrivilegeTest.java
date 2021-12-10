@@ -66,7 +66,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     /*正确测试*/
     public void testAddRolePrivileges() throws Exception{
-        String responseString = this.mvc.perform(post("/departs/0/baseroles/80/privileges/2")
+        String responseString = this.mvc.perform(post("/departs/0/baseroles/88/privileges/2")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -78,7 +78,7 @@ public class BaseRoleAndPrivilegeTest {
     /*添加新增功能角色权限 重复权限*/
     @Test
     public void testAddBaseRolePrivilegesWithExistPriv() throws Exception{
-        String responseString = this.mvc.perform(post("/departs/0/baseroles/23/privileges/3")
+        String responseString = this.mvc.perform(post("/departs/0/baseroles/88/privileges/96")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -103,7 +103,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     public void testDelPrivsByErrorPrivilege() throws  Exception
     {
-        String responseString = this.mvc.perform(delete("/departs/0/baseroles/86/privileges/2")
+        String responseString = this.mvc.perform(delete("/departs/0/baseroles/88/privileges/96")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
@@ -140,7 +140,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     public void testDelBaseRolePrivs() throws  Exception
     {
-        String responseString = this.mvc.perform(delete("/departs/0/baseroles/23/privileges/2")
+        String responseString = this.mvc.perform(delete("/departs/0/baseroles/88/privileges/96")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", token))
                 .andExpect(status().isOk())
@@ -152,7 +152,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     public void testSelectBaseRolePrivs() throws  Exception
     {
-        String responseString = this.mvc.perform(get("/departs/0/baseroles/23/privileges")
+        String responseString = this.mvc.perform(get("/departs/0/baseroles/88/privileges")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
                 .param("page","1")
@@ -160,7 +160,7 @@ public class BaseRoleAndPrivilegeTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String exstr="{\"errno\":0,\"data\":{\"total\":10,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"gmtCreate\":\"2020-11-01T10:11:21.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":3,\"name\":\"修改任意用户信息\",\"gmtCreate\":\"2020-11-01T10:11:53.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":4,\"name\":\"删除用户\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":5,\"name\":\"恢复用户\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":6,\"name\":\"禁止用户登录\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":7,\"name\":\"赋予用户角色\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":8,\"name\":\"取消用户角色\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":9,\"name\":\"新增角色\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":10,\"name\":\"删除角色\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},{\"id\":11,\"name\":\"修改角色信息\",\"gmtCreate\":\"2020-11-01T10:12:15.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        String exstr=" {\"errno\":0,\"data\":{\"total\":7,\"pages\":1,\"pageSize\":7,\"page\":1,\"list\":[{\"id\":95,\"name\":\"管理员查询商铺的特定预售活动\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":96,\"name\":\"管理员查询特定商铺所有预售活动\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":107,\"name\":\"管理员新增预售\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":108,\"name\":\"管理员修改预售活动\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":109,\"name\":\"管理员删除预售活动，仅在草稿态有效\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":110,\"name\":\"管理员上线预售活动\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":111,\"name\":\"管理员下线预售活动\",\"gmtCreate\":\"2021-12-04T14:53:34.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(exstr, responseString,false);
     }
     /*查询功能角色权限 错误did*/
@@ -199,14 +199,14 @@ public class BaseRoleAndPrivilegeTest {
         String responseString = this.mvc.perform(get("/departs/0/privileges")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
-                .param("url","/departs/{id}/adminusers/{id}")
+                .param("url","/privilege/departs/{id}/users/{id}")
                 .param("requestType","0")
                 .param("page","1")
                 .param("pageSize","10"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expected="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/departs/{id}/adminusers/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01T09:52:20.000\",\"gmtModified\":\"2020-11-02T21:51:45.000\",\"creator\":{\"id\":1,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":1}]},\"errmsg\":\"成功\"}";
+        String expected="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":2,\"name\":\"查看任意用户信息\",\"url\":\"/privilege/departs/{id}/users/{id}\",\"requestType\":0,\"gmtCreate\":\"2020-11-01T09:52:20.000\",\"gmtModified\":\"2020-11-02T21:51:45.000\",\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expected, responseString,false);
     }
 
@@ -277,7 +277,7 @@ public class BaseRoleAndPrivilegeTest {
     @Test
     public void testAddPrivsWithErrorContent() throws  Exception
     {
-        String content="{\"name\": \"查看任意用户信息\",\"url\": \"/departs/{id}/adminusers/{id}\",\"requestType\": 0}";
+        String content="{\"name\": \"查看任意用户信息\",\"url\": \"/privilege/departs/{id}/users/{id}\",\"requestType\": 0}";
         String responseString = this.mvc.perform(post("/departs/0/privileges")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
@@ -418,7 +418,7 @@ public class BaseRoleAndPrivilegeTest {
     /*修改权限信息，重复url,requesttype*/
     public void testModifyPrivWithErrorContent()throws Exception
     {
-        String body="{\"name\": \"查看任意用户信息\",\"url\": \"/departs/{id}/adminusers/{id}\", \"requestType\": 0}";
+        String body="{\"name\": \"查看任意用户信息\",\"url\": \"/privilege/departs/{id}/users/{id}\", \"requestType\": 0}";
         String responseString = this.mvc.perform(put("/departs/0/privileges/13")
                 .header("authorization", token)
                 .contentType("application/json;charset=UTF-8")
