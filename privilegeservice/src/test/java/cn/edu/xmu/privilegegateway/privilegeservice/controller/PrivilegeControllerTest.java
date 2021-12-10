@@ -1188,7 +1188,7 @@ public class PrivilegeControllerTest {
     public void testApproveUser() throws Exception {
         String contentJson1="{\"approve\": \"true\"}";
 
-        String responseString1 = mvc.perform(put("/departs/0/users/4/approve")
+        String responseString1 = mvc.perform(put("/departs/0/newusers/4/approve")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -1199,7 +1199,7 @@ public class PrivilegeControllerTest {
     @Test
     public void testApproveUser2() throws Exception {
         String contentJson1="{\"approve\": \"false\"}";
-        String responseString1 = mvc.perform(put("/departs/0/users/1/approve")
+        String responseString1 = mvc.perform(put("/departs/0/newusers/1/approve")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))

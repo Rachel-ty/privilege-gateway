@@ -1690,7 +1690,7 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功")
     })
     @Audit(departName = "departs") // 需要认证
-    @PutMapping("/departs/{did}/users/{id}/approve")
+    @PutMapping("/departs/{did}/newusers/{id}/approve")
     public Object approveUser(@PathVariable Long did,@PathVariable Long id,@RequestBody ApproveConclusionVo vo,@LoginUser Long loginUser,@LoginName String loginName) {
 
 
