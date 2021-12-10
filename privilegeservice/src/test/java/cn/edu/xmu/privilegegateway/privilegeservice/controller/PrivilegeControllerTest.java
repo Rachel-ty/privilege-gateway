@@ -241,6 +241,10 @@ public class PrivilegeControllerTest {
 //        JSONAssert.assertEquals(expectString2, responseString2, true);
 //    }
 
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
     @Test
     public void getUserStates() throws Exception {
         String responseString = mvc.perform(get("/users/states").header("authorization", pToken)
@@ -252,59 +256,70 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-//    @Test
-//    public void registerNewUser() throws Exception {
-//        //邮箱已被注册
-//        String contentJson = "{\n" +
-//                "  \"userName\": \"pikaas5\",\n" +
-//                "  \"password\": \"LLl123456!\",\n" +
-//                "  \"name\": \"刘冰帅\",\n" +
-//                "  \"mobile\": \"1234567894\",\n" +
-//                "  \"email\": \"1234567894@qq.com\",\n" +
-//                "  \"departId\": -1,\n" +
-//                "  \"idNumber\": 123456789123,\n" +
-//                "  \"passportNumber\": 123456\n" +
-//                "}";
-//        String responseString = mvc.perform(post("/users").header("authorization", pToken)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":732,\"errmsg\":\"邮箱已被注册\"}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//        //成功
-//        String contentJson2 = "{\n" +
-//                "  \"userName\": \"测试姓名abb\",\n" +
-//                "  \"password\": \"LLl123456!\",\n" +
-//                "  \"name\": \"刘冰帅\",\n" +
-//                "  \"mobile\": \"79846513244\",\n" +
-//                "  \"email\": \"1234687971@qq.com\",\n" +
-//                "  \"departId\": -1,\n" +
-//                "  \"idNumber\": 22072420010428,\n" +
-//                "  \"passportNumber\": 132456\n" +
-//                "}";
-//        String responseString2 = mvc.perform(post("/users").header("authorization", pToken)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson2))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2 = "{\"errno\":0,\"data\":{\"userName\":\"测试姓名abb\",\"sign\":0},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, false);
-//    }
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
+    @Test
+    public void registerNewUser() throws Exception {
+        //邮箱已被注册
+        String contentJson = "{\n" +
+                "  \"userName\": \"pikaas5\",\n" +
+                "  \"password\": \"LLl123456!\",\n" +
+                "  \"name\": \"刘冰帅\",\n" +
+                "  \"mobile\": \"1234567894\",\n" +
+                "  \"email\": \"1234567894@qq.com\",\n" +
+                "  \"departId\": -1,\n" +
+                "  \"idNumber\": 123456789123,\n" +
+                "  \"passportNumber\": 123456\n" +
+                "}";
+        String responseString = mvc.perform(post("/users").header("authorization", pToken)
+                        .contentType("application/json;charset=UTF-8").content(contentJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":732,\"errmsg\":\"邮箱已被注册\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+        //成功
+        String contentJson2 = "{\n" +
+                "  \"userName\": \"测试姓名abb\",\n" +
+                "  \"password\": \"LLl123456!\",\n" +
+                "  \"name\": \"刘冰帅\",\n" +
+                "  \"mobile\": \"79846513244\",\n" +
+                "  \"email\": \"1234687971@qq.com\",\n" +
+                "  \"departId\": -1,\n" +
+                "  \"idNumber\": 22072420010428,\n" +
+                "  \"passportNumber\": 132456\n" +
+                "}";
+        String responseString2 = mvc.perform(post("/users").header("authorization", pToken)
+                        .contentType("application/json;charset=UTF-8").content(contentJson2))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":0,\"data\":{\"userName\":\"测试姓名abb\",\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, false);
+    }
 
-//    @Test
-//    public void checkSelfInformation() throws Exception {
-//        //成功
-//        String responseString = mvc.perform(get("/self/users").header("authorization", pToken)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//    }
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
+    @Test
+    public void checkSelfInformation() throws Exception {
+        //成功
+        String responseString = mvc.perform(get("/self/users").header("authorization", pToken)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":1,\"userName\":\"13088admin\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
 
-
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
     @Test
     public void modifyUserInformation() throws Exception {
         String contentJson = "{\n" +
@@ -322,6 +337,10 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
     @Test
     public void uploadImg() throws Exception {
         String responseString0;
@@ -340,19 +359,27 @@ public class PrivilegeControllerTest {
 
     }
 
-//    @Test
-//    public void getUserInformation() throws Exception {
-//        //成功
-//        String responseString = mvc.perform(get("/departs/0/users").header("authorization", pToken)
-//                        .param("userName","pikaas")
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0}]}}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//    }
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
+    @Test
+    public void getUserInformation() throws Exception {
+        //成功
+        String responseString = mvc.perform(get("/departs/0/users").header("authorization", pToken)
+                        .param("userName","pikaas")
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"code\":\"OK\",\"errmsg\":\"成功\",\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":1,\"userName\":\"13088admin\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0}]}}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
 
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
     @Test
     public void getNewUserInformation() throws Exception {
         String responseString = mvc.perform(get("/departs/0/users/new").header("authorization", pToken)
@@ -367,35 +394,26 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-//    @Test
-//    public void judgeNewUser() throws Exception {
-//        //审核通过,返回用户信息
-//        String contentJson = "{\n" +
-//                "  \"conclusion\": true,\n" +
-//                "  \"level\": 1\n" +
-//                "}";
-//        String responseString = mvc.perform(put("/departs/0/users/4/audit").header("authorization", pToken)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":0,\"data\":{\"id\":4,\"userName\":\"pikaas3\",\"mobile\":\"1234567892\",\"email\":\"1234567892@qq.com\",\"name\":\"刘冰帅\",\"avatar\":null,\"openId\":null,\"departId\":0,\"password\":\"LLl123456!\",\"creatorId\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"signature\":\"35047662112df1a91ff02e3b9bad048000e918d485ce8ef8411696e6fa8a1362\",\"creatorName\":null,\"modifierName\":null,\"level\":1},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//
-//    }
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
+    @Test
+    public void getAnyUserInformation() throws Exception {
+        //成功
+        String responseString = mvc.perform(get("/departs/0/users/60").header("authorization", pToken)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":1,\"userName\":\"13088admin\",\"sign\":0},\"gmtCreate\":null,\"gmtModified\":null,\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
 
-//    @Test
-//    public void getAnyUserInformation() throws Exception {
-//        //成功
-//        String responseString = mvc.perform(get("/departs/0/users/60").header("authorization", pToken)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":null,\"depart_id\":null,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":60,\"userName\":\"pikaas\",\"sign\":0},\"modifier\":null,\"sign\":0},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//    }
-
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
     @Test
     public void getUserName() throws Exception {
         //成功
@@ -405,6 +423,22 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"data\":\"pikaas\",\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    /**
+     * @author BingShuai Liu 22920192204245
+     * @throws Exception
+     */
+    @Test
+    public void getNewUser() throws Exception {
+        //成功
+        String responseString = mvc.perform(get("/departs/1/newusers/1").header("authorization", adminToken)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"id\":1,\"userName\":\"新用户1\",\"mobile\":\"19E59DE959DE472ABECEC38A0219689A\",\"email\":\"123123@qq.com\",\"name\":\"1\",\"avatar\":null,\"openId\":\"123123\",\"departId\":1,\"password\":\"BCB71451C344BFB09FC0403699098E9E\",\"idNumber\":null,\"passportNumber\":null,\"creator\":{\"id\":null,\"name\":null},\"gmtCreate\":\"2020-11-18T22:48:24\",\"gmtModified\":null,\"modifier\":{\"id\":null,\"name\":null},\"level\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
