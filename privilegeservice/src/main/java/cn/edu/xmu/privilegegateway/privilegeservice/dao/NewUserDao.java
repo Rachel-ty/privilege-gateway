@@ -289,6 +289,25 @@ public class NewUserDao implements InitializingBean {
     }
 
     /**
+     * 获取新注册用户
+     * @param did
+     * @param id
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
+    public ReturnObject selectNewUser(Long did, Long id){
+        try {
+            NewUserPo newUserPo = newUserPoMapper.selectByPrimaryKey(id);
+            if (newUserPo.getDepartId()!=did){
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            }
+            return new ReturnObject(newUserPo);
+        }catch (DataAccessException e){
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        }
+    }
+
+    /**
      * 重写签名和加密
      * @author Ming Qiu
      * date： 2021/12/04 16:01

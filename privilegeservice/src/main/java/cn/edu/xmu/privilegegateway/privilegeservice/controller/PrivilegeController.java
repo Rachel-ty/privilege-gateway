@@ -1640,6 +1640,25 @@ public class PrivilegeController {
     }
 
     /**
+     * 查看任意新注册用户信息
+     * @param did
+     * @param id
+     * @param userId
+     * @param loginUserName
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
+    @Audit(departName = "departs")
+    @GetMapping("departs/{did}/newusers/{id}")
+    public Object showNewUser(@PathVariable Long did,
+                              @PathVariable Long id,
+                              @LoginUser Long userId,
+                              @LoginName String loginUserName){
+        ReturnObject ret = newUserService.showNewUser(did,id);
+        return Common.decorateReturnObject(ret);
+    }
+
+    /**
      * 查询新注册用户信息
      * @param did
      * @param userId

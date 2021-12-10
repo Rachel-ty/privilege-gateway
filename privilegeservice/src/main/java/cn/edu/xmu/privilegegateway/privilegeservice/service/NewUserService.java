@@ -22,6 +22,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.NewUserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.NewUserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ApproveConclusionVo;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.NewUserVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.NewUserDao;
@@ -107,6 +108,25 @@ public class NewUserService {
         }
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(newUsers);
         return new ReturnObject(proxyRetVoPageInfo);
+    }
+
+    /**
+     * 获取新注册用户信息
+     * @param did
+     * @param id
+     * @return
+     * @author BingShuai Liu 22920192204245
+     */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
+    public ReturnObject showNewUser(Long did,Long id){
+        ReturnObject ret = newUserDao.selectNewUser(did,id);
+        if(ret.getCode()!=ReturnNo.OK){
+            return ret;
+        }
+        NewUserPo newUserPo = (NewUserPo) baseCoder.decode_check((NewUserPo)ret.getData(),NewUserPo.class,codeFields,signFields,"signature");
+        NewUserRetVo newUserRetVo = Common.cloneVo(newUserPo, NewUserRetVo.class);
+        newUserRetVo.setSign(newUserPo.getSignature()==null?(byte)0:(byte)1);
+        return new ReturnObject(newUserRetVo);
     }
 
     /**
