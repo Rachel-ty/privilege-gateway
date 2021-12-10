@@ -182,9 +182,16 @@
                     <includes>
                         <include>**/OnSaleControllerTest.java</include>
                     </includes>
-                    <!--                    <skip>true</skip>-->
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>cn.edu.xmu.privilegegateway.gateway.GatewayApplication</mainClass>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 
