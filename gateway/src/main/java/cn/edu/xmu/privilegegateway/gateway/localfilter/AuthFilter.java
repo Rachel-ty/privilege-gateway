@@ -31,7 +31,6 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -39,7 +38,6 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.scripting.support.ResourceScriptSource;
-import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -131,7 +129,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 若token合法
             // 判断该token是否被ban
             String[] banSetNames = {"BanJwt_0", "BanJwt_1"};
-            String scriptPath = "check-jwt.lua";
+            String scriptPath = "scripts/check-jwt.lua";
 
             DefaultRedisScript<Boolean> script = new DefaultRedisScript<>();
 
