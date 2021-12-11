@@ -1739,10 +1739,10 @@ public class PrivilegeController {
     public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@LoginUser Long loginUser,@LoginName String loginName) {
         if(did!=0)
         {
-            return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
-        InternalReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
-        return returnObj;
+        ReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
+        return  Common.decorateReturnObject(returnObj);
     }
 
     /**

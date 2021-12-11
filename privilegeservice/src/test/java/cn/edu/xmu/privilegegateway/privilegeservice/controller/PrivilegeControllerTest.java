@@ -1258,14 +1258,14 @@ public class PrivilegeControllerTest {
         token = jwtHelper.createToken(6L, "jxy", 1L, 1, 36000);
         responseString1 = mvc.perform(put("/internal/users/60/departs/1")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals(expectString1, responseString1, false);
         token = jwtHelper.createToken(6L, "jxy", 0L, 1, 36000);
         responseString1 = mvc.perform(put("/internal/users/1/departs/0")
                         .contentType("application/json;charset=UTF-8").header("authorization", token))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         JSONAssert.assertEquals(expectString1, responseString1, false);
