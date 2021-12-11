@@ -80,6 +80,7 @@ public class GroupService {
 
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllStates() {
+
         return groupDao.getAllStates();
     }
 
