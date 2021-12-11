@@ -56,7 +56,6 @@ public class GroupService {
      * 查询某一部门的所有用户组
      * createdBy:  Weining Shi
      */
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllgroups(Long did, Integer page, Integer pageSize) {
         ReturnObject<PageInfo<RetGroup>> ret = groupDao.getGroupsBydid(did, page, pageSize);
         return ret;
@@ -78,7 +77,6 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllStates() {
         return groupDao.getAllStates();
     }
@@ -142,7 +140,7 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
+    @Transactional
     public ReturnObject deleteGroupRelation(Long did, Long pid, Long sid, Long userId, String userName) {
         GroupRelation groupRelation = new GroupRelation();
 
@@ -166,7 +164,6 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getsubGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> bos = groupDao.getGroupRelationBypidsid(null, id);//获得所有父id为id的关系记录
         if (bos.getCode().equals(ReturnNo.RESOURCE_FALSIFY.getCode()))
@@ -208,7 +205,6 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getparGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> pos = groupDao.getGroupRelationBypidsid(id, null);//获得所有父id为id的关系记录
         if (pos.getCode().equals(ReturnNo.RESOURCE_FALSIFY.getCode()))
@@ -291,15 +287,11 @@ public class GroupService {
         UserGroupPo userGroupPo = new UserGroupPo();
 
         ReturnObject<Group> retGroup = groupDao.getGroupByid(id);
-        if (retGroup.getData() == null)
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该组不存在");
         Group group = retGroup.getData();
-        if (!did.equals(group.getDepartId()))
+        if (group!=null && !did.equals(group.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         UserPo retUser = userDao.findUserById(uid);
-        if (retUser == null)
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该用户不存在");
-        if (!did.equals(retUser.getDepartId()))
+        if (retUser!=null && !did.equals(retUser.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         ReturnObject<List<Pair<UserGroupPo, Byte>>> pos = groupDao.getUserGroupByuidgid(uid, id);
         if (pos.getData().isEmpty())
@@ -372,7 +364,6 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getgroupsuser(Long did, Long id, Integer page, Integer pageSize) {
 
         ReturnObject<PageInfo<Object>> ret = groupDao.getusersBygid(did, id, page, pageSize);
@@ -389,7 +380,6 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getusersgroup(Long did, Long id, Integer page, Integer pageSize) {
         List<UserGroup> ret = groupDao.getUserGroupByUserId(id, page, pageSize);
         List<GroupRelationVo> vos = new ArrayList<>();
