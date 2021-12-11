@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Transactional
 @AutoConfigureMockMvc
 @SpringBootTest(classes = PrivilegeServiceApplication.class)
 class GroupControllerTest {
@@ -143,7 +144,7 @@ class GroupControllerTest {
     public void updategroup_wrongid1() throws Exception{
 
         String requestJson = "{\"name\": \"测试1\"}";
-        String responseString = this.mvc.perform(put("/departs/0/groups/4").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
+        String responseString = this.mvc.perform(put("/departs/0/groups/20").contentType("application/json;charset=UTF-8").header("authorization", adminToken).content(requestJson))
                 .andExpect(status().is5xxServerError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -172,7 +173,7 @@ class GroupControllerTest {
     @Test
     @Transactional
     public void deletegroup_wrongid1() throws Exception{
-        String responseString = this.mvc.perform(delete("/departs/0/groups/4").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+        String responseString = this.mvc.perform(delete("/departs/0/groups/11").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -218,7 +219,7 @@ class GroupControllerTest {
     @Transactional
     public void addgroupRelation_wrong() throws Exception{
 
-        String responseString = this.mvc.perform(post("/departs/0/groups/2/subgroups/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+        String responseString = this.mvc.perform(post("/departs/0/groups/8/subgroups/4").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -235,7 +236,7 @@ class GroupControllerTest {
     @Transactional
     public void deletegroupRelation() throws Exception{
 
-        String responseString = this.mvc.perform(delete("/departs/0/groups/1/subgroups/2").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+        String responseString = this.mvc.perform(delete("/departs/0/groups/4/subgroups/8").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -266,6 +267,19 @@ class GroupControllerTest {
     @Test
     public void getallSubGroup() throws Exception {
         String responseString = this.mvc.perform(get("/departs/0/groups/1/subgroups").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    /**
+     * 获得用户组的所有父用户组
+     */
+
+    @Test
+    public void getallParGroup() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/groups/2/parents").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -440,7 +454,7 @@ class GroupControllerTest {
     @Transactional
     public void deleteusergroup() throws Exception{
 
-        String responseString = this.mvc.perform(delete("/departs/0/groups/2/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+        String responseString = this.mvc.perform(delete("/departs/1/groups/4/users/17330").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -448,26 +462,6 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
-    /**
-     * 增加用户组关系 不存在
-     */
-    @Test
-    @Transactional
-    public void deleteusergroup_pssame() throws Exception{
-
-        String responseString = this.mvc.perform(delete("/departs/0/groups/100/users/1").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":504,\"errmsg\":\"该组不存在\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-        responseString = this.mvc.perform(delete("/departs/0/groups/1/users/100").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
-                .andExpect(status().is4xxClientError())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":504,\"errmsg\":\"该用户不存在\"}";
-        JSONAssert.assertEquals(expectString, responseString, false);
-    }
     /**
      * 增加用户组关系 不在部门
      */
