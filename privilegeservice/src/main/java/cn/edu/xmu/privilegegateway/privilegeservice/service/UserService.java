@@ -143,6 +143,7 @@ public class UserService {
      * 将redisTemplate 替换成redisUtil
      * modified by RenJie Zheng 22920192204334
      * 添加注释、添加对用户组的处理
+     * Modified By Ming Qiu 2021-12-12 07:44
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject login(String userName, String password, String ipAddr) {
@@ -190,10 +191,11 @@ public class UserService {
             return returnObject;
         }
         logger.debug("login: newJwt = " + jwt);
-        userDao.setLoginIPAndPosition(user.getId(), ipAddr, LocalDateTime.now());
-        retObj = new ReturnObject<>(jwt);
-
-        return retObj;
+        retObj = userDao.setLoginIPAndPosition(user.getId(), ipAddr, LocalDateTime.now());
+        if (retObj.getCode() != ReturnNo.OK) {
+            return retObj;
+        }
+        return new ReturnObject<>(jwt);
     }
 
     /**

@@ -19,19 +19,15 @@ package cn.edu.xmu.privilegegateway.privilegeservice.dao;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.UserProxyPoMapper;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyPwdVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserVo;
-import cn.edu.xmu.privilegegateway.annotation.util.*;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
+
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -338,8 +334,7 @@ public class UserDao {
         try {
             users = userMapper.selectByExample(example);
         } catch (DataAccessException e) {
-            StringBuilder message = new StringBuilder().append("getUserByName: ").append(e.getMessage());
-            logger.error(message.toString());
+            logger.error(String.format("getUserByName: %s",e.getMessage()));
         }
 
         if (null == users || users.isEmpty()) {
@@ -351,7 +346,7 @@ public class UserDao {
             }
             UserBo userBo = (UserBo) baseCoder.decode_check(userPo, UserBo.class, userCodeFields, userSignFields, "signature");
             if (userBo.getSignature() == null) {
-                logger.error("getUserByName: 签名错误(auth_user_group):" + userPo.getId());
+                logger.error(String.format("getUserByName: 签名错误(auth_user_group): %d" , userPo.getId()));
                 return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
             return new ReturnObject<>(userBo);
@@ -364,106 +359,22 @@ public class UserDao {
      * @param IPAddr IP地址
      * @param date   登录时间
      * @return 是否成功更新
+     * ModifiedBy Ming Qiu 2021-12-12 7:41
      */
-    public Boolean setLoginIPAndPosition(Long userId, String IPAddr, LocalDateTime date) {
+    public ReturnObject setLoginIPAndPosition(Long userId, String IPAddr, LocalDateTime date) {
         UserPo userPo = new UserPo();
         userPo.setId(userId);
         userPo.setLastLoginIp(IPAddr);
         userPo.setLastLoginTime(date);
-        if (userMapper.updateByPrimaryKeySelective(userPo) == 1) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    /**
-     * 取消用户角色
-     *
-     * @param userid 用户id
-     * @param roleid 角色id
-     * @return ReturnObject<VoObject>
-     * @author Xianwei Wang
-     */
-    public ReturnObject<VoObject> revokeRole(Long userid, Long roleid) {
-
-
-        return new ReturnObject<>();
-    }
-
-    /**
-     * 赋予用户角色
-     *
-     * @param createid 创建者id
-     * @param userid   用户id
-     * @param roleid   角色id
-     * @return ReturnObject<VoObject>
-     * @author Xianwei Wang
-     */
-    public ReturnObject<VoObject> assignRole(Long createid, Long userid, Long roleid) {
-        return null;
-    }
-
-    /**
-     * 使用用户id，清空该用户和被代理对象的redis缓存
-     *
-     * @param userid 用户id
-     * @author Xianwei Wang
-     */
-    private void clearUserPrivCache(Long userid) {
-        String key = String.format(USERKEY, userid);
-        redisTemplate.delete(key);
-
-        UserProxyPoExample example = new UserProxyPoExample();
-        UserProxyPoExample.Criteria criteria = example.createCriteria();
-        criteria.andProxyUserIdEqualTo(userid);
-        List<UserProxyPo> userProxyPoList = userProxyPoMapper.selectByExample(example);
-
-        LocalDateTime now = LocalDateTime.now();
-
-        for (UserProxyPo po :
-                userProxyPoList) {
-            StringBuilder signature = Common.concatString("-", po.getUserId().toString(),
-                    po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), po.getValid().toString());
-            String newSignature = SHA256.getSHA256(signature.toString());
-            UserProxyPo newPo = null;
-
-            if (newSignature.equals(po.getSignature())) {
-                if (now.isBefore(po.getEndDate()) && now.isAfter(po.getBeginDate())) {
-                    //在有效期内
-                    String proxyKey = String.format(USERPROXYKEY, po.getUserId());
-                    redisTemplate.delete(proxyKey);
-                    logger.debug("clearUserPrivCache: userAId = " + po.getUserId() + " userBId = " + po.getProxyUserId());
-                } else {
-                    //代理过期了，但标志位依然是有效
-                    newPo = newPo == null ? new UserProxyPo() : newPo;
-                    newPo.setValid((byte) 0);
-                    signature = Common.concatString("-", po.getUserId().toString(),
-                            po.getProxyUserId().toString(), po.getBeginDate().toString(), po.getEndDate().toString(), newPo.getValid().toString());
-                    newSignature = SHA256.getSHA256(signature.toString());
-                    newPo.setSignature(newSignature);
-                }
-            } else {
-                logger.error("clearUserPrivCache: Wrong Signature(auth_user_proxy): id =" + po.getId());
+        ReturnObject ret = new ReturnObject(ReturnNo.OK);
+        try {
+            if (userMapper.updateByPrimaryKeySelective(userPo) != 1) {
+                ret = new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
-
-            if (null != newPo) {
-                logger.debug("clearUserPrivCache: writing back.. po =" + newPo);
-                userProxyPoMapper.updateByPrimaryKeySelective(newPo);
-            }
-
+        } catch (DataAccessException e) {
+            logger.error(String.format("setLoginIPAndPosition: %s", e.getMessage()));
         }
-    }
-
-    /**
-     * 获取用户的角色信息
-     *
-     * @param id 用户id
-     * @return UserRole列表
-     * @author Xianwei Wang
-     */
-    public ReturnObject<List> getUserRoles(Long id) {
-        return null;
+        return ret;
     }
 
 
@@ -920,9 +831,7 @@ public class UserDao {
 
 
     /**
-
-
-    /**
+     * /**
      * 改变用户状态
      *
      * @param id    用户 id

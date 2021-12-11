@@ -1,10 +1,21 @@
+/**
+ * Copyright School of Informatics Xiamen University
+ * <p>
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ **/
+
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserRolePo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserRoleRetVo;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.encript.SHA256;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -12,7 +23,7 @@ import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
-public class UserRole implements VoObject {
+public class UserRole{
     private Long id;
 
     private String name;
@@ -36,38 +47,4 @@ public class UserRole implements VoObject {
     private Byte sign;
 
     private String signature;
-
-    private String cacuSignature;
-
-    public UserRole(UserRolePo userRolePo, User user, Role role, User creator) {
-        this.id = userRolePo.getId();
-        this.gmtCreate = userRolePo.getGmtCreate();
-        this.signature = userRolePo.getSignature();
-
-        StringBuilder signature = Common.concatString("-",
-                userRolePo.getUserId().toString(), userRolePo.getRoleId().toString(), userRolePo.getCreatorId().toString());
-        this.cacuSignature = SHA256.getSHA256(signature.toString());
-    }
-
-    /**
-     * 对象未篡改
-     * @return
-     */
-    public Boolean authetic() {
-        return this.cacuSignature.equals(this.signature);
-    }
-
-    @Override
-    public Object createVo() {
-        UserRoleRetVo userRoleRetVo = new UserRoleRetVo();
-        userRoleRetVo.setId(this.id);
-        userRoleRetVo.setGmtCreate(this.gmtCreate.toString());
-
-        return userRoleRetVo;
-    }
-
-    @Override
-    public Object createSimpleVo() {
-        return null;
-    }
 }
