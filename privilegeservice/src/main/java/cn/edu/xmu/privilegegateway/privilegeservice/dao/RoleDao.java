@@ -711,6 +711,9 @@ public class RoleDao {
      */
     public ReturnObject findBaserolesByRoleId(Long did, Long id, Integer page, Integer pageSize) {
         try {
+            if (!checkRoleDid(id, did)) {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, String.format("部门id不匹配"));
+            }
             //将角色的功能角色载入redis缓存
             if (!redisUtil.hasKey(String.format(ROLEKEY, id))) {
                 ReturnObject retObj = loadRole(id);

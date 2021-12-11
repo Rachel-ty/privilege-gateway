@@ -678,10 +678,10 @@ public class PrivilegeControllerTest {
         String responseString = this.mvc.perform(get("/departs/2/roles/1/baseroles")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
-                .andExpect(status().isInternalServerError())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":500,\"errmsg\":\"服务器内部错误\"}";
+        String expectString = "{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
@@ -749,22 +749,6 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
-    @Test
-    @Transactional
-    public void insertRole_roleExit() throws Exception {
-        String json = "{\"name\":\"平台超级管理员\",\"descr\":\"重复角色\"}";
-
-        String responseString = this.mvc.perform(post("/departs/0/roles")
-                .header("authorization", adminToken)
-                .contentType("application/json;charset=UTF-8")
-                .content(json))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString;
-        expectString = "{\"errno\":736,\"errmsg\":\"角色名在部门内已存在\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
 
     // 删除角色
 
