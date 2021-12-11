@@ -14,7 +14,7 @@ public class UserRelation {
     private String name;
     private String gmtCreate;
     private String gmtModified;
-    private SimpleAdminUser creator;
-    private SimpleAdminUser modifier;
+    private UserSimpleRetVo creator;
+    private UserSimpleRetVo modifier;
     private Byte sign;
 }

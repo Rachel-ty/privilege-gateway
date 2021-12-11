@@ -17,7 +17,7 @@ public class RetGroup {
     private String descr;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
-    private SimpleAdminUser creator;
-    private SimpleAdminUser modifier;
+    private UserSimpleRetVo creator;
+    private UserSimpleRetVo modifier;
     private Byte sign;
 }

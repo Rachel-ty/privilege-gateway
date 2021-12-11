@@ -30,9 +30,9 @@ public class PrivilegeRetVo {
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS", timezone = "GMT+8")
     private LocalDateTime gmtModified;
 
-    private AdminVo creator;
+    private UserSimpleRetVo creator;
 
-    private AdminVo modifier;
+    private UserSimpleRetVo modifier;
 
     private Integer sign;
 

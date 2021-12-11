@@ -1,6 +1,6 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.SimpleAdminUser;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.UserSimpleRetVo;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 
@@ -11,8 +11,8 @@ public class UserRelationBo {
     private String name;
     private String gmtCreate;
     private String gmtModified;
-    private SimpleAdminUser creator;
-    private SimpleAdminUser modifier;
+    private UserSimpleRetVo creator;
+    private UserSimpleRetVo modifier;
     private Byte sign;
     private String signature;
 }
