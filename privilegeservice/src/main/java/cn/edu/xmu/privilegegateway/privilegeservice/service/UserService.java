@@ -549,7 +549,7 @@ public class UserService {
      * Created by 22920192204219 蒋欣雨 at 2021/11/29
      */
     @Transactional
-    public  InternalReturnObject<Object> addToDepart(Long did,Long id,Long loginUser,String loginName) {
+    public  ReturnObject addToDepart(Long did,Long id,Long loginUser,String loginName) {
 
         return userDao.changeUserDepart(id,did,loginUser,loginName);
     }

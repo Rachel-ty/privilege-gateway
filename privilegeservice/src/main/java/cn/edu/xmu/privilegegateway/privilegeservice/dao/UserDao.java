@@ -1284,13 +1284,13 @@ public class UserDao{
      * @Date: 2020/12/8 11:35
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public InternalReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
+    public ReturnObject changeUserDepart(Long userId, Long departId,Long loginUser,String loginName) {
 
         try {
             UserPo userPo = userMapper.selectByPrimaryKey(userId);
             if(userPo.getDepartId()!=-1)
             {
-                return new InternalReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(),ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
             userPo.setDepartId(departId);
             Common.setPoModifiedFields(userPo,loginUser,loginName);
@@ -1299,13 +1299,13 @@ public class UserDao{
             logger.debug("Update User: " + userId);
             int ret = userMapper.updateByPrimaryKeySelective(userPo);
             if (ret == 0) {
-                return new InternalReturnObject<>(ReturnNo.FIELD_NOTVALID);
+                return new ReturnObject<>(ReturnNo.FIELD_NOTVALID);
             }
             logger.debug("Success Update User: " + userId);
-            return new InternalReturnObject<>(ReturnNo.OK);
+            return new ReturnObject<>();
         } catch (Exception e) {
             logger.error("exception : " + e.getMessage());
-            return new InternalReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
 
