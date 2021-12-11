@@ -51,34 +51,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 @SpringBootTest(classes = PrivilegeServiceApplication.class)
 public class PrivilegeImpactTest {
-
-
-
-
-
-
-
     private static String token;
     private static String pToken;
     private static String adminToken;
     private static JwtHelper jwtHelper = new JwtHelper();
     public final static String ROLEKEY = "r_%d";
-    @MockBean
-    private HttpServletRequest request;
     @Autowired
     private RoleDao roleDao;
-    @Autowired
-    private UserDao userDao;
     @Autowired
     GroupDao groupDao;
     @Autowired
     PrivilegeDao privilegeDao;
-    @Autowired
-    private MockMvc mvc;
-    @MockBean
-    private RedisUtil redisUtil;
-
-    public final static String GROUPKEY = "g_%d";
+    public final static String GROUPKEY="g_%d";
 
     private final static String USERKEY = "u_%d";
 
@@ -101,6 +85,23 @@ public class PrivilegeImpactTest {
 
         String except="[]";
         String result=((HashSet)privilegeDao.privilegeImpact(31223L)).toString();
+        JSONAssert.assertEquals(result, except,false);
+    }
+    @Test
+    public void roleImp() throws JSONException {
+        List list=new ArrayList();
+        list.add(String.format(USERKEY,60L));
+        list.add(String.format(ROLEKEY,2L));
+        list.add(String.format(GROUPKEY,10L));
+        list.add(String.format(ROLEKEY,3L));
+        list.add(String.format(ROLEKEY,6L));
+        list.add(String.format(GROUPKEY,12L));
+        list.add(String.format(USERKEY,49L));
+        list.add(String.format(ROLEKEY,5L));
+        list.add(String.format(ROLEKEY,23L));
+        String except="[g_8, u_17332, u_17335, r_2, r_1, r_4, r_3, r_6, r_5, r_8, r_7, r_9, r_91, r_11, r_106, r_107, g_6]";
+        String result=roleDao.roleImpact(91L).toString();
+        System.out.println(result);
         JSONAssert.assertEquals(result, except,false);
     }
 }
