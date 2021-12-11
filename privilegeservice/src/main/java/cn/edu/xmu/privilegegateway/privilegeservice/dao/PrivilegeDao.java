@@ -376,7 +376,7 @@ public class PrivilegeDao {
             PrivilegePo newprivilege=(PrivilegePo)baseCoder.decode_check(privilege,PrivilegePo.class,null,privilegeSignFields,"signature");
             Integer sign=NOTMODIFIED;
             //判断关系是否篡改                    权限是否篡改
-            if(newretpo.getSignature()==null||newprivilege.getSignature()!=null)
+            if(newretpo.getSignature()==null||newprivilege.getSignature()==null)
             {
                 sign=MODIFIED;
             }
