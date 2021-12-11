@@ -1777,7 +1777,7 @@ public class PrivilegeController {
     public Object getUserName(@PathVariable Long id,
                               @LoginUser Long userId,
                               @LoginName String loginUserName){
-        InternalReturnObject ret =userService.showUserName(id);
+        ReturnObject ret =userService.showUserName(id);
         return ret;
     }
     @Audit
