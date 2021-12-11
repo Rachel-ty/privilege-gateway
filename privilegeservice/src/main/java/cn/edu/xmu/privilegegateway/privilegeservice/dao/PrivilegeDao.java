@@ -111,42 +111,13 @@ public class PrivilegeDao {
     }
 
     /**
-     * 以url和RequestType获得缓存的Privilege id
-     * @param url: 访问链接
-     * @param requestType: 访问类型
-     * @return id Privilege id
-     * createdBy: Ming Qiu 2020-11-01 23:44
-     */
-    public Long getPrivIdByKey(String url, Privilege.RequestType requestType){
-        String key = String.format(PRIVKEY, url, requestType.getCode());
-        logger.info("getPrivIdByKey: key = "+key.toString());
-        return (Long) this.redisUtil.get(key);
-    }
-
-    /**
-     * 根据权限Id查询权限
-     * @author yue hao
-     * @param id 权限ID
-     * @return 权限
-     */
-    public Privilege findPriv(Long id){
-        PrivilegePo po = poMapper.selectByPrimaryKey(id);
-        Privilege priv = new Privilege(po);
-        if (priv.authetic()) {
-            return priv;
-        }
-        else {
-            logger.error("findPriv: Wrong Signature(auth_privilege): id =" + po.getId());
-            return null;
-        }
-    }
-    /**
      * 查询所有权限
      * @param page: 页码
      * @param pageSize : 每页数量
      * @return 权限列表
+     * ModifiedBy Ming Qiu 2021-12-12 7:07
      */
-    public ReturnObject<PageInfo<VoObject>> findAllPrivs(Integer page, Integer pageSize){
+    public ReturnObject<PageInfo<Object>> findAllPrivs(Integer page, Integer pageSize){
         PrivilegePoExample example = new PrivilegePoExample();
         PrivilegePoExample.Criteria criteria = example.createCriteria();
         PageHelper.startPage(page, pageSize);
@@ -155,22 +126,13 @@ public class PrivilegeDao {
             privilegePos = poMapper.selectByExample(example);
         }catch (DataAccessException e){
             logger.error("findAllPrivs: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
 
-        List<VoObject> ret = new ArrayList<>(privilegePos.size());
-        for (PrivilegePo po : privilegePos) {
-            Privilege priv = new Privilege(po);
-            if (priv.authetic()) {
-                logger.debug("findAllPrivs: key = " + priv.getKey() + " p = " + priv);
-                ret.add(priv);
-            }else{
-                logger.error("findAllPrivs: 信息签名错误：id = "+po.getId());
-            }
 
-        }
+        List ret = Common.listDecode(privilegePos,PrivilegeRetVo.class, baseCoder, null, privilegeSignFields, "signature",true);
         PageInfo<PrivilegePo> privPoPage = PageInfo.of(privilegePos);
-        PageInfo<VoObject> privPage = new PageInfo<>(ret);
+        PageInfo<Object> privPage = new PageInfo<>(ret);
         privPage.setPages(privPoPage.getPages());
         privPage.setPageNum(privPoPage.getPageNum());
         privPage.setPageSize(privPoPage.getPageSize());

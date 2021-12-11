@@ -19,11 +19,11 @@ import java.util.Map;
 /**
  * @author Ming Qiu
  * @date Created in 2020/11/3 11:48
+ * ModifiedBy Ming Qiu 2021-12-12 7:07
  **/
 @Data
 @NoArgsConstructor
-public class Privilege implements VoObject{
-
+public class Privilege{
 
 
     /**
@@ -99,58 +99,7 @@ public class Privilege implements VoObject{
     private String creatorName;
 
     private String modifierName;
+
     private Byte state;
-    private BaseCoder baseCoder;
 
-    /**
-     * 构造函数
-     *
-     * @param po 用PO构造
-     */
-    public Privilege(PrivilegePo po) {
-        this.id = po.getId();
-        this.name = po.getName();
-        this.url = po.getUrl();
-        this.signature = po.getSignature();
-        this.gmtCreate = po.getGmtCreate();
-        this.gmtModified = po.getGmtModified();
-        this.requestType = RequestType.getTypeByCode(po.getRequestType().byteValue());
-        this.key = String.format(PrivilegeDao.PRIVKEY,url,requestType.getCode());
-    }
-
-    /**
-     * 对象未篡改
-     * @return
-     */
-    public Boolean authetic() {
-        return this.cacuSignature.equals(this.signature);
-    }
-
-    @Override
-    public Object createVo() {
-        return new PrivilegeRetVo(this);
-    }
-
-    @Override
-    public Object createSimpleVo() {
-        return new PrivilegeSimpleRetVo(this);
-    }
-
-    /**
-     * 用vo对象创建更新po对象
-     * @param vo vo对象
-     * @return po对象
-     */
-    public PrivilegePo createUpdatePo(PrivilegeVo vo){
-        PrivilegePo po = new PrivilegePo();
-        po.setId(this.getId());
-        po.setName(vo.getName());
-        po.setUrl(vo.getUrl());
-        po.setRequestType(vo.getRequestType().byteValue());
-        po.setGmtCreate(null);
-        po.setGmtModified(LocalDateTime.now());
-        StringBuilder signature = Common.concatString("-", po.getUrl(), po.getRequestType().toString(), po.getId().toString());
-        po.setSignature(SHA256.getSHA256(signature.toString()));
-        return po;
-    }
 }

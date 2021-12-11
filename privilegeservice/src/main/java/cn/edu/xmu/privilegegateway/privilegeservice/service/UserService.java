@@ -21,6 +21,7 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
@@ -125,9 +126,10 @@ public class UserService {
      * @param page:    页码
      * @param pageSize : 每页数量
      * @return 权限列表
+     * ModifiedBy Ming Qiu 2021-12-12 7:07
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
-    public ReturnObject<PageInfo<VoObject>> findAllPrivs(Integer page, Integer pageSize) {
+    public ReturnObject<PageInfo<Object>> findAllPrivs(Integer page, Integer pageSize) {
         return privilegeDao.findAllPrivs(page, pageSize);
     }
 

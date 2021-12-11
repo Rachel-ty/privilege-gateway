@@ -1,6 +1,7 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.model.bo;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
  * @date 2021/11/26
  */
 @Data
+@NoArgsConstructor
 public class RoleInherited {
     private Long id;
 

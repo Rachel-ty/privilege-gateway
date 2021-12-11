@@ -22,28 +22,14 @@ import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
 import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseSign;
-import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.mapper.*;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RolePrivilege;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.*;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +38,6 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Repository;
 
-import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
@@ -86,17 +71,10 @@ public class RoleDao {
     @Autowired
     private UserPoMapper userMapper;
 
-    @Autowired
-    private PrivilegePoMapper privilegePoMapper;
 
     @Autowired
     private UserRolePoMapper userRolePoMapper;
 
-    @Autowired
-    private UserProxyPoMapper userProxyPoMapper;
-
-    @Autowired
-    private RolePrivilegePoMapper rolePrivilegePoMapper;
 
     @Autowired
     private GroupRolePoMapper groupRolePoMapper;
@@ -142,32 +120,6 @@ public class RoleDao {
 
     final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
-    public final static Integer MODIFIED = 1;
-    public final static Integer NOTMODIFIED = 0;
-
-    /**
-     * 根据角色Id,查询角色的所有权限
-     *
-     * @param id 角色ID
-     * @return 角色的权限列表
-     * modifiedBy Ming Qiu 2021/12/4 10:08
-     * @author yue hao
-     */
-    public List<Privilege> findPrivsByRoleId(Long id) {
-        //getPrivIdsByRoleId已经进行role的签名校验
-        ReturnObject returnObject = privDao.getPrivIdsByRoleId(id);
-        if (returnObject.getCode() != ReturnNo.OK) {
-            return null;
-        }
-        List<Long> privIds = (List<Long>) returnObject.getData();
-        List<Privilege> privileges = new ArrayList<>();
-        for (Long privId : privIds) {
-            Privilege po = this.privDao.findPriv(privId);
-            logger.debug("findPrivsByRoleId:  po = " + po);
-            privileges.add(po);
-        }
-        return privileges;
-    }
 
     /**
      * 根据roleId获得继承的roleIds
@@ -257,7 +209,7 @@ public class RoleDao {
      *
      * @author 王文凯
      */
-    public boolean roleExist(Long did, String name) {
+    private boolean roleExist(Long did, String name) {
         RolePoExample example = new RolePoExample();
         RolePoExample.Criteria criteria = example.createCriteria();
         criteria.andNameEqualTo(name);
@@ -498,36 +450,6 @@ public class RoleDao {
 
 
         return retObj;
-    }
-
-    /**
-     * 由Role Id 获取 角色权限
-     *
-     * @param id: Role Id
-     * @return List<RolePrivilegeRetVo>
-     * created by 王琛 24320182203277
-     */
-
-    public ReturnObject<List> getRolePrivByRoleId(Long id) {
-        String key = String.format(ROLEKEY, id);
-        List<RolePrivilege> rolepribilegere = new ArrayList<>();
-        RolePrivilegePoExample example = new RolePrivilegePoExample();
-        RolePrivilegePoExample.Criteria criteria = example.createCriteria();
-
-        //查看是否有此角色
-        RolePo rolePo = roleMapper.selectByPrimaryKey(id);
-        if (rolePo == null) {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        RolePrivilege e = new RolePrivilege();
-
-        ReturnObject returnObject = privDao.getPrivIdsByRoleId(id);
-        if (returnObject.getCode() != ReturnNo.OK) {
-            return null;
-        }
-        List<Long> privids = (List<Long>) returnObject.getData();
-
-        return null;
     }
 
     /**

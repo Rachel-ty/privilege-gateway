@@ -329,6 +329,7 @@ public class PrivilegeController {
      * 获得所有权限
      * @return Object
      * createdBy Ming Qiu 2020/11/03 23:57
+     * ModifiedBy Ming Qiu 2021-12-12 7:07
      */
     @ApiOperation(value = "获得所有权限")
     @ApiImplicitParams({
@@ -342,13 +343,8 @@ public class PrivilegeController {
     public Object getAllPrivs(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize){
 
         logger.debug("getAllPrivs: page = "+ page +"  pageSize ="+pageSize);
-
-        page = (page == null)?1:page;
-        pageSize = (pageSize == null)?10:pageSize;
-
-        logger.debug("getAllPrivs: page = "+ page +"  pageSize ="+pageSize);
-        ReturnObject<PageInfo<VoObject>> returnObject =  userService.findAllPrivs(page, pageSize);
-        return Common.getPageRetObject(returnObject);
+        ReturnObject<PageInfo<Object>> returnObject =  userService.findAllPrivs(page, pageSize);
+        return Common.decorateReturnObject(returnObject);
     }
 
     /**
@@ -1180,32 +1176,6 @@ public class PrivilegeController {
         ReturnObject returnObject = userService.modifyPassword(vo);
         return Common.decorateReturnObject(returnObject);
     }
-
-    /**
-     * 获得角色所有权限
-     * @return Object
-     * createdBy 王琛 24320182203277
-     */
-    @ApiOperation(value = "获得角色所有权限")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header"),
-            @ApiImplicitParam(name="id", required = true, dataType="String", paramType="path")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @GetMapping("roles/{id}/privileges")
-    public Object getRolePrivs(@PathVariable Long id){
-        ReturnObject<List> returnObject = roleService.findRolePrivs(id);
-
-        if (returnObject.getCode() == ReturnNo.OK) {
-            return Common.getListRetObject(returnObject);
-        } else {
-            return Common.decorateReturnObject(returnObject);
-        }
-    }
-
 
     /**
      * 取消功能角色权限

@@ -181,16 +181,7 @@ public class RoleService {
         return roleDao.selectUserByRole(roleId, did, page, pageSize);
     }
 
-    /**
-     * 查询角色权限
-     * @param id 角色id
-     * @return 权限列表
-     * createdBy wc 24320182203277
-     */
-    public ReturnObject<List> findRolePrivs(Long id){
-        ReturnObject<List>  ret = roleDao.getRolePrivByRoleId(id);
-        return ret;
-    }
+
     /**
      * author:zhangyu
      * 查询功能角色权限

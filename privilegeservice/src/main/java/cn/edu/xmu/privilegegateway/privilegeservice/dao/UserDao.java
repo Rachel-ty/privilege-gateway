@@ -323,37 +323,6 @@ public class UserDao {
         return isExist;
     }
 
-    /**
-     * @param id 用户ID
-     * @return 用户的权限列表
-     * @author yue hao
-     */
-
-    public ReturnObject<List> findPrivsByUserId(Long id, Long did) {
-        //getRoleIdByUserId已经进行签名校验
-        User user = getUserById(id.longValue()).getData();
-        if (user == null) {//判断是否是由于用户不存在造成的
-            logger.error("findPrivsByUserId: 数据库不存在该用户 userid=" + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        Long departId = user.getDepartId();
-        if (departId != did) {
-            logger.error("findPrivsByUserId: 店铺id不匹配 userid=" + id);
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        ReturnObject returnObject = roleDao.getRoleIdByUserId(id);
-        if (returnObject.getCode() != ReturnNo.OK) {
-            return returnObject;
-        }
-        List<Long> roleIds = (List<Long>) returnObject.getData();
-        List<Privilege> privileges = new ArrayList<>();
-        for (Long roleId : roleIds) {
-            List<Privilege> rolePriv = roleDao.findPrivsByRoleId(roleId);
-            privileges.addAll(rolePriv);
-        }
-        return new ReturnObject<>(privileges);
-    }
-
 
     /**
      * 由用户名获得用户
