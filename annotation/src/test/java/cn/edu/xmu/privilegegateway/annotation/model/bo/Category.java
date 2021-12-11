@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @NoArgsConstructor
-public class Category implements VoObject, Serializable {
+public class Category implements Serializable {
     private Long id;
     private String name;
     private Integer commissionRatio;
@@ -27,14 +27,6 @@ public class Category implements VoObject, Serializable {
     private LocalDateTime gmtModified;
     private String modifierName;
 
-    @Override
-    public Object createVo() {
-        return new CategoryRetVo(this);
-    }
-    @Override
-    public Object createSimpleVo() {
-        return new CategoryRetVo(this);
-    }
 
 }
 

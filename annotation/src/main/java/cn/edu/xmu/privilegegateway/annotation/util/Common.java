@@ -35,6 +35,7 @@ import java.util.*;
 
 /**
  * 通用工具类
+ *
  * @author Ming Qiu
  **/
 public class Common {
@@ -44,10 +45,11 @@ public class Common {
 
     /**
      * 生成八位数序号
+     *
      * @return 序号
      */
-    public static String genSeqNum(){
-        int  maxNum = 36;
+    public static String genSeqNum() {
+        int maxNum = 36;
         int i;
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyyMMddHHmmssS");
@@ -56,15 +58,15 @@ public class Common {
         StringBuffer sb = new StringBuffer(strDate);
 
         int count = 0;
-        char[] str = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
+        char[] str = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K',
                 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W',
-                'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+                'X', 'Y', 'Z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
         Random r = new Random();
-        while(count < 2){
+        while (count < 2) {
             i = Math.abs(r.nextInt(maxNum));
             if (i >= 0 && i < str.length) {
                 sb.append(str[i]);
-                count ++;
+                count++;
             }
         }
         return sb.toString();
@@ -72,19 +74,20 @@ public class Common {
 
     /**
      * 处理BindingResult的错误
+     *
      * @param bindingResult
      * @return
      */
     public static Object processFieldErrors(BindingResult bindingResult, HttpServletResponse response) {
         Object retObj = null;
-        if (bindingResult.hasErrors()){
+        if (bindingResult.hasErrors()) {
             StringBuffer msg = new StringBuffer();
             //解析原错误信息，封装后返回，此处返回非法的字段名称，原始值，错误信息
             for (FieldError error : bindingResult.getFieldErrors()) {
                 msg.append(error.getDefaultMessage());
                 msg.append(";");
             }
-            logger.debug("processFieldErrors: msg = "+ msg.toString());
+            logger.debug("processFieldErrors: msg = " + msg.toString());
             retObj = ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, msg.toString());
             response.setStatus(HttpStatus.BAD_REQUEST.value());
         }
@@ -93,19 +96,20 @@ public class Common {
 
     /**
      * 处理返回对象
+     *
      * @param returnObject 返回的对象
      * @return
      */
     public static ReturnObject getRetObject(ReturnObject<VoObject> returnObject) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 VoObject data = returnObject.getData();
-                if (data != null){
+                if (data != null) {
                     Object voObj = data.createVo();
                     return new ReturnObject(voObj);
-                }else{
+                } else {
                     return new ReturnObject();
                 }
             default:
@@ -114,21 +118,21 @@ public class Common {
     }
 
     /**
-     * @author xucangbai
      * @param returnObject
      * @param voClass
      * @return
+     * @author xucangbai
      */
-    public static ReturnObject getRetVo(ReturnObject<Object> returnObject,Class voClass) {
+    public static ReturnObject getRetVo(ReturnObject<Object> returnObject, Class voClass) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 Object data = returnObject.getData();
-                if (data != null){
-                    Object voObj = cloneVo(data,voClass);
+                if (data != null) {
+                    Object voObj = cloneVo(data, voClass);
                     return new ReturnObject(voObj);
-                }else{
+                } else {
                     return new ReturnObject();
                 }
             default:
@@ -138,25 +142,26 @@ public class Common {
 
     /**
      * 处理返回对象
+     *
      * @param returnObject 返回的对象
      * @return
      */
 
     public static ReturnObject getListRetObject(ReturnObject<List> returnObject) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
-                if (objs != null){
+                if (objs != null) {
                     List<Object> ret = new ArrayList<>(objs.size());
                     for (Object data : objs) {
                         if (data instanceof VoObject) {
-                            ret.add(((VoObject)data).createVo());
+                            ret.add(((VoObject) data).createVo());
                         }
                     }
                     return new ReturnObject(ret);
-                }else{
+                } else {
                     return new ReturnObject();
                 }
             default:
@@ -165,27 +170,26 @@ public class Common {
     }
 
     /**
-     * @author xucangbai
      * @param returnObject
      * @param voClass
      * @return
+     * @author xucangbai
      */
-    public static ReturnObject getListRetVo(ReturnObject<List> returnObject,Class voClass)
-    {
+    public static ReturnObject getListRetVo(ReturnObject<List> returnObject, Class voClass) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 List objs = returnObject.getData();
-                if (objs != null){
+                if (objs != null) {
                     List<Object> ret = new ArrayList<>(objs.size());
                     for (Object data : objs) {
                         if (data instanceof Object) {
-                            ret.add(cloneVo(data,voClass));
+                            ret.add(cloneVo(data, voClass));
                         }
                     }
                     return new ReturnObject(ret);
-                }else{
+                } else {
                     return new ReturnObject();
                 }
             default:
@@ -195,20 +199,21 @@ public class Common {
 
     /**
      * 处理分页返回对象
+     *
      * @param returnObject 返回的对象
      * @return
      */
     public static ReturnObject getPageRetObject(ReturnObject<PageInfo<VoObject>> returnObject) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 PageInfo<VoObject> objs = returnObject.getData();
-                if (objs != null){
+                if (objs != null) {
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
                     for (Object data : objs.getList()) {
                         if (data instanceof VoObject) {
-                            voObjs.add(((VoObject)data).createVo());
+                            voObjs.add(((VoObject) data).createVo());
                         }
                     }
 
@@ -219,7 +224,7 @@ public class Common {
                     ret.put("pageSize", objs.getPageSize());
                     ret.put("pages", objs.getPages());
                     return new ReturnObject(ret);
-                }else{
+                } else {
                     return new ReturnObject();
                 }
             default:
@@ -228,22 +233,22 @@ public class Common {
     }
 
     /**
-     * @author xucangbai
      * @param returnObject
      * @param voClass
      * @return
+     * @author xucangbai
      */
-    public static ReturnObject getPageRetVo(ReturnObject<PageInfo<Object>> returnObject,Class voClass){
+    public static ReturnObject getPageRetVo(ReturnObject<PageInfo<Object>> returnObject, Class voClass) {
         ReturnNo code = returnObject.getCode();
-        switch (code){
+        switch (code) {
             case OK:
             case RESOURCE_FALSIFY:
                 PageInfo<Object> objs = returnObject.getData();
-                if (objs != null){
+                if (objs != null) {
                     List<Object> voObjs = new ArrayList<>(objs.getList().size());
                     for (Object data : objs.getList()) {
                         if (data instanceof Object) {
-                            voObjs.add(cloneVo(data,voClass));
+                            voObjs.add(cloneVo(data, voClass));
                         }
                     }
                     Map<String, Object> ret = new HashMap<>();
@@ -252,8 +257,8 @@ public class Common {
                     ret.put("page", objs.getPageNum());
                     ret.put("pageSize", objs.getPageSize());
                     ret.put("pages", objs.getPages());
-                    return new ReturnObject(code,ret);
-                }else{
+                    return new ReturnObject(code, ret);
+                } else {
                     return new ReturnObject(code);
                 }
             default:
@@ -262,13 +267,13 @@ public class Common {
     }
 
     /**
+     * @param bo      business object
+     * @param voClass vo对象类型
+     * @return 浅克隆的vo对象
      * @author xucangbai
      * @date 2021/11/13
      * 根据clazz实例化一个对象，并深度克隆bo中对应属性到这个新对象
      * 其中会自动实现modifiedBy和createdBy两字段的类型转换
-     * @param bo business object
-     * @param voClass vo对象类型
-     * @return 浅克隆的vo对象
      */
     public static <T> T cloneVo(Object bo, Class<T> voClass) {
         Class boClass = bo.getClass();
@@ -285,87 +290,76 @@ public class Common {
                     continue;
                 }
                 voField.setAccessible(true);
-                Field boField=null;
+                Field boField = null;
                 try {
-                    boField= boClass.getDeclaredField(voField.getName());
+                    boField = boClass.getDeclaredField(voField.getName());
                     boField.setAccessible(true);
                 }
                 //bo中查找不到对应的属性，那就有可能为特殊情况xxx，需要由xxxId与xxxName组装
-                catch (NoSuchFieldException e)
-                {
+                catch (NoSuchFieldException e) {
                     //提取头部
-                    String head=voField.getName();
-                    Field boxxxNameField=null;
-                    Field boxxxIdField=null;
-                    for (Field bof:boFields)
-                    {
-                        if(bof.getName().matches(head+"Name")){
-                            boxxxNameField=bof;
-                        }
-                        else if(bof.getName().matches(head+"Id")) {
-                            boxxxIdField=bof;
+                    String head = voField.getName();
+                    Field boxxxNameField = null;
+                    Field boxxxIdField = null;
+                    for (Field bof : boFields) {
+                        if (bof.getName().matches(head + "Name")) {
+                            boxxxNameField = bof;
+                        } else if (bof.getName().matches(head + "Id")) {
+                            boxxxIdField = bof;
                         }
                     }
                     //找不到xxxName或者找不到xxxId
-                    if (boxxxNameField==null||boxxxIdField==null)
-                    {
+                    if (boxxxNameField == null || boxxxIdField == null) {
                         voField.set(newVo, null);
                         continue;
                     }
 
                     Object newSimpleRetVo = voField.getType().getDeclaredConstructor().newInstance();
-                    Field newSimpleRetVoIdField=newSimpleRetVo.getClass().getDeclaredField("id");
-                    Field newSimpleRetVoNameField=newSimpleRetVo.getClass().getDeclaredField("name");
+                    Field newSimpleRetVoIdField = newSimpleRetVo.getClass().getDeclaredField("id");
+                    Field newSimpleRetVoNameField = newSimpleRetVo.getClass().getDeclaredField("name");
                     newSimpleRetVoIdField.setAccessible(true);
                     newSimpleRetVoNameField.setAccessible(true);
 
                     //bo的xxxId和xxxName组装为SimpleRetVo的id,name
                     boxxxIdField.setAccessible(true);
                     boxxxNameField.setAccessible(true);
-                    Object boxxxId=boxxxIdField.get(bo);
-                    Object boxxxName=boxxxNameField.get(bo);
+                    Object boxxxId = boxxxIdField.get(bo);
+                    Object boxxxName = boxxxNameField.get(bo);
 
-                    newSimpleRetVoIdField.set(newSimpleRetVo,boxxxId);
-                    newSimpleRetVoNameField.set(newSimpleRetVo,boxxxName);
+                    newSimpleRetVoIdField.set(newSimpleRetVo, boxxxId);
+                    newSimpleRetVoNameField.set(newSimpleRetVo, boxxxName);
 
                     voField.set(newVo, newSimpleRetVo);
                     continue;
                 }
                 Class<?> boFieldType = boField.getType();
                 //属性名相同，类型相同，直接克隆
-                if (voField.getType().equals(boFieldType))
-                {
+                if (voField.getType().equals(boFieldType)) {
                     boField.setAccessible(true);
                     Object newObject = boField.get(bo);
                     voField.set(newVo, newObject);
                 }
                 //属性名相同，类型不同
-                else
-                {
-                    boolean boFieldIsIntegerOrByteAndVoFieldIsEnum=("Integer".equals(boFieldType.getSimpleName())||"Byte".equals(boFieldType.getSimpleName()))&&voField.getType().isEnum();
-                    boolean voFieldIsIntegerOrByteAndBoFieldIsEnum=("Integer".equals(voField.getType().getSimpleName())||"Byte".equals(voField.getType().getSimpleName()))&&boFieldType.isEnum();
+                else {
+                    boolean boFieldIsIntegerOrByteAndVoFieldIsEnum = ("Integer".equals(boFieldType.getSimpleName()) || "Byte".equals(boFieldType.getSimpleName())) && voField.getType().isEnum();
+                    boolean voFieldIsIntegerOrByteAndBoFieldIsEnum = ("Integer".equals(voField.getType().getSimpleName()) || "Byte".equals(voField.getType().getSimpleName())) && boFieldType.isEnum();
                     //整形或Byte转枚举
-                    if(boFieldIsIntegerOrByteAndVoFieldIsEnum)
-                    {
-                        Object newObj=boField.get(bo);
-                        if("Byte".equals(boFieldType.getSimpleName()))
-                        {
-                            newObj=((Byte)newObj).intValue();
+                    if (boFieldIsIntegerOrByteAndVoFieldIsEnum) {
+                        Object newObj = boField.get(bo);
+                        if ("Byte".equals(boFieldType.getSimpleName())) {
+                            newObj = ((Byte) newObj).intValue();
                         }
-                        Object[] enumer=voField.getType().getEnumConstants();
-                        voField.set(newVo,enumer[(int) newObj]);
+                        Object[] enumer = voField.getType().getEnumConstants();
+                        voField.set(newVo, enumer[(int) newObj]);
                     }
                     //枚举转整形或Byte
-                    else if(voFieldIsIntegerOrByteAndBoFieldIsEnum)
-                    {
-                        Object value= ((Enum)boField.get(bo)).ordinal();
-                        if("Byte".equals(voField.getType().getSimpleName()))
-                        {
+                    else if (voFieldIsIntegerOrByteAndBoFieldIsEnum) {
+                        Object value = ((Enum) boField.get(bo)).ordinal();
+                        if ("Byte".equals(voField.getType().getSimpleName())) {
                             value = ((Integer) value).byteValue();
                         }
-                        voField.set(newVo,value);
-                    }
-                    else {
+                        voField.set(newVo, value);
+                    } else {
                         voField.set(newVo, null);
                     }
                 }
@@ -376,8 +370,46 @@ public class Common {
         return newVo;
     }
 
+    public static <T> void copyAttribute(Object source, T target) {
+        Class sourceClass = source.getClass();
+        Class targetClass = target.getClass();
+        try {
+            Field[] targetFields = targetClass.getDeclaredFields();
+            for (Field tField : targetFields) {
+                //静态和Final不能拷贝
+                int mod = tField.getModifiers();
+                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
+                    continue;
+                }
+                tField.setAccessible(true);
+                Field sField = null;
+                try {
+                    sField = sourceClass.getDeclaredField(tField.getName());
+                    sField.setAccessible(true);
+                }
+                catch (NoSuchFieldException e) {
+                    continue;
+                }
+                Class<?> sFieldType = sField.getType();
+                //属性名相同，类型相同，拷贝
+                if (tField.getType().equals(sFieldType)) {
+                    sField.setAccessible(true);
+                    Object newObject = sField.get(source);
+                    if (null!=newObject) {
+                        //不为空才拷贝
+                        tField.set(target, newObject);
+                    }
+                }
+            }
+        } catch (Exception e) {
+            logger.error("copyAttribute:"+e);
+        }
+    }
+
+
     /**
      * 根据 errCode 修饰 API 返回对象的 HTTP Status
+     *
      * @param returnObject 原返回 Object
      * @return 修饰后的返回 Object
      */
@@ -413,7 +445,7 @@ public class Common {
                         HttpStatus.BAD_REQUEST);
 
             case RESOURCE_ID_OUTSCOPE:
-            case  FILE_NO_WRITE_PERMISSION:
+            case FILE_NO_WRITE_PERMISSION:
                 // 403
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
@@ -422,17 +454,17 @@ public class Common {
             case OK:
                 // 200: 无错误
                 Object data = returnObject.getData();
-                if (data != null){
+                if (data != null) {
                     return ResponseUtil.ok(data);
-                }else{
+                } else {
                     return ResponseUtil.ok();
                 }
 
             default:
                 data = returnObject.getData();
-                if (data != null){
+                if (data != null) {
                     return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg(), returnObject.getData());
-                }else{
+                } else {
                     return ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg());
                 }
         }
@@ -440,16 +472,17 @@ public class Common {
 
     /**
      * 动态拼接字符串
-     * @param sep 分隔符
+     *
+     * @param sep    分隔符
      * @param fields 拼接的字符串
      * @return StringBuilder
      * createdBy: Ming Qiu 2020-11-02 11:44
      */
-    public static StringBuilder concatString(String sep, String... fields){
+    public static StringBuilder concatString(String sep, String... fields) {
         StringBuilder ret = new StringBuilder();
 
-        for (int i = 0; i< fields.length; i++){
-            if (i > 0){
+        for (int i = 0; i < fields.length; i++) {
+            if (i > 0) {
                 ret.append(sep);
             }
             ret.append(fields[i]);
@@ -457,11 +490,11 @@ public class Common {
         return ret;
     }
 
-    public static StringBuilder concatString(String sep, List<String> fields){
+    public static StringBuilder concatString(String sep, List<String> fields) {
         StringBuilder ret = new StringBuilder();
 
-        for (int i = 0; i< fields.size(); i++){
-            if (i > 0){
+        for (int i = 0; i < fields.size(); i++) {
+            if (i > 0) {
                 ret.append(sep);
             }
             ret.append(fields.get(i));
@@ -472,6 +505,7 @@ public class Common {
     /**
      * 增加20%以内的随机时间
      * 如果timeout <0 则会返回60s+随机时间
+     *
      * @param timeout 时间
      * @return 增加后的随机时间
      */
@@ -487,14 +521,13 @@ public class Common {
     /**
      * 设置所有po对象的createdBy, createName和gmtCreate字段属性
      *
-     * @author : Wangzixia 32420182202938
-     * @date： 2021/11/19 00:12
-     * @version: 2.0
-     *
      * @param po       po对象
      * @param userId   设置到createdBy
      * @param userName 设置到createName
      * @return 如果po对象没有这些属性或类型不对返回false，否则true
+     * @author : Wangzixia 32420182202938
+     * @date： 2021/11/19 00:12
+     * @version: 2.0
      */
     public static boolean setPoCreatedFields(Object po, long userId, String userName) {
         Class<?> aClass = po.getClass();
@@ -525,7 +558,7 @@ public class Common {
         try {
             Field createName = aClass.getDeclaredField("gmtCreate");
             createName.setAccessible(true);
-            createName.set(po,LocalDateTime.now());
+            createName.set(po, LocalDateTime.now());
         } catch (NoSuchFieldException e) {
             logger.info(e.getMessage());
             return false;
@@ -539,15 +572,13 @@ public class Common {
     /**
      * 设置所有po对象的modifiedBy, modiName和gmtModify字段属性
      *
-     * @author : Wangzixia 32420182202938
-     * @date： 2021/11/19 00:12
-     * @version: 2.0
-     *
-     *
      * @param po       po对象
      * @param userId   设置到modifiedBy
      * @param userName 设置到modiName
      * @return 如果po对象没有这些属性或类型不对返回false，否则true
+     * @author : Wangzixia 32420182202938
+     * @date： 2021/11/19 00:12
+     * @version: 2.0
      */
     public static boolean setPoModifiedFields(Object po, long userId, String userName) {
         Class<?> aClass = po.getClass();
@@ -577,7 +608,7 @@ public class Common {
         try {
             Field gmtModified = aClass.getDeclaredField("gmtModified");
             gmtModified.setAccessible(true);
-            gmtModified.set(po,LocalDateTime.now());
+            gmtModified.set(po, LocalDateTime.now());
         } catch (NoSuchFieldException e) {
             logger.info(e.getMessage());
             return false;
@@ -590,45 +621,46 @@ public class Common {
 
     /**
      * list级解密
-     * @param srcList 原list
-     * @param tgtClass 目标对象类型
-     * @param baseCoder 解密签名校验对象
+     *
+     * @param srcList    原list
+     * @param tgtClass   目标对象类型
+     * @param baseCoder  解密签名校验对象
      * @param codeFields 加密属性
      * @param signFields 签名属性 null代表不检验签名
      * @param signTarget 签名字段 null代表不检验签名
-     * @param sign  true时需要加入签名不对的,false则不需要
+     * @param sign       true时需要加入签名不对的,false则不需要
      * @return 投影后对象
      * @author RenJieZheng 22920192204334
      */
     public static List listDecode(List srcList, Class tgtClass, BaseCoder baseCoder,
-                                  Collection<String> codeFields, List<String>  signFields, String signTarget,Boolean sign) {
-        try{
-            List<Object>tgt = new ArrayList<>();
+                                  Collection<String> codeFields, List<String> signFields, String signTarget, Boolean sign) {
+        try {
+            List<Object> tgt = new ArrayList<>();
             //baseCoder不为空表示要进行解密和签名校验
-            if(baseCoder!=null){
-                if(sign){
-                    for(Object obj:srcList){
+            if (baseCoder != null) {
+                if (sign) {
+                    for (Object obj : srcList) {
                         // 已经在decode_check中加入日志
-                        Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
+                        Object object = baseCoder.decode_check(obj, tgtClass, codeFields, signFields, signTarget);
                         tgt.add(object);
                     }
-                }else{
+                } else {
                     Field field = tgtClass.getDeclaredField(signTarget);
                     field.setAccessible(true);
-                    for(Object obj:srcList){
+                    for (Object obj : srcList) {
                         // 已经在decode_check中加入日志
-                        Object object = baseCoder.decode_check(obj, tgtClass,codeFields,signFields,signTarget);
-                        if (field.get(object)!=null) {
+                        Object object = baseCoder.decode_check(obj, tgtClass, codeFields, signFields, signTarget);
+                        if (field.get(object) != null) {
                             tgt.add(object);
                         }
                     }
                 }
-            }else{
+            } else {
                 return null;
             }
             return tgt;
-        }catch(Exception e){
-            logger.error("listDecode:"+e.getMessage());
+        } catch (Exception e) {
+            logger.error("listDecode:" + e.getMessage());
             return null;
         }
     }
