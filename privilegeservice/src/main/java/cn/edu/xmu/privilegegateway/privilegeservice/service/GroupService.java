@@ -24,6 +24,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.dao.GroupDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Group;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.GroupRelation;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
@@ -274,10 +275,12 @@ public class GroupService {
         if (!did.equals(group.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
 
-        UserPo retUser = userDao.findUserById(uid);
+        ReturnObject<User> ret = userDao.getUserById(uid);
+        if (ret.getCode()!=ReturnNo.OK){
+            return ret;
+        }
+        User retUser = ret.getData();
 
-        if (retUser == null)
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该用户不存在");
         if (!did.equals(retUser.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
 
@@ -300,6 +303,7 @@ public class GroupService {
      * @param userId
      * @param userName
      * @return createdBy:  Weining Shi
+     * Modified By Ming Qiu 2021/12/11 21:29
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject deleteUserGroup(Long uid, Long id, Long did, Long userId, String userName) {
@@ -309,8 +313,13 @@ public class GroupService {
         Group group = retGroup.getData();
         if (group!=null && !did.equals(group.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-        UserPo retUser = userDao.findUserById(uid);
-        if (retUser!=null && !did.equals(retUser.getDepartId()))
+        ReturnObject<User> ret = userDao.getUserById(uid);
+        if (ret.getCode() != ReturnNo.OK){
+            return ret;
+        }
+        User retUser = ret.getData();
+
+        if (!did.equals(retUser.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         ReturnObject<List<Pair<UserGroupPo, Byte>>> pos = groupDao.getUserGroupByuidgid(uid, id);
         if (pos.getData().isEmpty())

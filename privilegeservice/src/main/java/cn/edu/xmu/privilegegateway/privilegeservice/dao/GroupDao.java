@@ -75,12 +75,9 @@ public class GroupDao {
 
     @Autowired
     private BaseCoder baseCoder;
-    private Collection<String> codeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile"));
-    private List<String> signFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","state","departId","level"));
+
     private Collection<String> groupRelationCodeFields = new ArrayList<>(Arrays.asList());
     private List<String> groupRelationSignFields = new ArrayList<>(Arrays.asList("groupPId","groupSId"));
-    private Collection<String> groupRoleCodeFields = new ArrayList<>(Arrays.asList());
-    private List<String> groupRoleSignFields = new ArrayList<>(Arrays.asList("roleId","groupId"));
     private Collection<String> groupUserCodeFields = new ArrayList<>(Arrays.asList());
     private List<String> groupUserSignFields = new ArrayList<>(Arrays.asList("userId","groupId"));
 

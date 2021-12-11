@@ -58,6 +58,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * 角色访问类
+ *
  * @author Ming Qiu
  * createdBy Ming Qiu 2020/11/02 13:57
  * modifiedBy 王纬策 2020/11/7 19:20
@@ -70,10 +71,12 @@ public class RoleDao {
     @Value("${privilegeservice.role.expiretime}")
     private long timeout;
 
-    @Autowired@Lazy
+    @Autowired
+    @Lazy
     private GroupDao groupDao;
 
-    @Autowired @Lazy
+    @Autowired
+    @Lazy
     private UserDao userDao;
 
     @Autowired
@@ -127,7 +130,6 @@ public class RoleDao {
     private BaseCoder baseCoder;
 
 
-
     final static Collection<String> codeFields = new ArrayList<>();
     final static List<String> roleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
@@ -140,24 +142,26 @@ public class RoleDao {
 
     final static List<String> newRoleInheritedSignFields = new ArrayList<>(Arrays.asList("roleId", "roleCId"));
 
-    public final static Integer MODIFIED=1;
-    public final static Integer NOTMODIFIED=0;
+    public final static Integer MODIFIED = 1;
+    public final static Integer NOTMODIFIED = 0;
+
     /**
      * 根据角色Id,查询角色的所有权限
-     * @author yue hao
+     *
      * @param id 角色ID
      * @return 角色的权限列表
      * modifiedBy Ming Qiu 2021/12/4 10:08
+     * @author yue hao
      */
     public List<Privilege> findPrivsByRoleId(Long id) {
         //getPrivIdsByRoleId已经进行role的签名校验
         ReturnObject returnObject = privDao.getPrivIdsByRoleId(id);
-        if(returnObject.getCode()!=ReturnNo.OK){
+        if (returnObject.getCode() != ReturnNo.OK) {
             return null;
         }
         List<Long> privIds = (List<Long>) returnObject.getData();
         List<Privilege> privileges = new ArrayList<>();
-        for(Long privId: privIds) {
+        for (Long privId : privIds) {
             Privilege po = this.privDao.findPriv(privId);
             logger.debug("findPrivsByRoleId:  po = " + po);
             privileges.add(po);
@@ -167,82 +171,82 @@ public class RoleDao {
 
     /**
      * 根据roleId获得继承的roleIds
+     *
      * @param roleId
-     * @return
-     * CreateBy RenJieZheng 22920192204334
+     * @return CreateBy RenJieZheng 22920192204334
      */
-    public ReturnObject getParentRole(Long roleId){
-        try{
+    public ReturnObject getParentRole(Long roleId) {
+        try {
             RoleInheritedPoExample example = new RoleInheritedPoExample();
             RoleInheritedPoExample.Criteria criteria = example.createCriteria();
             criteria.andRoleCIdEqualTo(roleId);
-            List<RoleInheritedPo>roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
+            List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example);
             logger.debug("getSuperiorRoleIdsByRoleId: roleId = " + roleId);
-            List<GroupRelationPo>ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos,RoleInheritedPo.class,baseCoder,null,newRoleInheritedSignFields,"signature",false);
+            List<GroupRelationPo> ret = (List<GroupRelationPo>) Common.listDecode(roleInheritedPos, RoleInheritedPo.class, baseCoder, null, newRoleInheritedSignFields, "signature", false);
             return new ReturnObject(ret);
-        }catch (Exception e){
-            logger.error("getSuperiorRoleIdsByRoleId: "+e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        } catch (Exception e) {
+            logger.error("getSuperiorRoleIdsByRoleId: " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
 
     /**
      * 将一个角色的功能角色id载入到Redis
+     *
      * @param id roleId
-     * @return
-     * CreateBy RenJieZheng 22920192204334
+     * @return CreateBy RenJieZheng 22920192204334
      */
-    public ReturnObject loadRole(Long id){
-        try{
+    public ReturnObject loadRole(Long id) {
+        try {
             String key = String.format(ROLEKEY, id);
             RolePo rolePo = roleMapper.selectByPrimaryKey(id);
 
             //用户被禁止,则退出
-            if(rolePo!=null&&rolePo.getState()!=null&&rolePo.getState()==BANED){
+            if (rolePo != null && rolePo.getState() != null && rolePo.getState() == BANED) {
                 //因为有redisUtil.unionAndStoreSet(roleKeys,key);所以被禁止也赋予0
-                redisUtil.addSet(String.format(ROLEKEY,id),0);
+                redisUtil.addSet(String.format(ROLEKEY, id), 0);
                 return new ReturnObject(ReturnNo.OK);
             }
 
 
             //如果是功能角色则加入
-            if(rolePo.getBaserole()==BASEROLE){
-                String brKey = String.format(BASEROLEKEY,id);
-                redisUtil.addSet(String.format(ROLEKEY,id),brKey);
+            if (rolePo.getBaserole() == BASEROLE) {
+                String brKey = String.format(BASEROLEKEY, id);
+                redisUtil.addSet(String.format(ROLEKEY, id), brKey);
                 return new ReturnObject(ReturnNo.OK);
             }
 
             //如果不是功能角色则继续往上找
             ReturnObject returnObject1 = getParentRole(id);
-            if(returnObject1.getCode()!= ReturnNo.OK){
+            if (returnObject1.getCode() != ReturnNo.OK) {
                 return returnObject1;
             }
-            List<RoleInheritedPo>roleInheritedPos = (List<RoleInheritedPo>) returnObject1.getData();
+            List<RoleInheritedPo> roleInheritedPos = (List<RoleInheritedPo>) returnObject1.getData();
             //没有获得继承角色则是根角色，退出
-            if(roleInheritedPos.size()<=0){
-                redisUtil.addSet(String.format(ROLEKEY,id),0);
+            if (roleInheritedPos.size() <= 0) {
+                redisUtil.addSet(String.format(ROLEKEY, id), 0);
                 return new ReturnObject<>(ReturnNo.OK);
             }
             List<String> roleKeys = new ArrayList<>();
-            for(RoleInheritedPo roleInheritedPo:roleInheritedPos){
-                if(!redisUtil.hasKey(String.format(ROLEKEY,roleInheritedPo.getRoleId()))){
+            for (RoleInheritedPo roleInheritedPo : roleInheritedPos) {
+                if (!redisUtil.hasKey(String.format(ROLEKEY, roleInheritedPo.getRoleId()))) {
                     ReturnObject returnObject2 = loadRole(roleInheritedPo.getRoleId());
-                    if(returnObject2.getCode()!=ReturnNo.OK){
+                    if (returnObject2.getCode() != ReturnNo.OK) {
                         return returnObject2;
                     }
                 }
-                roleKeys.add(String.format(ROLEKEY,roleInheritedPo.getRoleId()));
+                roleKeys.add(String.format(ROLEKEY, roleInheritedPo.getRoleId()));
             }
-            if(roleKeys.size()>0){
-                redisUtil.unionAndStoreSet(key,roleKeys,key);
+            if (roleKeys.size() > 0) {
+                redisUtil.unionAndStoreSet(key, roleKeys, key);
             }
-            redisUtil.addSet(key,0);
+            redisUtil.addSet(key, 0);
             long randTimeout = Common.addRandomTime(timeout);
             redisUtil.expire(key, randTimeout, TimeUnit.SECONDS);
             return new ReturnObject<>(ReturnNo.OK);
-        }catch(Exception e){
-            logger.error("loadRole: "+e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        } catch (Exception e) {
+            logger.error("loadRole: " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
 
     }
@@ -266,19 +270,19 @@ public class RoleDao {
     /**
      * 分页查询所有角色
      *
-     * @author 24320182203281 王纬策
-     * @param page 页数
+     * @param page     页数
      * @param pageSize 每页大小
      * @return ReturnObject<List> 角色列表
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 10:51
+     * @author 24320182203281 王纬策
      */
     public ReturnObject selectAllRole(Long did, Integer page, Integer pageSize) {
         RolePoExample example = new RolePoExample();
         RolePoExample.Criteria criteria = example.createCriteria();
         criteria.andDepartIdEqualTo(did);
-        criteria.andBaseroleEqualTo((byte)0);
+        criteria.andBaseroleEqualTo((byte) 0);
         // 分页查询
         logger.debug("page = " + page + "pageSize = " + pageSize);
         PageHelper.startPage(page, pageSize);
@@ -301,7 +305,7 @@ public class RoleDao {
     public ReturnObject selectBaseRole(Integer page, Integer pageSize) {
         RolePoExample example = new RolePoExample();
         RolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andBaseroleEqualTo((byte)1);
+        criteria.andBaseroleEqualTo((byte) 1);
         // 分页查询
         logger.debug("page = " + page + "pageSize = " + pageSize);
         PageHelper.startPage(page, pageSize);
@@ -319,12 +323,12 @@ public class RoleDao {
     /**
      * 增加一个角色
      *
-     * @author 24320182203281 王纬策
      * @param role 角色bo
      * @return ReturnObject<Role> 新增结果
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:04
+     * @author 24320182203281 王纬策
      */
     public ReturnObject insertRole(Role role) {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
@@ -340,7 +344,7 @@ public class RoleDao {
                 role.setId(rolePo.getId());
                 return new ReturnObject<>(role);
             }
-        }  catch (Exception e) {
+        } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
@@ -349,12 +353,12 @@ public class RoleDao {
     /**
      * 删除一个角色
      *
-     * @author 24320182203281 王纬策
      * @param roleId 角色id
      * @return ReturnObject<Object> 删除结果
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:16
+     * @author 24320182203281 王纬策
      */
     public ReturnObject deleteRole(Long roleId, Long did) {
         try {
@@ -396,12 +400,12 @@ public class RoleDao {
     /**
      * 修改一个角色
      *
-     * @author 24320182203281 王纬策
      * @param role 角色bo
      * @return ReturnObject<Role> 修改结果
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:24
+     * @author 24320182203281 王纬策
      */
     public ReturnObject updateRole(Role role) {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
@@ -455,9 +459,9 @@ public class RoleDao {
                 UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
                 User user = (User) Common.cloneVo(userDao.getUserById(po.getUserId()), User.class);
                 if (userRole.getSignature() != null) {
-                    user.setSign((byte)0);
+                    user.setSign((byte) 0);
                 } else {
-                    user.setSign((byte)1);
+                    user.setSign((byte) 1);
                 }
                 users.add(user);
             }
@@ -473,11 +477,11 @@ public class RoleDao {
     /**
      * 由Role Id, Privilege Id 增加 角色权限
      *
-     * @param  roleid, Privilegeid, userid
+     * @param roleid, Privilegeid, userid
      * @return RolePrivilegeRetVo
      * created by 王琛 24320182203277
      */
-    public ReturnObject<VoObject> addPrivByRoleIdAndPrivId(Long roleid, Long privid, Long userid){
+    public ReturnObject<VoObject> addPrivByRoleIdAndPrivId(Long roleid, Long privid, Long userid) {
         return null;
     }
 
@@ -489,7 +493,7 @@ public class RoleDao {
      * created by 王琛 24320182203277
      */
 
-    public ReturnObject<Object> delPrivByPrivRoleId(Long id){
+    public ReturnObject<Object> delPrivByPrivRoleId(Long id) {
         ReturnObject<Object> retObj = null;
 
 
@@ -504,7 +508,7 @@ public class RoleDao {
      * created by 王琛 24320182203277
      */
 
-    public ReturnObject<List> getRolePrivByRoleId(Long id){
+    public ReturnObject<List> getRolePrivByRoleId(Long id) {
         String key = String.format(ROLEKEY, id);
         List<RolePrivilege> rolepribilegere = new ArrayList<>();
         RolePrivilegePoExample example = new RolePrivilegePoExample();
@@ -512,13 +516,13 @@ public class RoleDao {
 
         //查看是否有此角色
         RolePo rolePo = roleMapper.selectByPrimaryKey(id);
-        if(rolePo==null){
+        if (rolePo == null) {
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         RolePrivilege e = new RolePrivilege();
 
         ReturnObject returnObject = privDao.getPrivIdsByRoleId(id);
-        if(returnObject.getCode()!=ReturnNo.OK){
+        if (returnObject.getCode() != ReturnNo.OK) {
             return null;
         }
         List<Long> privids = (List<Long>) returnObject.getData();
@@ -534,90 +538,92 @@ public class RoleDao {
      * createdBy: Ming Qiu 2020/11/3 13:55
      */
     public ReturnObject getRoleIdByUserId(Long id) {
-        try{
+        try {
             UserRolePoExample example = new UserRolePoExample();
             UserRolePoExample.Criteria criteria = example.createCriteria();
             criteria.andUserIdEqualTo(id);
             List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdByUserId: userId = " + id + "roleNum = " + userRolePoList.size());
-            List<UserRolePo>userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class,baseCoder,null,newUserRoleSignFields,"signature",false);
+            List<UserRolePo> userRolePosDecoded = Common.listDecode(userRolePoList, UserRolePo.class, baseCoder, null, newUserRoleSignFields, "signature", false);
             List<Long> retIds = new ArrayList<>();
             for (UserRolePo po : userRolePosDecoded) {
                 retIds.add(po.getRoleId());
             }
             return new ReturnObject(retIds);
-        }catch(Exception e){
-            logger.error("getRoleIdByUserId:"+e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        } catch (Exception e) {
+            logger.error("getRoleIdByUserId:" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
 
 
     /**
      * 由Group Id 获得 Role Id 列表
+     *
      * @param id: Group id
      * @return Role Id 列表
      * created by RenJie Zheng 22920192204334
      */
     public ReturnObject getRoleIdsByGroupId(Long id) {
-        try{
+        try {
             GroupRolePoExample example = new GroupRolePoExample();
             GroupRolePoExample.Criteria criteria = example.createCriteria();
             criteria.andGroupIdEqualTo(id);
             List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
             logger.debug("getRoleIdsByGroupId: groupId = " + id + "roleNum = " + groupRolePoList.size());
-            List<GroupRolePo>groupRolePosDecoded = Common.listDecode(groupRolePoList,GroupRolePo.class,baseCoder,null,newGroupRoleSignFields,"signature",false);
+            List<GroupRolePo> groupRolePosDecoded = Common.listDecode(groupRolePoList, GroupRolePo.class, baseCoder, null, newGroupRoleSignFields, "signature", false);
             List<Long> retIds = new ArrayList<>();
             for (GroupRolePo po : groupRolePosDecoded) {
                 retIds.add(po.getRoleId());
             }
             return new ReturnObject(retIds);
-        }catch (Exception e){
-            logger.error("getRoleIdsByGroupId:"+e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
+        } catch (Exception e) {
+            logger.error("getRoleIdsByGroupId:" + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
 
     /**
      * 重写签名和加密
+     *
      * @author Ming Qiu
      * date： 2021/12/04 16:01
      */
-    public void initialize(){
+    public void initialize() {
         //初始化UserRole
         UserRolePoExample example3 = new UserRolePoExample();
         List<UserRolePo> userRolePoList = userRolePoMapper.selectByExample(example3);
         for (UserRolePo po : userRolePoList) {
-            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRolePo.class,null,newUserRoleSignFields,"signature");
-            logger.debug("initialize: newUserRolePo = "+newUserRolePo.toString());
+            UserRolePo newUserRolePo = (UserRolePo) baseCoder.code_sign(po, UserRolePo.class, null, newUserRoleSignFields, "signature");
+            logger.debug("initialize: newUserRolePo = " + newUserRolePo.toString());
             userRolePoMapper.updateByPrimaryKeySelective(newUserRolePo);
         }
 
         //初始化GroupRole
         GroupRolePoExample example = new GroupRolePoExample();
         List<GroupRolePo> groupRolePoList = groupRolePoMapper.selectByExample(example);
-        for (GroupRolePo po: groupRolePoList){
+        for (GroupRolePo po : groupRolePoList) {
             GroupRolePo newPo = (GroupRolePo) baseCoder.code_sign(po, GroupRolePo.class, null, newGroupRoleSignFields, "signature");
-            logger.debug("initialize: groupRolePo = "+newPo.toString());
+            logger.debug("initialize: groupRolePo = " + newPo.toString());
             groupRolePoMapper.updateByPrimaryKeySelective(newPo);
         }
 
         //初始化RoleInheritance
         RoleInheritedPoExample example2 = new RoleInheritedPoExample();
         List<RoleInheritedPo> roleInheritedPos = roleInheritedPoMapper.selectByExample(example2);
-        for (RoleInheritedPo po: roleInheritedPos){
+        for (RoleInheritedPo po : roleInheritedPos) {
             RoleInheritedPo newPo = (RoleInheritedPo) baseCoder.code_sign(po, RoleInheritedPo.class, null, newRoleInheritedSignFields, "signature");
-            logger.debug("initialize: RoleInheritedPo = "+newPo.toString());
+            logger.debug("initialize: RoleInheritedPo = " + newPo.toString());
             roleInheritedPoMapper.updateByPrimaryKeySelective(newPo);
         }
 
     }
 
     /**
-     * @description 检查角色的departid是否与路径上的一致
-     * @param roleid 角色id
+     * @param roleid   角色id
      * @param departid 路径上的departid
      * @return boolean
+     * @description 检查角色的departid是否与路径上的一致
      * @author Xianwei Wang
      * created at 11/20/20 1:51 PM
      */
@@ -634,6 +640,7 @@ public class RoleDao {
 
     /**
      * 判断是否为功能角色
+     *
      * @param roleid
      * @return
      */
@@ -642,7 +649,7 @@ public class RoleDao {
         if (rolePo == null) {
             return false;
         }
-        if (rolePo.getBaserole() !=BASEROLE) {
+        if (rolePo.getBaserole() != BASEROLE) {
             return false;
         }
         return true;
@@ -651,61 +658,61 @@ public class RoleDao {
 
     /**
      * 设置角色继承关系
+     *
      * @return ReturnObject
      * @author 张晖婧
-     * */
+     */
     public ReturnObject createRoleInherited(RoleInherited roleInherited, Long did) {
-        RolePo prolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleId());
-        RolePo crolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleCId());
-        User createPo = (User) Common.cloneVo(userDao.getUserById(roleInherited.getCreatorId()),User.class);
+        ReturnObject retObj = null;
+        try {
 
-        //用户id或角色id不存在
-        if (prolePo == null || createPo == null || crolePo == null) {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        if (checkRoleDid(roleInherited.getRoleCId(), did) && (checkRoleDid(roleInherited.getRoleId(), did) || prolePo.getBaserole().equals((byte)0))) {
+            RolePo prolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleId());
+            RolePo crolePo = roleMapper.selectByPrimaryKey(roleInherited.getRoleCId());
 
-            ReturnObject retObj = null;
+            //用户id或角色id不存在
+            if (prolePo == null || crolePo == null) {
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            if (checkRoleDid(roleInherited.getRoleCId(), did) && (checkRoleDid(roleInherited.getRoleId(), did) || prolePo.getBaserole().equals((byte) 0))) {
 
-            RoleInheritedPo roleInheritedPo =(RoleInheritedPo) baseCoder.code_sign(roleInherited, RoleInheritedPo.class, codeFields, roleInheritedSignFields, "signature");
 
-            try {
+                RoleInheritedPo roleInheritedPo = (RoleInheritedPo) baseCoder.code_sign(roleInherited, RoleInheritedPo.class, codeFields, roleInheritedSignFields, "signature");
+
                 //删除redis中子角色的相关缓存
-                Collection<String> relations=roleImpact(roleInherited.getRoleCId());
-                for(String s:relations){
+                Collection<String> relations = roleImpact(roleInherited.getRoleCId());
+                for (String s : relations) {
                     redisUtil.del(s);
                 }
 
                 roleInheritedPoMapper.insertSelective(roleInheritedPo);
 
-                RoleInherited roleInheritedBo=(RoleInherited) Common.cloneVo(roleInheritedPo,RoleInherited.class);
-                roleInheritedBo.setSign((byte)0);
+                RoleInherited roleInheritedBo = (RoleInherited) Common.cloneVo(roleInheritedPo, RoleInherited.class);
+                roleInheritedBo.setSign((byte) 0);
                 //组装子角色的id和名称
                 roleInheritedBo.setId(crolePo.getId());
                 roleInheritedBo.setName(crolePo.getName());
 
 
                 return new ReturnObject<>(roleInheritedBo);
-
-            } catch (DataAccessException e) {
-                if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
-                    return new ReturnObject<>(ReturnNo.ROLE_RELATION_EXIST,"重复继承角色");
-                }
-                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
-            } catch (Exception e) {
-                retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了内部错误：%s", e.getMessage()));
+            } else {
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
-            return new ReturnObject<>();
-        }
-        else {
-            return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
+
+        } catch (DataAccessException e) {
+            if (Objects.requireNonNull(e.getMessage()).contains("Duplicate entry")) {
+                return new ReturnObject<>(ReturnNo.ROLE_RELATION_EXIST, "重复继承角色");
+            }
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        } catch (Exception e) {
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("发生了内部错误：%s", e.getMessage()));
         }
     }
 
     /**
      * auth014: 查询角色的功能角色
+     *
      * @param did: 部门 id
-     * @param id: 角色 id
+     * @param id:  角色 id
      * @return Object
      * @author 22920192204320 张晖婧
      */
@@ -757,10 +764,11 @@ public class RoleDao {
 
     /**
      * 查询父角色
-     * @author 张晖婧 22920192204320
+     *
      * @param did: 部门 id
-     * @param id: 角色 id
+     * @param id:  角色 id
      * @return Object
+     * @author 张晖婧 22920192204320
      */
     public ReturnObject findParentRoles(Long did, Long id, Integer page, Integer pageSize) {
         if (!checkRoleDid(id, did))
@@ -769,7 +777,7 @@ public class RoleDao {
         RoleInheritedPoExample.Criteria criteria = example.createCriteria();
         criteria.andRoleCIdEqualTo(id);
 
-        PageHelper.startPage(page,pageSize);
+        PageHelper.startPage(page, pageSize);
         // 查询角色所有直系非直系父继承关系
         List<RoleInherited> roleInheritedBos = (List<RoleInherited>) getParentRoleInherited(id).getData();
 
@@ -787,7 +795,7 @@ public class RoleDao {
         for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
             RolePo rolePo = roleMapper.selectByPrimaryKey(roleInheritedBos.get(i).getRoleId());
             RoleRetVo roleRetVo = (RoleRetVo) Common.cloneVo(rolePo, RoleRetVo.class);
-            if (roleInheritedBos.get(i).getSign()==0) {
+            if (roleInheritedBos.get(i).getSign() == 0) {
                 roleRetVo.setSign((byte) 0);
             } else {
                 roleRetVo.setSign((byte) 1);
@@ -802,8 +810,8 @@ public class RoleDao {
     }
 
     /**
-    不分页递归地查询所有父角色id（直系和非直系）
-    */
+     * 不分页递归地查询所有父角色id（直系和非直系）
+     */
     public ReturnObject getParentRoleInherited(Long roleId) {
         RoleInheritedPoExample example = new RoleInheritedPoExample();
         RoleInheritedPoExample.Criteria criteria = example.createCriteria();
@@ -830,6 +838,7 @@ public class RoleDao {
 
     /**
      * 通过RoleId获取RolePo
+     *
      * @param roleId 角色id
      * @return RolePo
      * @author 张晖婧
@@ -846,30 +855,31 @@ public class RoleDao {
      * @param roleId 角色id
      * @return 影响的role，group和user的redisKey
      */
-    public Collection<String> roleImpact(Long roleId){
-        Set<String> impactList=new HashSet<String>();
-        getRoleAndRelactiveKey(roleId,impactList);
+    public Collection<String> roleImpact(Long roleId) {
+        Set<String> impactList = new HashSet<String>();
+        getRoleAndRelactiveKey(roleId, impactList);
         return impactList;
     }
-    public void getRoleAndRelactiveKey(Long roleId, Set<String> resultSet){
-        resultSet.add(String.format(ROLEKEY,roleId));
-        List<GroupRolePo> gList=groupRoleDao.selectByRoleId(roleId).getData();
-        for(GroupRolePo groupRolePo:gList){
-            Collection list=groupDao.groupImpact(groupRolePo.getGroupId());
-            if(list!=null&&!list.isEmpty()) resultSet.addAll(list);
+
+    public void getRoleAndRelactiveKey(Long roleId, Set<String> resultSet) {
+        resultSet.add(String.format(ROLEKEY, roleId));
+        List<GroupRolePo> gList = groupRoleDao.selectByRoleId(roleId).getData();
+        for (GroupRolePo groupRolePo : gList) {
+            Collection list = groupDao.groupImpact(groupRolePo.getGroupId());
+            if (list != null && !list.isEmpty()) resultSet.addAll(list);
         }
-        List<UserRolePo> uList=userRoleDao.selectByRoleId(roleId).getData();
-        for(UserRolePo userRolePo:uList){
-            Collection list=userDao.userImpact(userRolePo.getUserId());
-            if(list!=null&&!list.isEmpty())resultSet.addAll(list);
+        List<UserRolePo> uList = userRoleDao.selectByRoleId(roleId).getData();
+        for (UserRolePo userRolePo : uList) {
+            Collection list = userDao.userImpact(userRolePo.getUserId());
+            if (list != null && !list.isEmpty()) resultSet.addAll(list);
         }
-        RoleInheritedPoExample example=new RoleInheritedPoExample();
-        RoleInheritedPoExample.Criteria criteria=example.createCriteria();
+        RoleInheritedPoExample example = new RoleInheritedPoExample();
+        RoleInheritedPoExample.Criteria criteria = example.createCriteria();
         criteria.andRoleIdEqualTo(roleId);
-        List<RoleInheritedPo> roleList=roleInheritedPoMapper.selectByExample(example);
-        for(RoleInheritedPo roleInheritedPo:roleList){
-            if(!resultSet.contains(String.format(ROLEKEY,roleInheritedPo.getRoleCId()))){
-                getRoleAndRelactiveKey(roleInheritedPo.getRoleCId(),resultSet);
+        List<RoleInheritedPo> roleList = roleInheritedPoMapper.selectByExample(example);
+        for (RoleInheritedPo roleInheritedPo : roleList) {
+            if (!resultSet.contains(String.format(ROLEKEY, roleInheritedPo.getRoleCId()))) {
+                getRoleAndRelactiveKey(roleInheritedPo.getRoleCId(), resultSet);
             }
         }
     }

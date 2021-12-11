@@ -199,7 +199,7 @@ public class RoleService {
      * @param pagesize
      * @return
      */
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
     {
         if(roleDao.isBaseRole(roleid))
@@ -217,7 +217,7 @@ public class RoleService {
      * @param pid
      * @return
      */
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
         if(roleDao.isBaseRole(rid))
         {
@@ -225,19 +225,6 @@ public class RoleService {
             return  returnObject;
         }
         return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-    }
-    /**
-     * 取消角色权限
-     * @param id 角色权限id
-     * @return 权限列表
-     * createdBy wc 24320182203277
-     */
-    @Transactional
-    public ReturnObject<Object> delRolePriv(Long id){
-        ReturnObject<Object> ret = roleDao.delPrivByPrivRoleId(id);
-        //删除成功，缓存中干掉用户
-//        if(ret.getCode()==ReturnNo.OK) clearuserByroleId(id);
-        return ret;
     }
 
     /**
@@ -326,6 +313,7 @@ public class RoleService {
      * @param id: 角色 id
      * @return Object
      */
+    @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject findParentRoles(Long did, Long id, Integer page, Integer pageSize) {
         return roleDao.findParentRoles(did, id, page, pageSize);
     }

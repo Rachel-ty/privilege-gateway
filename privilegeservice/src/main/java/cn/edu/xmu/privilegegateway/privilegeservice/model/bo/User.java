@@ -24,9 +24,7 @@ import java.util.Map;
  **/
 @Data
 @NoArgsConstructor
-public class User implements VoObject {
-
-    public static String AESPASS = "OOAD2020-11-01";
+public class User{
 
     /**
      * 后台用户状态
@@ -107,125 +105,6 @@ public class User implements VoObject {
 
     private String cacuSignature;
 
-    private Byte sign;
+    private Byte sign = 0;
 
-    /**
-     * 构造函数
-     * @param po Po对象
-     */
-    public User(UserPo po){
-        this.id = po.getId();
-        this.userName = po.getUserName();
-        this.password =po.getPassword();
-        this.mobile = AES.decrypt(po.getMobile(),AESPASS);
-        if (null != po.getMobileVerified()) {
-            this.mobileVerified = po.getMobileVerified() == 1;
-        }
-        this.email = AES.decrypt(po.getEmail(),AESPASS);
-
-        if (null != po.getEmailVerified()) {
-            this.emailVerified = po.getEmailVerified() == 1;
-        }
-        this.name = AES.decrypt(po.getName(), AESPASS);
-        this.avatar = po.getAvatar();
-        this.lastLoginTime = po.getLastLoginTime();
-        this.lastLoginIp = po.getLastLoginIp();
-        this.openId = po.getOpenId();
-        if (null != po.getState()) {
-            this.state = State.getTypeByCode(po.getState().intValue());
-        }
-        this.departId = po.getDepartId();
-        this.creatorId = po.getCreatorId();
-        this.gmtCreate = po.getGmtCreate();
-        this.gmtModified = po.getGmtModified();
-        this.signature = po.getSignature();
-
-        StringBuilder signature = Common.concatString("-", po.getUserName(), po.getPassword(),
-                po.getMobile(),po.getEmail(),po.getOpenId(),po.getState().toString(),po.getDepartId().toString(),
-                po.getCreatorId().toString());
-        this.cacuSignature = SHA256.getSHA256(signature.toString());
-    }
-
-
-    /**
-     * Create return Vo object
-     * @author XQChen
-     * @return
-     */
-    @Override
-    public UserRetVo createVo() {
-        UserRetVo userRetVo = new UserRetVo();
-        userRetVo.setId(id);
-        userRetVo.setUserName(userName);
-        userRetVo.setMobile(mobile);
-//        userRetVo.setName(name);
-        userRetVo.setEmail(email);
-        userRetVo.setAvatar(avatar);
-//        userRetVo.setLastLoginTime(lastLoginTime.toString());
-        userRetVo.setLastLoginIp(lastLoginIp);
-//        userRetVo.setStatus(state.getCode().byteValue());
-//        userRetVo.setDepart_id(departId);
-//        userRetVo.setGmtCreate(gmtCreate.toString());
-//        userRetVo.setGmtModified(gmtModified.toString());
-
-        return userRetVo;
-    }
-
-    /**
-     * 对象未篡改
-     * @return
-     */
-    public Boolean authetic() {
-        return this.cacuSignature.equals(this.signature);
-    }
-
-    /**
-     * 用 UserEditVo 对象创建 用来更新 User 的 Po 对象
-     * @param vo vo 对象
-     * @return po 对象
-     */
-    public UserPo createUpdatePo(UserVo vo) {
-        String nameEnc = vo.getName() == null ? null : AES.encrypt(vo.getName(), User.AESPASS);
-        String mobEnc = vo.getMobile() == null ? null : AES.encrypt(vo.getMobile(), User.AESPASS);
-        String emlEnc = vo.getEmail() == null ? null : AES.encrypt(vo.getEmail(), User.AESPASS);
-        Byte state = (byte) this.state.code;
-
-        UserPo po = new UserPo();
-        po.setId(id);
-        po.setName(nameEnc);
-        po.setAvatar(vo.getAvatar());
-        po.setMobile(mobEnc);
-        po.setEmail(emlEnc);
-        po.setState(state);
-
-        po.setGmtCreate(null);
-        po.setGmtModified(LocalDateTime.now());
-
-        // 签名：user_name,password,mobile,email,open_id,state,depart_id,creator
-        StringBuilder signature = Common.concatString("-",
-                this.getUserName(),
-                this.getPassword(),
-                mobEnc == null ? AES.encrypt(this.mobile, User.AESPASS) : mobEnc,
-                emlEnc == null ? AES.encrypt(this.email, User.AESPASS) : emlEnc,
-                this.getOpenId(),
-                state.toString(),
-                this.getDepartId().toString(),
-                this.getCreatorId().toString());
-        po.setSignature(SHA256.getSHA256(signature.toString()));
-        return po;
-    }
-
-    /**
-     * 创建SimpleVo
-     * @return userSimpleRetVo
-     * @author Xianwei Wang
-     */
-    @Override
-    public UserSimpleRetVo createSimpleVo() {
-        UserSimpleRetVo userSimpleRetVo = new UserSimpleRetVo();
-        userSimpleRetVo.setId(this.id);
-//        userSimpleRetVo.setName(this.userName);
-
-        return userSimpleRetVo;
-    }
 }
