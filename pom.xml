@@ -21,7 +21,7 @@
     <properties>
         <spring.version>2.4.12</spring.version>
         <java.version>11</java.version>
-        <jackson.version>2.13.0</jackson.version>
+        <jackson.version>2.11.4</jackson.version>
         <logback.version>1.2.6</logback.version>
         <alibaba.version>2021.1</alibaba.version>
         <swagger2.version>3.0.0</swagger2.version>
