@@ -77,8 +77,19 @@ public class ImpactTest {
     @Test
     public void privilegeImpactTest() throws JSONException {
 
-        String except="[r_2, u_1, g_10, r_3, g_11, r_6, g_12, r_5, g_13, u_51, u_3123, u_4356, u_60, u_2234, u_59, u_49, u_57, r_23]";
-        String result=((HashSet)privilegeDao.privilegeImpact(20L)).toString();
+        List list=new ArrayList();
+        list.add(String.format(USERKEY,60L));
+        list.add(String.format(ROLEKEY,2L));
+        list.add(String.format(GROUPKEY,10L));
+        list.add(String.format(ROLEKEY,3L));
+        list.add(String.format(ROLEKEY,6L));
+        list.add(String.format(GROUPKEY,12L));
+        list.add(String.format(USERKEY,49L));
+        list.add(String.format(ROLEKEY,5L));
+        list.add(String.format(ROLEKEY,23L));
+        String except="[u_51, u_52, u_50, r_106, r_107, r_89, u_55, u_53, r_2, u_17346, r_1, u_1, r_4, r_3, u_17347, r_6, r_5, r_8, r_7, r_9, u_48, r_11, u_49, u_46, u_47]";
+        String result=privilegeDao.privilegeImpact(94L).toString();
+        System.out.println(result);
         JSONAssert.assertEquals(result, except,false);
     }
     //不存在的privilegeId
