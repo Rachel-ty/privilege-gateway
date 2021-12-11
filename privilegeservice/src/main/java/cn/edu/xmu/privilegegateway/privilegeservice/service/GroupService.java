@@ -140,7 +140,7 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject deleteGroupRelation(Long did, Long pid, Long sid, Long userId, String userName) {
         GroupRelation groupRelation = new GroupRelation();
 
@@ -163,7 +163,7 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getsubGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> bos = groupDao.getGroupRelationBypidsid(null, id);//获得所有父id为id的关系记录
         if (bos.getCode().equals(ReturnNo.RESOURCE_FALSIFY.getCode()))
@@ -204,7 +204,7 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getparGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> pos = groupDao.getGroupRelationBypidsid(id, null);//获得所有父id为id的关系记录
         if (pos.getCode().equals(ReturnNo.RESOURCE_FALSIFY.getCode()))
@@ -363,7 +363,7 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getgroupsuser(Long did, Long id, Integer page, Integer pageSize) {
 
         ReturnObject<PageInfo<Object>> ret = groupDao.getusersBygid(did, id, page, pageSize);
@@ -379,7 +379,7 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getusersgroup(Long did, Long id, Integer page, Integer pageSize) {
         List<UserGroup> ret = groupDao.getUserGroupByUserId(id, page, pageSize);
         List<GroupRelationVo> vos = new ArrayList<>();
