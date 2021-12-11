@@ -24,12 +24,12 @@ public class UserRetVo {
     private LocalDateTime lastLoginTime;
     private String lastLoginIp;
     private Byte state;
-    private Long depart_id;
+    private Long departId;
     private String idNumber;
     private String passportNumber;
     private UserSimpleRetVo creator;
     private LocalDateTime gmtCreate;
     private LocalDateTime gmtModified;
     private UserSimpleRetVo modifier;
-    private Integer sign;
+    private Byte sign;
 }

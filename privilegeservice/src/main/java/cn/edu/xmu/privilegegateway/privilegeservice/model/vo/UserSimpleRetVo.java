@@ -19,8 +19,5 @@ public class UserSimpleRetVo {
     private Long id;
 
     @ApiModelProperty(name = "用户名", value = "name")
-    private String userName;
-
-    @ApiModelProperty(name = "签名", value = "sign")
-    private Integer sign;
+    private String name;
 }

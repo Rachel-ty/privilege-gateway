@@ -75,10 +75,8 @@ public class NewUserService {
         if(ret.getData()==null){
             return ret;
         }
-        NewUserPo newUserPo = (NewUserPo)ret.getData();
-        UserSimpleRetVo userSimpleRetVo = (UserSimpleRetVo)Common.cloneVo(newUserPo,UserSimpleRetVo.class);
-        userSimpleRetVo.setUserName(newUserVo.getUserName());
-        userSimpleRetVo.setSign(0);
+        NewUserPo newUserPo = (NewUserPo) ret.getData();
+        UserSimpleRetVo userSimpleRetVo = new UserSimpleRetVo(newUserPo.getId(),newUserBo.getName());
         return new ReturnObject(userSimpleRetVo);
     }
 
@@ -102,8 +100,8 @@ public class NewUserService {
         List<NewUserPo> newUserPos = (List<NewUserPo>) ret.getData();
         List<Object> newUsers = new ArrayList<>();
         for (NewUserPo newUserPo:newUserPos){
-            NewUserBo userBo = (NewUserBo) baseCoder.decode_check(newUserPo,NewUserBo.class,codeFields,signFields,"signature");
-            UserSimpleRetVo userSimpleRetVo = new UserSimpleRetVo(userBo.getId(),userBo.getUserName(),0);
+            NewUserBo newUserBo = (NewUserBo) baseCoder.decode_check(newUserPo,NewUserBo.class,codeFields,signFields,"signature");
+            UserSimpleRetVo userSimpleRetVo = Common.cloneVo(newUserBo,UserSimpleRetVo.class);
             newUsers.add(userSimpleRetVo);
         }
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(newUsers);
@@ -128,7 +126,6 @@ public class NewUserService {
         newUserRetVo.setSign(newUserPo.getSignature()==null?(byte)0:(byte)1);
         return new ReturnObject(newUserRetVo);
     }
-
     /**
      * 管理员审核用户
      * @param id
