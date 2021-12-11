@@ -56,6 +56,7 @@ public class GroupService {
      * 查询某一部门的所有用户组
      * createdBy:  Weining Shi
      */
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllgroups(Long did, Integer page, Integer pageSize) {
         ReturnObject<PageInfo<RetGroup>> ret = groupDao.getGroupsBydid(did, page, pageSize);
         return ret;
@@ -77,6 +78,7 @@ public class GroupService {
      * @return createdBy:  Weining Shi
      */
 
+    @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllStates() {
         return groupDao.getAllStates();
     }
