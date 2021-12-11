@@ -65,7 +65,7 @@
     </logger>
 
     <!-- 日志输出级别 -->
-    <logger name="cn.edu.xmu.privilegegateway.privilegeservice.dao" level = "DEBUG"/>
+    <logger name="cn.edu.xmu.privilegegateway.privilegeservice.dao" level = "INFO"/>
     <logger name="cn.edu.xmu.privilegegateway.privilegeservice.controller" level = "INFO"/>
     <logger name="cn.edu.xmu.privilegegateway.privilegeservice.service" level = "INFO"/>
     <logger name="cn.edu.xmu.privilegegateway.annotation" level = "INFO"/>
