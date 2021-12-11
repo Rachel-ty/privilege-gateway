@@ -19,7 +19,7 @@
     <packaging>pom</packaging>
 
     <properties>
-        <spring.version>2.4.12</spring.version>
+        <spring.version>2.6.1</spring.version>
         <java.version>11</java.version>
         <jackson.version>2.13.0</jackson.version>
         <logback.version>1.2.6</logback.version>
