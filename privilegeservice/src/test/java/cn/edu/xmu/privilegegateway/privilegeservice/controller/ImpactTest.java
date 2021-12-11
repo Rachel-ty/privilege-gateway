@@ -50,7 +50,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 @SpringBootTest(classes = PrivilegeServiceApplication.class)
-public class PrivilegeImpactTest {
+public class ImpactTest {
     private static String token;
     private static String pToken;
     private static String adminToken;
@@ -58,6 +58,8 @@ public class PrivilegeImpactTest {
     public final static String ROLEKEY = "r_%d";
     @Autowired
     private RoleDao roleDao;
+    @Autowired
+    private UserDao userDao;
     @Autowired
     GroupDao groupDao;
     @Autowired
@@ -103,5 +105,27 @@ public class PrivilegeImpactTest {
         String result=roleDao.roleImpact(91L).toString();
         System.out.println(result);
         JSONAssert.assertEquals(result, except,false);
+    }
+
+    @Test
+    public void deleteUserRedis() throws Exception{
+        List<String> userResults = (List<String>) userDao.userImpact(17332L);
+        List<String> userExpectResults = new ArrayList<>();
+        userExpectResults.add(String.format(USERKEY,17337L));
+        userExpectResults.add(String.format(USERKEY,17332L));
+        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
+    }
+
+
+    @Test
+    public void deleteGroupRelationRedis() throws Exception{
+        List<String> userResults = (List<String>) groupDao.groupImpact(6L);
+        List<String> userExpectResults = new ArrayList<>();
+        userExpectResults.add(String.format(GROUPKEY,6L));
+        userExpectResults.add(String.format(USERKEY,17332L));
+        userExpectResults.add(String.format(USERKEY,17337L));
+        userExpectResults.add(String.format(GROUPKEY,8L));
+        userExpectResults.add(String.format(USERKEY,17335L));
+        JSONAssert.assertEquals(userExpectResults.toString(), userResults.toString(),false);
     }
 }

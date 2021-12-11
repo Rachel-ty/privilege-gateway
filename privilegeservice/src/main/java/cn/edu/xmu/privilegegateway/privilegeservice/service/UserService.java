@@ -678,17 +678,17 @@ public class UserService {
      * @author BingShuai Liu 22920192204245
      */
     @Transactional( rollbackFor = Exception.class)
-    public ReturnObject showUserName(Long id){
+    public InternalReturnObject showUserName(Long id){
         UserPo userPo= userDao.findUserById(id);
         if (userPo==null){
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            return new InternalReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
         if(null==userBo){
-            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
+            return new InternalReturnObject(ReturnNo.RESOURCE_FALSIFY);
         }
 
-        ReturnObject ret = new ReturnObject(userBo.getUserName());
+        InternalReturnObject ret = new InternalReturnObject(userBo.getUserName());
         return ret;
     }
 

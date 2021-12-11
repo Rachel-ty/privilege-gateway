@@ -1777,8 +1777,8 @@ public class PrivilegeController {
     public Object getUserName(@PathVariable Long id,
                               @LoginUser Long userId,
                               @LoginName String loginUserName){
-        ReturnObject ret =userService.showUserName(id);
-        return Common.decorateReturnObject(ret);
+        InternalReturnObject ret =userService.showUserName(id);
+        return ret;
     }
     @Audit
     @PutMapping("internal/privileges/load")
