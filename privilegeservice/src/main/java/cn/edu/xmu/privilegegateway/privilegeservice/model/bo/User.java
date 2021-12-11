@@ -164,7 +164,7 @@ public class User implements VoObject {
 //        userRetVo.setLastLoginTime(lastLoginTime.toString());
         userRetVo.setLastLoginIp(lastLoginIp);
 //        userRetVo.setStatus(state.getCode().byteValue());
-        userRetVo.setDepart_id(departId);
+//        userRetVo.setDepart_id(departId);
 //        userRetVo.setGmtCreate(gmtCreate.toString());
 //        userRetVo.setGmtModified(gmtModified.toString());
 

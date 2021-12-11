@@ -584,25 +584,9 @@ public class UserService {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
         }
-        UserBo userBo =( UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
-        userRetVo.setSign(userBo!=null?0:1);
-        UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
-        if (null==creatorPo){
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-        }
-        UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),creator!=null?0:1);
-        userRetVo.setCreator(creatorSimpleRetVo);
-        if(userPo.getModifierId()!=null){
-            UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
-            if (null==modifierPo){
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            }
-            UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),modifier!=null?0:1);
-            userRetVo.setModifier(modifierSimpleRetVo);
-        }
+        UserPo userPo1 = (UserPo) baseCoder.decode_check(userPo,UserPo.class,userCodeFields,userSignFields,"signature");
+        UserRetVo userRetVo = Common.cloneVo(userPo1,UserRetVo.class);
+        userRetVo.setSign(userPo1.getSignature()!=null?(byte)0:(byte)1);
         return new ReturnObject(userRetVo);
     }
 
@@ -645,25 +629,9 @@ public class UserService {
         List<UserPo> userPos = (List<UserPo>) ret.getData();
         List<Object> userRetVos = new ArrayList<>();
         for (UserPo userPo:userPos){
-            UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            UserRetVo userRetVo = (UserRetVo) Common.cloneVo(userBo,UserRetVo.class);
-            userRetVo.setSign(userBo!=null?0:1);
-            UserPo creatorPo = userDao.findUserById(userPo.getCreatorId());
-            if (null==creatorPo){
-                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-            }
-            UserBo creator = (UserBo) baseCoder.decode_check(creatorPo,UserBo.class,userCodeFields,userSignFields,"signature");
-            UserSimpleRetVo creatorSimpleRetVo = new UserSimpleRetVo(creator.getId(),creator.getUserName(),creator!=null?0:1);
-            userRetVo.setCreator(creatorSimpleRetVo);
-            if(userPo.getModifierId()!=null){
-                UserPo modifierPo = userDao.findUserById(userPo.getModifierId());
-                if (null==modifierPo){
-                    return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
-                }
-                UserBo modifier = (UserBo) baseCoder.decode_check(modifierPo,UserBo.class,userCodeFields,userSignFields,"signature");
-                UserSimpleRetVo modifierSimpleRetVo = new UserSimpleRetVo(modifier.getId(),modifier.getUserName(),modifier!=null?0:1);
-                userRetVo.setModifier(modifierSimpleRetVo);
-            }
+            UserPo userPo1 = (UserPo) baseCoder.decode_check(userPo,UserPo.class,userCodeFields,userSignFields,"signature");
+            UserRetVo userRetVo = Common.cloneVo(userPo1,UserRetVo.class);
+            userRetVo.setSign(userPo1.getSignature()!=null?(byte)0:(byte)1);
             userRetVos.add(userRetVo);
         }
         PageInfo<Object> proxyRetVoPageInfo = PageInfo.of(userRetVos);
@@ -684,10 +652,6 @@ public class UserService {
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         UserBo userBo = (UserBo) baseCoder.decode_check(userPo,UserBo.class,userCodeFields,userSignFields,"signature");
-        if(null==userBo){
-            return new ReturnObject(ReturnNo.RESOURCE_FALSIFY);
-        }
-
         ReturnObject ret = new ReturnObject(userBo.getUserName());
         return ret;
     }
@@ -737,6 +701,7 @@ public class UserService {
         }
         return returnObject;
     }
+
 
     /**
      * 查看任意用户的角色
