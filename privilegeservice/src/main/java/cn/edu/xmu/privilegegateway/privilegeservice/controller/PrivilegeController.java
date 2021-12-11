@@ -1214,7 +1214,7 @@ public class PrivilegeController {
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
     @Audit(departName = "departs")
-    @PostMapping("users/{id}/proxy")
+    @PostMapping("users/{id}/proxies")
     public Object setUsersProxy(@LoginUser Long proxyUserId, @LoginName String creatorName, @Depart Long departId, @PathVariable("id") Long userId,
                                 @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
