@@ -96,6 +96,7 @@ public class GroupService {
 
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getAllStates() {
+
         return groupDao.getAllStates();
     }
 
@@ -181,7 +182,6 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getsubGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> bos = groupDao.getGroupRelationBypidsid(null, id);//获得所有父id为id的关系记录
@@ -223,7 +223,6 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getparGroup(Long did, Long id, Integer page, Integer pageSize) {
         ReturnObject<List<GroupRelation>> pos = groupDao.getGroupRelationBypidsid(id, null);//获得所有父id为id的关系记录
@@ -307,15 +306,11 @@ public class GroupService {
         UserGroupPo userGroupPo = new UserGroupPo();
 
         ReturnObject<Group> retGroup = groupDao.getGroupByid(id);
-        if (retGroup.getData() == null)
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该组不存在");
         Group group = retGroup.getData();
-        if (!did.equals(group.getDepartId()))
+        if (group!=null && !did.equals(group.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         UserPo retUser = userDao.findUserById(uid);
-        if (retUser == null)
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该用户不存在");
-        if (!did.equals(retUser.getDepartId()))
+        if (retUser!=null && !did.equals(retUser.getDepartId()))
             return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         ReturnObject<List<Pair<UserGroupPo, Byte>>> pos = groupDao.getUserGroupByuidgid(uid, id);
         if (pos.getData().isEmpty())
@@ -387,7 +382,6 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getgroupsuser(Long did, Long id, Integer page, Integer pageSize) {
 
@@ -404,7 +398,6 @@ public class GroupService {
      * @param pageSize
      * @return createdBy:  Weining Shi
      */
-
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject getusersgroup(Long did, Long id, Integer page, Integer pageSize) {
         List<UserGroup> ret = groupDao.getUserGroupByUserId(id, page, pageSize);
