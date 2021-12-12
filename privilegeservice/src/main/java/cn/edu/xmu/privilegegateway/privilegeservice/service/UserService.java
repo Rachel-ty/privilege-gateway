@@ -404,9 +404,10 @@ public class UserService {
             return ret1;
         }
         User user = ret1.getData();
-
-        if (!did.equals(user.getDepartId())) {
-            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        if(did!=null){
+            if (!did.equals(user.getDepartId())) {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            }
         }
 
         UserRetVo userRetVo = Common.cloneVo(user, UserRetVo.class);
