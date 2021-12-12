@@ -30,6 +30,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -343,23 +345,48 @@ public class Common {
                 else {
                     boolean boFieldIsIntegerOrByteAndVoFieldIsEnum = ("Integer".equals(boFieldType.getSimpleName()) || "Byte".equals(boFieldType.getSimpleName())) && voField.getType().isEnum();
                     boolean voFieldIsIntegerOrByteAndBoFieldIsEnum = ("Integer".equals(voField.getType().getSimpleName()) || "Byte".equals(voField.getType().getSimpleName())) && boFieldType.isEnum();
-                    //整形或Byte转枚举
-                    if (boFieldIsIntegerOrByteAndVoFieldIsEnum) {
-                        Object newObj = boField.get(bo);
-                        if ("Byte".equals(boFieldType.getSimpleName())) {
-                            newObj = ((Byte) newObj).intValue();
+                    boolean voFieldIsLocalDateTimeAndAndBoFieldIsZonedDateTime = ("LocalDateTime".equals(voField.getType().getSimpleName()) && "ZonedDateTime".equals(boField.getType().getSimpleName()));
+                    boolean voFieldIsZonedDateTimeAndBoFieldIsLocalDateTime = ("ZonedDateTime".equals(voField.getType().getSimpleName()) && "LocalDateTime".equals(boField.getType().getSimpleName()));
+
+                    try{
+                        //整形或Byte转枚举
+                        if (boFieldIsIntegerOrByteAndVoFieldIsEnum) {
+                            Object newObj = boField.get(bo);
+                            if ("Byte".equals(boFieldType.getSimpleName())) {
+                                newObj = ((Byte) newObj).intValue();
+                            }
+                            Object[] enumer = voField.getType().getEnumConstants();
+                            voField.set(newVo, enumer[(int) newObj]);
                         }
-                        Object[] enumer = voField.getType().getEnumConstants();
-                        voField.set(newVo, enumer[(int) newObj]);
+                        //枚举转整形或Byte
+                        else if (voFieldIsIntegerOrByteAndBoFieldIsEnum) {
+                            Object value = ((Enum) boField.get(bo)).ordinal();
+                            if ("Byte".equals(voField.getType().getSimpleName())) {
+                                value = ((Integer) value).byteValue();
+                            }
+                            voField.set(newVo, value);
+                        }
+                        //ZonedDateTime转LocalDateTime
+                        else if(voFieldIsLocalDateTimeAndAndBoFieldIsZonedDateTime)
+                        {
+                            ZonedDateTime newObj = (ZonedDateTime) boField.get(bo);
+                            LocalDateTime localDateTime = newObj.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+                            voField.set(newVo, localDateTime);
+                        }
+                        //LocalDateTime转ZonedDateTime
+                        else if(voFieldIsZonedDateTimeAndBoFieldIsLocalDateTime)
+                        {
+                            LocalDateTime newObj = (LocalDateTime) boField.get(bo);
+                            ZoneId zoneId =ZoneId.of("UTC");
+                            ZonedDateTime zdt = newObj.atZone( zoneId );
+                            voField.set(newVo, zdt);
+                        }
+                        else {
+                            voField.set(newVo, null);
+                        }
                     }
-                    //枚举转整形或Byte
-                    else if (voFieldIsIntegerOrByteAndBoFieldIsEnum) {
-                        Object value = ((Enum) boField.get(bo)).ordinal();
-                        if ("Byte".equals(voField.getType().getSimpleName())) {
-                            value = ((Integer) value).byteValue();
-                        }
-                        voField.set(newVo, value);
-                    } else {
+                    catch (Exception e)
+                    {
                         voField.set(newVo, null);
                     }
                 }
