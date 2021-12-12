@@ -455,8 +455,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void getRoleAllStates() throws Exception {
         String responseString = this.mvc.perform(get("/roles/states")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -472,8 +472,8 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
 
         String responseString = this.mvc.perform(get("/departs/0/users/1/baseroles?pageSize=1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -487,8 +487,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void getBaserolesByUserIdWithDifDepartId() throws Exception{
         String responseString = this.mvc.perform(get("/departs/1/users/1/baseroles")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -501,8 +501,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void getBaserolesByUserIdWithNotMatchedDepartId() throws Exception{
         String responseString = this.mvc.perform(get("/departs/1/users/1/baseroles")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -515,8 +515,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void assignRole() throws Exception {
         String responseString = this.mvc.perform(post("/departs/0/users/1/roles/88")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -529,8 +529,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void assignRoleWithDepartNotMatched() throws Exception {
         String responseString = this.mvc.perform(post("/departs/1/users/55/roles/11")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -543,8 +543,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void assignRoleAgain() throws Exception {
         String responseString = this.mvc.perform(post("/departs/0/users/1/roles/1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -557,8 +557,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void revokeRole() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/0/users/1/roles/1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -571,8 +571,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void revokeRoleWithDepartNotMatched() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/1/users/1/roles/23")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -585,8 +585,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void revokeRoleNotExist() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/1/users/59/roles/999")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -599,8 +599,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void revokeRoleAgain() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/1/users/59/roles/87")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -613,8 +613,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void createRoleInherited() throws Exception {
         String responseString = this.mvc.perform(post("/departs/9/roles/1/childroles/10")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -627,8 +627,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void createRoleInheritedWithoutPrivilege() throws Exception {
         String responseString = this.mvc.perform(post("/departs/1/roles/999/childroles/81")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -641,8 +641,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void createRoleInheritedAgain() throws Exception {
         String responseString = this.mvc.perform(post("/departs/0/roles/88/childroles/1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -655,8 +655,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void createRoleInheritedDidNotMatched() throws Exception {
         String responseString = this.mvc.perform(post("/departs/1/roles/2/childroles/1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -672,8 +672,8 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
 
         String responseString = this.mvc.perform(get("/departs/0/roles/1/baseroles?pageSize=1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -686,8 +686,8 @@ public class PrivilegeControllerTest {
     @Transactional
     void getBaserolesByRoleIdDidNotMatched() throws Exception {
         String responseString = this.mvc.perform(get("/departs/2/roles/1/baseroles")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -701,8 +701,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectAllRoles() throws Exception {
         String responseString = this.mvc.perform(get("/departs/1/roles?pageSize=1")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -715,8 +715,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectAllRoles_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(get("/departs/999/roles")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -733,9 +733,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"新角色\",\"descr\":\"新角色\"}";
 
         String responseString = this.mvc.perform(post("/departs/1/roles")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
@@ -748,9 +748,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"新角色\",\"descr\":\"新角色\"}";
 
         String responseString = this.mvc.perform(post("/departs/999/roles")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -766,8 +766,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void deleteRole() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/0/roles/1")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -780,8 +780,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void deleteRole_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/999/roles/87")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -794,8 +794,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void deleteRole_roleNotBelongToDepart() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/2/roles/87")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -808,8 +808,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void deleteRole_IdNotExist() throws Exception {
         String responseString = this.mvc.perform(delete("/departs/1/roles/999")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isNotFound())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -826,9 +826,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"辅助管理员辅助管理员\",\"desc\":\"一般的管理员一般的管理员\"}";
 
         String responseString = this.mvc.perform(put("/departs/0/roles/1")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -843,9 +843,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"辅助管理员辅助管理员\",\"desc\":\"一般的管理员一般的管理员\"}";
 
         String responseString = this.mvc.perform(put("/departs/999/roles/87")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -860,9 +860,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"管理员\",\"desc\":\"管理员\"}";
 
         String responseString = this.mvc.perform(put("/departs/2/roles/87")
-                        .header("authorization", testToken1)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", testToken1)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -877,9 +877,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"平台超级管理员\",\"desc\":\"已存在\"}";
 
         String responseString = this.mvc.perform(put("/departs/0/roles/88")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -894,9 +894,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"998877\",\"desc\":\"不存在\"}";
 
         String responseString = this.mvc.perform(put("/departs/1/roles/999")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -911,8 +911,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectRoles() throws Exception {
         String responseString = this.mvc.perform(get("/departs/0/users/1/roles")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8"))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -925,8 +925,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectRoles_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(get("/departs/999/users/1/roles")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -939,8 +939,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectRoles_userNotBelongToDepart() throws Exception {
         String responseString = this.mvc.perform(get("/departs/2/users/1/roles")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -955,8 +955,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectSelfRoles() throws Exception {
         String responseString = this.mvc.perform(get("/self/roles?pageSize=1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -974,8 +974,8 @@ public class PrivilegeControllerTest {
         Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
 
         String responseString = this.mvc.perform(get("/self/baseroles?pageSize=1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -989,8 +989,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectParentRoles() throws Exception {
         String responseString = this.mvc.perform(get("/departs/0/roles/1/parents?pageSize=1")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1003,8 +1003,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void selectParentRoles_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(get("/departs/999/roles/80/parents")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1019,8 +1019,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void forbidRoleTest() throws Exception {
         String responseString = this.mvc.perform(put("/departs/0/roles/1/forbid")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1033,8 +1033,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void forbidRoleTest_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(put("/departs/999/roles/87/forbid")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1049,8 +1049,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void releaseRoleTest() throws Exception {
         String responseString = this.mvc.perform(put("/departs/0/roles/1/release")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1063,8 +1063,8 @@ public class PrivilegeControllerTest {
     @Transactional
     public void releaseRoleTest_unmatchedDid() throws Exception {
         String responseString = this.mvc.perform(put("/departs/999/roles/87/release")
-                        .contentType("application/json;charset=UTF-8")
-                        .header("authorization", testToken1))
+                .contentType("application/json;charset=UTF-8")
+                .header("authorization", testToken1))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
@@ -1295,7 +1295,7 @@ public class PrivilegeControllerTest {
 
     }
 
-    /**
+     /**
      * load权限
      * @author RenJieZheng 22920192204334
      * @throws Exception
@@ -1307,7 +1307,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
-                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -1320,7 +1320,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString1;
         responseString1 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/57/privileges/load")
-                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken1))
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken1))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString1 = "{\n" +
@@ -1333,7 +1333,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString2;
         responseString2 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/17333/privileges/load")
-                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken2))
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken2))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString2 = "{\n" +
@@ -1347,7 +1347,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString3;
         responseString3 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/17335/privileges/load")
-                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken3))
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken3))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString3 = "{\n" +
@@ -1374,7 +1374,7 @@ public class PrivilegeControllerTest {
         String responseString;
         assert json != null;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                        .contentType("application/json;charset=UTF-8").content(json))
+                .contentType("application/json;charset=UTF-8").content(json))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -1392,7 +1392,7 @@ public class PrivilegeControllerTest {
         String responseString2;
         assert json2 != null;
         responseString2 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                        .contentType("application/json;charset=UTF-8").content(json2))
+                .contentType("application/json;charset=UTF-8").content(json2))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString2 = "{\n" +
@@ -1409,7 +1409,7 @@ public class PrivilegeControllerTest {
         String responseString3;
         assert json3 != null;
         responseString3 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                        .contentType("application/json;charset=UTF-8").content(json3))
+                .contentType("application/json;charset=UTF-8").content(json3))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString3 = "{\n" +
@@ -1426,7 +1426,7 @@ public class PrivilegeControllerTest {
         String responseString4;
         assert json4 != null;
         responseString4 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                        .contentType("application/json;charset=UTF-8").content(json4))
+                .contentType("application/json;charset=UTF-8").content(json4))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString4 = "{\n" +
@@ -1442,7 +1442,7 @@ public class PrivilegeControllerTest {
         //密码错误
         assert json1 != null;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
-                        .contentType("application/json;charset=UTF-8").content(json1))
+                .contentType("application/json;charset=UTF-8").content(json1))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         expectedString = "{\n" +
@@ -1467,7 +1467,7 @@ public class PrivilegeControllerTest {
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
-                        .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
         String expectedString = "{\n" +
@@ -1490,9 +1490,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
 
         String responseString = this.mvc.perform(post("/departs/0/baseroles")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String expectString = "{\"errno\":0,\"data\":{\"name\":\"新功能角色\",\"descr\":\"新功能角色\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
@@ -1505,9 +1505,9 @@ public class PrivilegeControllerTest {
         String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
 
         String responseString = this.mvc.perform(post("/departs/999/baseroles")
-                        .header("authorization", adminToken)
-                        .contentType("application/json;charset=UTF-8")
-                        .content(json))
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
