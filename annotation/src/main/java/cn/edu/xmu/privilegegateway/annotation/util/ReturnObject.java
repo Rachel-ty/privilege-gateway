@@ -106,4 +106,15 @@ public class ReturnObject<T> {
         }
     }
 
+    public ReturnObject(InternalReturnObject<T> internalReturnObject){
+        ReturnNo[] all=ReturnNo.values();
+        for (ReturnNo returnNo :all) {
+            if (returnNo.getCode()==internalReturnObject.getErrno()) {
+                this.code=returnNo;
+                break;
+            }
+        }
+        this.errmsg=internalReturnObject.getErrmsg();
+        this.data=internalReturnObject.getData();
+    }
 }
