@@ -326,27 +326,7 @@ public class PrivilegeController {
 
 
 
-    /**
-     * 获得所有权限
-     * @return Object
-     * createdBy Ming Qiu 2020/11/03 23:57
-     * ModifiedBy Ming Qiu 2021-12-12 7:07
-     */
-    @ApiOperation(value = "获得所有权限")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="authorization", value="Token", required = true, dataType="String", paramType="header")
-    })
-    @ApiResponses({
-            @ApiResponse(code = 0, message = "成功"),
-    })
-    @Audit
-    @GetMapping("privileges")
-    public Object getAllPrivs(@RequestParam(required = false) Integer page, @RequestParam(required = false) Integer pageSize){
 
-        logger.debug("getAllPrivs: page = "+ page +"  pageSize ="+pageSize);
-        ReturnObject<PageInfo<Object>> returnObject =  userService.findAllPrivs(page, pageSize);
-        return Common.decorateReturnObject(returnObject);
-    }
 
     /**
      * 修改权限

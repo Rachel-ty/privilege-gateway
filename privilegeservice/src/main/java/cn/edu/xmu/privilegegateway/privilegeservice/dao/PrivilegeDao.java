@@ -110,35 +110,6 @@ public class PrivilegeDao {
         }
     }
 
-    /**
-     * 查询所有权限
-     * @param page: 页码
-     * @param pageSize : 每页数量
-     * @return 权限列表
-     * ModifiedBy Ming Qiu 2021-12-12 7:07
-     */
-    public ReturnObject<PageInfo<Object>> findAllPrivs(Integer page, Integer pageSize){
-        PrivilegePoExample example = new PrivilegePoExample();
-        PrivilegePoExample.Criteria criteria = example.createCriteria();
-        PageHelper.startPage(page, pageSize);
-        List<PrivilegePo> privilegePos = null;
-        try {
-            privilegePos = poMapper.selectByExample(example);
-        }catch (DataAccessException e){
-            logger.error("findAllPrivs: DataAccessException:" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
-        }
-
-
-        List ret = Common.listDecode(privilegePos,PrivilegeRetVo.class, baseCoder, null, privilegeSignFields, "signature",true);
-        PageInfo<PrivilegePo> privPoPage = PageInfo.of(privilegePos);
-        PageInfo<Object> privPage = new PageInfo<>(ret);
-        privPage.setPages(privPoPage.getPages());
-        privPage.setPageNum(privPoPage.getPageNum());
-        privPage.setPageSize(privPoPage.getPageSize());
-        privPage.setTotal(privPoPage.getTotal());
-        return new ReturnObject<>(privPage);
-    }
 
     /**
      *修改权限
