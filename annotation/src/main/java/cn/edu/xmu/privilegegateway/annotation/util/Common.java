@@ -46,11 +46,11 @@ public class Common {
 
 
     /**
-     * 生成八位数序号
-     *
+     * 生成九位数序号
+     * @param  platform 机器号 如果一个服务有多个实例，机器号需不同，目前从1至36
      * @return 序号
      */
-    public static String genSeqNum() {
+    public static String genSeqNum(int platform) {
         int maxNum = 36;
         int i;
 
@@ -71,6 +71,13 @@ public class Common {
                 count++;
             }
         }
+        if (platform > 36){
+            platform = 36;
+        } else if (platform < 1){
+            platform = 1;
+        }
+
+        sb.append(str[platform-1]);
         return sb.toString();
     }
 

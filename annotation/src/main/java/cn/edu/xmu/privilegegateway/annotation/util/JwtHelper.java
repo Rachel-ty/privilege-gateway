@@ -86,7 +86,7 @@ public class JwtHelper {
             Date expireDate = getAfterDate(nowDate, 0, 0, 0, 0, 0, expireTime);
             map.put("alg", "HS256");
             map.put("typ", "JWT");
-            String tokenId = Common.genSeqNum();
+            String tokenId = Common.genSeqNum(1);
             StringBuilder message = new StringBuilder().append("createToken: ").append("userId = ")
                     .append(userId).append(" userName=").append(userName).append(" departId=").append(departId).append(" tokenId:").append(tokenId);
             logger.debug(message.toString());
