@@ -1294,6 +1294,11 @@ public class PrivilegeControllerTest {
      */
     @Test
     public void testLoadUserPrivilege() throws Exception {
+        Set<Serializable> brKeys = new HashSet<>();
+        brKeys.add(0);
+        brKeys.add("br_88");
+        brKeys.add("br_96");
+        Mockito.when(redisUtil.getSet("fu_55")).thenReturn(brKeys);
         JwtHelper jwtHelper = new JwtHelper();
         String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 2, 3600);
         //以下是正常情况返回的
@@ -1371,6 +1376,11 @@ public class PrivilegeControllerTest {
      */
     @Test
     public void testLogin() throws Exception {
+        Set<Serializable> brKeys = new HashSet<>();
+        brKeys.add(0);
+        brKeys.add("br_88");
+        brKeys.add("br_96");
+        Mockito.when(redisUtil.getSet("fu_55")).thenReturn(brKeys);
         LoginVo loginVo = new LoginVo();
         loginVo.setUserName("13088admin");
         loginVo.setPassword("123456");
