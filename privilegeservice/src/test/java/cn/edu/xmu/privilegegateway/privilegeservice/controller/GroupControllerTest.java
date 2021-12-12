@@ -265,7 +265,18 @@ class GroupControllerTest {
      */
 
     @Test
+    @Transactional
     public void getallSubGroup() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/groups/4/subgroups").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    @Test
+    @Transactional
+    public void getallSubGroup1() throws Exception {
         String responseString = this.mvc.perform(get("/departs/0/groups/1/subgroups").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -278,7 +289,18 @@ class GroupControllerTest {
      */
 
     @Test
+    @Transactional
     public void getallParGroup() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/groups/8/parents").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    @Test
+    @Transactional
+    public void getallParGroup1() throws Exception {
         String responseString = this.mvc.perform(get("/departs/0/groups/2/parents").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
@@ -410,6 +432,17 @@ class GroupControllerTest {
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
+    @Test
+    @Transactional
+    public void getallUsersGroup1() throws Exception {
+
+        String responseString = this.mvc.perform(get("/departs/0/users/57/groups").contentType("application/json;charset=UTF-8").header("authorization", adminToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
 
     /**
      * 增加用户组关系 不存在
@@ -428,7 +461,7 @@ class GroupControllerTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        expectString = "{\"errno\":504,\"errmsg\":\"该用户不存在\"}";
+        expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
     /**

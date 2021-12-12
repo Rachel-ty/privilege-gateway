@@ -82,14 +82,16 @@ public class UserDao {
      * 用户的redis key：r_id values:set{br_id};
      */
     private final static String ROLEKEY = "r_%d";
+    /**
+     * 验证码的redis key: cp_id
+     */
+    private final static String CAPTCHAKEY = "cp_%s";
+    private final static int BANED = 2;
 
 
     // 用户在Redis中的过期时间，而不是JWT的有效期
     @Value("${privilegeservice.user.expiretime}")
     private long timeout;
-
-    @Autowired
-    private RedisTemplate<String, Serializable> redisTemplate;
 
     @Autowired
     private RedisUtil redisUtil;
@@ -109,6 +111,7 @@ public class UserDao {
     private UserPoMapper userMapper;
     @Autowired
     private BaseCoder baseCoder;
+
     final static List<String> newUserSignFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email", "name", "idNumber",
             "passportNumber"));
     final static Collection<String> newUserCodeFields = new ArrayList<>(Arrays.asList("userName", "password", "mobile", "email", "name", "idNumber",
@@ -125,72 +128,6 @@ public class UserDao {
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
     final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
 
-    private final static int BANED = 2;
-
-    /*
-        @Autowired
-        private UserRolePoMapper userRolePoMapper;
-
-        @Autowired
-        private UserGroupPoMapper userGroupPoMapper;
-
-        @Autowired
-        private UserProxyPoMapper userProxyPoMapper;
-
-
-        @Autowired
-        private UserPoMapper userMapper;
-
-
-        @Autowired
-        private UserRolePoMapper userRolePoMapper;
-        @Autowired
-        private RedisTemplate<String, Serializable> redisTemplate;
-
-        @Autowired
-        private RedisUtil redisUtil;
-
-        @Autowired
-        private RoleDao roleDao;
-
-        @Autowired
-        private GroupDao groupDao;
-
-        @Autowired
-        private BaseCoder baseCoder;
-        final static Collection<String> codeFields = new ArrayList<>();
-
-        //user表需要加密的全部字段
-        final static Collection<String> userCodeFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber"));
-        //user表校验的所有字段
-        final static List<String> userSignFields = new ArrayList<>(Arrays.asList("password", "name", "email", "mobile","idNumber","passportNumber","state","departId","level"));
-
-        final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
-
-        final static List<String> userProxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate","expireDate"));
-        final static Collection<String> userProxyCodeFields = new ArrayList<>();
-        final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
-        final static Collection<String> userRoleCodeFields = new ArrayList<>();
-
-
-
-
-
-
-    //    @Autowired
-    //    private JavaMailSender mailSender;
-
-
-
-        final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
-        final static Collection<String> userRoleCodeFields = new ArrayList<>();
-
-        private final static int BANED = 2;
-
-        /**
-         * 验证码的redis key: cp_id
-         */
-    private final static String CAPTCHAKEY = "cp_%s";
 
 
     public ReturnObject setUsersProxy(UserProxy bo) {
@@ -781,6 +718,7 @@ public class UserDao {
             return retObj;
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
+        Common.copyAttribute(userVo, userPo);
         userPo = (UserPo) copyVo(userVo, userPo);
         Common.setPoModifiedFields(userPo, loginUser, loginName);
         userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");

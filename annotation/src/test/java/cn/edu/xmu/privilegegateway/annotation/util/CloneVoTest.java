@@ -3,11 +3,15 @@ package cn.edu.xmu.privilegegateway.annotation.util;
 
 import cn.edu.xmu.privilegegateway.annotation.model.bo.Category;
 import cn.edu.xmu.privilegegateway.annotation.model.bo.CategoryRetVo;
+import cn.edu.xmu.privilegegateway.annotation.model.bo.CouponActivity;
 import cn.edu.xmu.privilegegateway.annotation.model.bo.Shop;
+import cn.edu.xmu.privilegegateway.annotation.model.vo.CouponActivityVo;
 import cn.edu.xmu.privilegegateway.annotation.model.vo.ShopRetVo;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -60,5 +64,25 @@ class CloneVoTest {
         shopRetVoTest.setState(Byte.valueOf("2"));
         Shop shop1= (Shop) Common.cloneVo(shopRetVoTest,Shop.class);
         assertEquals(Shop.State.ONLINE,shop1.getState());
+    }
+
+    @Test
+    void test3() {
+        LocalDateTime ldt1 = LocalDateTime.parse( "2016-04-04T08:00" );
+        ZoneId zoneId1 =ZoneId.of("UTC");
+        ZonedDateTime zdt1 = ldt1.atZone( zoneId1 );
+
+        CouponActivity couponActivity=new CouponActivity();
+        couponActivity.setBeginTime(ldt1);
+
+        CouponActivityVo couponActivityVo=Common.cloneVo(couponActivity,CouponActivityVo.class);
+        assertEquals(zdt1,couponActivityVo.getBeginTime());
+
+        LocalDateTime ldt2 = LocalDateTime.now();
+        ZoneId zoneId2 =ZoneId.of("UTC");
+        ZonedDateTime zdt2 = ldt2.atZone( zoneId2 );
+        couponActivityVo.setBeginTime(zdt2);
+        couponActivity=Common.cloneVo(couponActivityVo,CouponActivity.class);
+        assertEquals(ldt2,couponActivity.getBeginTime());
     }
 }
