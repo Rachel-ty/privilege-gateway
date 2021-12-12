@@ -1095,16 +1095,9 @@ public class UserDao {
             } else {
                 return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
         } catch (Exception e) {
-            // 属未知错误
             logger.error("严重错误：" + e.getMessage());
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的未知错误：%s", e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
         }
     }
 

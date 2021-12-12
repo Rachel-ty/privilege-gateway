@@ -203,22 +203,6 @@ public class RoleDao {
 
     }
 
-
-    /**
-     * 部门下是否已存在用户名
-     *
-     * @author 王文凯
-     */
-    private boolean roleExist(Long did, String name) {
-        RolePoExample example = new RolePoExample();
-        RolePoExample.Criteria criteria = example.createCriteria();
-        criteria.andNameEqualTo(name);
-        criteria.andDepartIdEqualTo(did);
-
-        List<RolePo> list = roleMapper.selectByExample(example);
-        return list.size() != 0;
-    }
-
     /**
      * 分页查询所有角色
      *
@@ -286,16 +270,11 @@ public class RoleDao {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
         try {
             int ret = roleMapper.insertSelective(rolePo);
-            if (ret == 0) {
-                // 插入失败
-                logger.debug("insertRole: insert role fail " + rolePo.toString());
-                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("新增失败：" + rolePo.getName()));
-            } else {
-                // 插入成功
-                logger.debug("insertRole: insert role = " + rolePo.toString());
-                role.setId(rolePo.getId());
-                return new ReturnObject<>(role);
-            }
+
+            logger.debug("insertRole: insert role = " + rolePo.toString());
+
+            role.setId(rolePo.getId());
+            return new ReturnObject<>(role);
         } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
@@ -362,24 +341,12 @@ public class RoleDao {
     public ReturnObject updateRole(Role role) {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
         try {
-            if (role.getName() != null && roleExist(role.getDepartId(), role.getName())) {
-                return new ReturnObject(ReturnNo.ROLE_EXIST);
-            }
-
             if (!checkRoleDid(role.getId(), role.getDepartId())) {
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, "部门id不匹配");
             }
 
             int ret = roleMapper.updateByPrimaryKeySelective(rolePo);
-            if (ret == 0) {
-                // 修改失败
-                logger.debug("updateRole: update role fail : " + rolePo.toString());
-                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST, String.format("角色id不存在：" + rolePo.getId()));
-            } else {
-                // 修改成功
-                logger.debug("updateRole: update role = " + rolePo.toString());
-                return new ReturnObject<>();
-            }
+            return new ReturnObject<>();
         } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
