@@ -1154,12 +1154,28 @@ public class PrivilegeControllerTest {
                 "  \"passportNumber\": \"123456\",\n" +
                 "  \"level\": 0\n" +
                 "}";
-        String responseString1 = mvc.perform(put("/departs/0/users/62")
+        String responseString1 = mvc.perform(put("/departs/0/users/0")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = " {\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+        responseString1 = mvc.perform(put("/departs/0/users/17341")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        expectString1 = "{\"errno\":511,\"errmsg\":\"信息签名不正确\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+
+        responseString1 = mvc.perform(put("/departs/0/users/62")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
     }
     @Test
