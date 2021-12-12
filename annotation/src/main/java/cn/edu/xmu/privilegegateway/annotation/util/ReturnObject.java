@@ -106,4 +106,9 @@ public class ReturnObject<T> {
         }
     }
 
+    public ReturnObject(InternalReturnObject<T> internalReturnObject){
+        this.code=ReturnNo.getReturnNoByCode(internalReturnObject.getErrno());
+        this.errmsg=internalReturnObject.getErrmsg();
+        this.data=internalReturnObject.getData();
+    }
 }

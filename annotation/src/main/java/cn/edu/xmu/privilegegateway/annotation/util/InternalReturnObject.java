@@ -39,6 +39,12 @@ public class InternalReturnObject<T> implements Serializable {
     public InternalReturnObject() {
     }
 
+    public void setErrno(Integer errno) { this.errno = errno;}
+
+    public void setErrmsg(String errmsg) { this.errmsg = errmsg;}
+
+    public void setData(T data) { this.data = data;}
+
     public Integer getErrno() {
         return errno;
     }
