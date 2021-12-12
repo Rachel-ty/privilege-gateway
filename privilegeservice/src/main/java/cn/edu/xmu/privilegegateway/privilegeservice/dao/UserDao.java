@@ -99,7 +99,9 @@ public class UserDao {
     @Autowired
     @Lazy
     private RoleDao roleDao;
-
+    @Autowired
+    @Lazy
+    private PrivilegeDao privDao;
     @Autowired
     @Lazy
     private GroupDao groupDao;
@@ -499,7 +501,7 @@ public class UserDao {
 
                 if (!redisUtil.hasKey(brKeyStr)) {
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
-                    ReturnObject returnObject1 = roleDao.privDao.loadBaseRolePriv(roleId);
+                    ReturnObject returnObject1 = privDao.loadBaseRolePriv(roleId);
                     if (returnObject1.getCode() != ReturnNo.OK) {
                         return returnObject1;
                     }
