@@ -240,7 +240,7 @@ public class UserDao {
         }
     }
 
-    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, Integer page, Integer pageSize) {
+    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId,LocalDateTime beginTime,LocalDateTime endTime, Integer page, Integer pageSize) {
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
         if (userId != null) {
@@ -248,6 +248,12 @@ public class UserDao {
         }
         if (proxyUserId != null) {
             criteria.andProxyUserIdEqualTo(proxyUserId);
+        }
+        if(beginTime!=null){
+            criteria.andBeginDateGreaterThan(beginTime);
+        }
+        if(endTime!=null){
+            criteria.andEndDateLessThan(endTime);
         }
         criteria.andDepartIdEqualTo(departId);
         PageHelper.startPage(page, pageSize);
@@ -310,7 +316,7 @@ public class UserDao {
             for (UserProxyPo po : results) {
                 LocalDateTime beginDate = po.getBeginDate();
                 LocalDateTime endDate = po.getEndDate();
-                if ((nowBeginDate.isAfter(beginDate) && nowBeginDate.isBefore(endDate)) || (nowEndDate.isAfter(beginDate) && nowEndDate.isBefore(endDate))) {
+                if (!(nowBeginDate.isAfter(endDate)||nowEndDate.isBefore(beginDate))) {
                     isExist = true;
                     break;
                 }

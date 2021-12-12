@@ -26,6 +26,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+
 /**
  * 用户服务
  *
@@ -62,8 +64,8 @@ public class UserProxyService {
     }
 
     @Transactional(readOnly = true, rollbackFor = Exception.class)
-    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, Integer page, Integer pageSize) {
-        ReturnObject proxies = userProxyDao.getProxies(userId, proxyUserId, departId, page, pageSize);
+    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, LocalDateTime beginTime, LocalDateTime endTime, Integer page, Integer pageSize) {
+        ReturnObject proxies = userProxyDao.getProxies(userId, proxyUserId, departId, beginTime, endTime, page, pageSize);
         return proxies;
     }
 
