@@ -51,6 +51,8 @@ public class PrivilegeControllerTest {
     private static String pToken;
     private static String adminToken;
     private static String testToken1;
+    private static String token17334;
+    private static String token17333;
 
     private static JwtHelper jwtHelper = new JwtHelper();
     @MockBean
@@ -64,6 +66,8 @@ public class PrivilegeControllerTest {
     @BeforeEach
     void init() {
         token = jwtHelper.createToken(46L, "个", 0L, 1, 36000);
+        token17334 = jwtHelper.createToken(17334L, "个", 0L, 1, 36000);
+        token17333 = jwtHelper.createToken(17333L, "个", 0L, 1, 36000);
         pToken = jwtHelper.createToken(60L, "pikaas", 0L, 1, 36000);
         adminToken=jwtHelper.createToken(1L, "13088admin", 0L, 1, 36000);
         testToken1 = jwtHelper.createToken(47L, "user", 2L, 1, 36000);
@@ -72,176 +76,176 @@ public class PrivilegeControllerTest {
     /**
      * Method: setUsersProxy(@LoginUser Long proxyUserId, @LoginName String creatorName, @Depart Long departId, @PathVariable("id") Long userId, @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult)
      */
-//    @Test
-//    public void testSetUsersProxy() throws Exception {
-//        //和已有代里时间冲突
-//        String contentJson = "{\"beginDate\": \"2020-09-07T18:51:42.000\",\"endDate\": \"2020-09-07T18:55:42.000\"}";
-//        String responseString = mvc.perform(post("/users/49/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":747,\"errmsg\":\"同一时间段有冲突的代理关系\"}";
-//        JSONAssert.assertEquals(expectString, responseString, false);
-//        //正常插入
-//        String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString1 = mvc.perform(post("/users/49/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson1))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString1 = "{\"errno\":0,\"data\":{\"user\":{\"id\":49,\"name\":\"阿卡前\"},\"proxyUser\":{\"id\":46,\"name\":\"个\"},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":46,\"name\":\"个\"},\"modifier\":{\"id\":46,\"name\":\"个\"}},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString1, responseString1, false);
-//        //开始时间早于结束时间
-//        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
-//        String responseString2 = mvc.perform(post("/users/49/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson2))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, true);
-//        //代理被代理为同一个人
-//        String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString3 = mvc.perform(post("/users/46/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson3))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString3 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
-//        JSONAssert.assertEquals(expectString3, responseString3, true);
-//        //不存在用户
-//        String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString4 = mvc.perform(post("/users/490/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson4))
-//                .andExpect(status().isNotFound())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString4 = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
-//        JSONAssert.assertEquals(expectString4, responseString4, true);
-//        //不是同一个部门
-//        String contentJson5 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString5 = mvc.perform(post("/users/57/proxy").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson5))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString5 = "{\"errno\":752,\"errmsg\":\"两个代理双方的部门冲突\"}";
-//        JSONAssert.assertEquals(expectString5, responseString5, true);
-//    }
+    @Test
+    public void testSetUsersProxy() throws Exception {
+        //和已有代里时间冲突
+        String contentJson = "{\"beginDate\": \"2010-09-07T18:51:42.000\",\"endDate\": \"2030-09-07T18:55:42.000\"}";
+        String responseString = mvc.perform(post("/users/17334/proxies").header("authorization", token17333)
+                        .contentType("application/json;charset=UTF-8").content(contentJson))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":747,\"errmsg\":\"同一时间段有冲突的代理关系\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+        //正常插入
+        String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString1 = mvc.perform(post("/users/17333/proxies").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"data\":{\"user\":{\"id\":17333,\"name\":null},\"proxyUser\":{\"id\":17334,\"name\":null},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":17334,\"name\":\"个\"},\"modifier\":{\"id\":17334,\"name\":\"个\"},\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+        //开始时间早于结束时间
+        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
+        String responseString2 = mvc.perform(post("/users/17333/proxies").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson2))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, true);
+        //代理被代理为同一个人
+        String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString3 = mvc.perform(post("/users/17334/proxies").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson3))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString3 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
+        JSONAssert.assertEquals(expectString3, responseString3, true);
+        //不存在用户
+        String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString4 = mvc.perform(post("/users/173330/proxies").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson4))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString4 = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString4, responseString4, true);
+        //不是同一个部门
+        String contentJson5 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString5 = mvc.perform(post("/users/57/proxies").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson5))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString5 = "{\"errno\":752,\"errmsg\":\"两个代理双方的部门冲突\"}";
+        JSONAssert.assertEquals(expectString5, responseString5, true);
+    }
 
     /**
      * Method: setUsersProxyByAdmin(@LoginUser Long creatorId, @LoginName String creatorName, @PathVariable("did") Long departId, @PathVariable("aid") Long userId, @PathVariable("bid") Long proxyUserId, @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult)
      */
-//    @Test
-//    public void testSetUsersProxyByAdmin() throws Exception {
-//        //没权限
-//        String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString1 = mvc.perform(post("/departs/1/users/49/proxyusers/46").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson1))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString1 = "{\"errno\":705,\"errmsg\":\"无权限\"}";
-//        JSONAssert.assertEquals(expectString1, responseString1, true);
-//        //开始时间早于结束时间
-//        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
-//        String responseString2 = mvc.perform(post("/departs/0/users/49/proxyusers/46").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson2))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, true);
-//        //正常插入
-//        String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString3 = mvc.perform(post("/departs/0/users/49/proxyusers/46").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson3))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString3 = "{\"errno\":0,\"data\":{\"user\":{\"id\":49,\"name\":\"阿卡前\"},\"proxyUser\":{\"id\":46,\"name\":\"个\"},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":46,\"name\":\"个\"},\"modifier\":{\"id\":46,\"name\":\"个\"}},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString3, responseString3, false);
-//        //代理被代理为同一个人
-//        String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
-//        String responseString4 = mvc.perform(post("/departs/0/users/46/proxyusers/46").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8").content(contentJson4))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString4 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
-//        JSONAssert.assertEquals(expectString4, responseString4, false);
-//
-//    }
+    @Test
+    public void testSetUsersProxyByAdmin() throws Exception {
+        //没权限
+        String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString1 = mvc.perform(post("/departs/1/users/17333/proxyusers/17334").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson1))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":705,\"errmsg\":\"无权限\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+        //开始时间早于结束时间
+        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
+        String responseString2 = mvc.perform(post("/departs/0/users/17333/proxyusers/17334").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson2))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, true);
+        //正常插入
+        String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString3 = mvc.perform(post("/departs/0/users/17333/proxyusers/17334").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson3))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString3 = "{\"errno\":0,\"data\":{\"user\":{\"id\":17333,\"name\":null},\"proxyUser\":{\"id\":17334,\"name\":null},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":17334,\"name\":\"个\"},\"modifier\":{\"id\":17334,\"name\":\"个\"},\"sign\":0},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString3, responseString3, false);
+        //代理被代理为同一个人
+        String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
+        String responseString4 = mvc.perform(post("/departs/0/users/17334/proxyusers/17334").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8").content(contentJson4))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString4 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
+        JSONAssert.assertEquals(expectString4, responseString4, false);
+
+    }
 
     /**
      * Method: removeUserProxy(@PathVariable("id") Long id, @LoginUser Long userId)
      */
-//    @Test
-//    public void testRemoveUserProxy() throws Exception {
-//        //操作的资源id不存在
-//        String responseString = mvc.perform(delete("/proxies/11").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isNotFound())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
-//        JSONAssert.assertEquals(expectString, responseString, true);
-//
-//        //正常删除
-//        String responseString2 = mvc.perform(delete("/proxies/2").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2 = "{\"errno\":0,\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, true);
-//    }
+    @Test
+    public void testRemoveUserProxy() throws Exception {
+        //操作的资源id不存在
+        String responseString = mvc.perform(delete("/self/proxies/11").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
 
-//    /**
-//     * Method: getProxies(@PathVariable("did") Long departId, @RequestParam(value = "aid", required = false) Long userId, @RequestParam(value = "bid", required = false) Long proxyUserId, @RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "pageSize", required = false) Integer pageSize)
-//     */
-//    @Test
-//    public void testGetProxies() throws Exception {
-//        String responseString1 = mvc.perform(get("/departs/0/proxies").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString1 = "{\"errno\":0,\"data\":{\"total\":5,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":1,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":47,\"name\":null},\"beginDate\":\"2020-10-03T18:51:42.000\",\"endDate\":\"2021-11-03T18:51:52.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":2,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":46,\"name\":null},\"beginDate\":\"2020-05-03T18:52:25.000\",\"endDate\":\"2020-10-03T18:52:31.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":3,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":48,\"name\":null},\"beginDate\":\"2021-12-03T18:53:01.000\",\"endDate\":\"2022-11-03T18:53:19.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":4,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":50,\"name\":null},\"beginDate\":\"2020-11-01T18:53:59.000\",\"endDate\":\"2020-12-03T18:54:07.000\",\"valid\":0,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0},{\"id\":5,\"user\":{\"id\":49,\"name\":null},\"proxyUser\":{\"id\":51,\"name\":null},\"beginDate\":\"2020-05-03T18:54:29.000\",\"endDate\":\"2020-07-03T18:54:37.000\",\"valid\":1,\"creator\":{\"id\":null,\"name\":null},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString1, responseString1, true);
-//
-//        String responseString2 = mvc.perform(get("/departs/0/proxies?aid=49&bid=56").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2="{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":1,\"list\":[]},\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, true);
-//    }
+        //正常删除
+        String responseString2 = mvc.perform(delete("/self/proxies/7").header("authorization", token17333)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, true);
+    }
+    /**
+     * Method: getProxies(@PathVariable("did") Long departId, @RequestParam(value = "aid", required = false) Long userId, @RequestParam(value = "bid", required = false) Long proxyUserId, @RequestParam(value = "page", required = false) Integer page, @RequestParam(value = "pageSize", required = false) Integer pageSize)
+     */
+    @Test
+    public void testGetProxies() throws Exception {
+        String responseString1 = mvc.perform(get("/departs/2/proxies?beginTime=1900-11-11T10:10:10.000&endTime=2050-11-11T16:10:10.000").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":7,\"user\":{\"id\":17334,\"name\":null},\"proxyUser\":{\"id\":17333,\"name\":null},\"beginDate\":\"2017-12-05T08:57:32.000\",\"endDate\":\"2019-12-05T08:57:36.000\",\"valid\":1,\"gmtCreate\":\"2021-12-05T00:57:56.000\",\"gmtModified\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+        String responseString2 = mvc.perform(get("/departs/1/proxies?aid=17334&bid=17333").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2="{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":1,\"list\":[]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, true);
+
+    }
 
     /**
      * Method: removeAllProxies(@PathVariable("did") Long departId, @PathVariable("id") Long id)
      */
-//    @Test
-//    public void testRemoveAllProxies() throws Exception {
-//        String responseString1 = mvc.perform(delete("/departs/0/proxies/1").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isOk())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
-//        JSONAssert.assertEquals(expectString1, responseString1, true);
-//
-//        //查不到
-//        String responseString2 = mvc.perform(delete("/departs/1/proxies/2").header("authorization", token)
-//                        .contentType("application/json;charset=UTF-8"))
-//                .andExpect(status().isNotFound())
-//                .andExpect(content().contentType("application/json;charset=UTF-8"))
-//                .andReturn().getResponse().getContentAsString();
-//        String expectString2 = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
-//        JSONAssert.assertEquals(expectString2, responseString2, true);
-//    }
+    @Test
+    public void testRemoveAllProxies() throws Exception {
+        String responseString1 = mvc.perform(delete("/departs/2/proxies/7").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+        //查不到
+        String responseString2 = mvc.perform(delete("/departs/1/proxies/2").header("authorization", token17334)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, true);
+    }
 
     /**
      * @author BingShuai Liu 22920192204245
@@ -464,6 +468,9 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByUserId() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/departs/0/users/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
@@ -471,7 +478,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "";
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -513,7 +520,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":88,\"name\":\"预售管理\",\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":88,\"name\":\"预售管理\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -611,7 +618,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"name\":\"店铺9超级管理员\",\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"店铺9超级管理员\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -661,13 +668,16 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByRoleId() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/departs/0/roles/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -697,7 +707,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString="{\"errno\":0,\"data\":{\"total\":4,\"pages\":4,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"店铺1超级管理员\",\"descr\":null,\"departId\":1,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString="{\"errno\":0,\"data\":{\"total\":4,\"pages\":4,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"店铺1超级管理员\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -728,7 +738,7 @@ public class PrivilegeControllerTest {
                 .content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -907,7 +917,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -951,7 +961,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -960,6 +970,9 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     public void selectSelfBaseRoles() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/self/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
@@ -967,7 +980,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -975,14 +988,14 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     public void selectParentRoles() throws Exception {
-        String responseString = this.mvc.perform(get("/departs/0/roles/1/parents")
+        String responseString = this.mvc.perform(get("/departs/0/roles/1/parents?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":10,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":89,\"name\":\"团购管理\",\"descr\":\"团购活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":90,\"name\":\"分享管理\",\"descr\":\"分享活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":91,\"name\":\"优惠管理\",\"descr\":\"优惠活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":92,\"name\":\"商品维护\",\"descr\":\"商品信息的维护\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":94,\"name\":\"分类管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":95,\"name\":\"店铺管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":96,\"name\":\"运费管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":97,\"name\":\"后台用户管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0}]},\"errmsg\":\"成功\"}\n";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -1282,7 +1295,7 @@ public class PrivilegeControllerTest {
 
     }
 
-    /**
+     /**
      * load权限
      * @author RenJieZheng 22920192204334
      * @throws Exception
@@ -1290,8 +1303,7 @@ public class PrivilegeControllerTest {
     @Test
     public void testLoadUserPrivilege() throws Exception {
         JwtHelper jwtHelper = new JwtHelper();
-        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 1, 3600);
-
+        String adminToken = jwtHelper.createToken(1L, "13088admin", 0L, 2, 3600);
         //以下是正常情况返回的
         String responseString;
         responseString = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/1/privileges/load")
@@ -1303,6 +1315,48 @@ public class PrivilegeControllerTest {
                 "\"errmsg\": \"成功\"\n" +
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
+
+        String adminToken1 = jwtHelper.createToken(57L, "comment", 0L, 2, 3600);
+        //以下是正常情况返回的
+        String responseString1;
+        responseString1 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/57/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken1))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString1 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString1,responseString1,false);
+
+        String adminToken2 = jwtHelper.createToken(17333L, "shop2_auth", 2L, 1, 3600);
+        //以下是正常情况返回的
+        String responseString2;
+        responseString2 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/17333/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken2))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString2 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString2,responseString2,false);
+
+
+        String adminToken3 = jwtHelper.createToken(17335L, "shop1_both", 1L, 2, 3600);
+        //以下是正常情况返回的
+        String responseString3;
+        responseString3 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/17335/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken3))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString3 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString3,responseString3,false);
+
+
     }
 
     /**
@@ -1318,6 +1372,7 @@ public class PrivilegeControllerTest {
         String json = JacksonUtil.toJson(loginVo);
         //以下是正常情况返回的
         String responseString;
+        assert json != null;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
                 .contentType("application/json;charset=UTF-8").content(json))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
@@ -1328,11 +1383,64 @@ public class PrivilegeControllerTest {
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
 
+
+        LoginVo loginVo2 = new LoginVo();
+        loginVo2.setUserName("shop2_both");
+        loginVo2.setPassword("123456");
+        String json2 = JacksonUtil.toJson(loginVo2);
+        //以下是正常情况返回的
+        String responseString2;
+        assert json2 != null;
+        responseString2 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json2))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString2 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString2,responseString2,false);
+
+        LoginVo loginVo3 = new LoginVo();
+        loginVo3.setUserName("comment");
+        loginVo3.setPassword("123456");
+        String json3 = JacksonUtil.toJson(loginVo3);
+        //以下是正常情况返回的
+        String responseString3;
+        assert json3 != null;
+        responseString3 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json3))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString3 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString3,responseString3,false);
+
+        LoginVo loginVo4 = new LoginVo();
+        loginVo4.setUserName("shop2_auth");
+        loginVo4.setPassword("123456");
+        String json4 = JacksonUtil.toJson(loginVo4);
+        //以下是正常情况返回的
+        String responseString4;
+        assert json4 != null;
+        responseString4 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json4))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString4 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString4,responseString4,false);
+
         LoginVo loginVo1 = new LoginVo();
         loginVo1.setUserName("13088admin");
         loginVo1.setPassword("1234567");
         String json1 = JacksonUtil.toJson(loginVo1);
         //密码错误
+        assert json1 != null;
         responseString = this.mvc.perform(MockMvcRequestBuilders.post("/login")
                 .contentType("application/json;charset=UTF-8").content(json1))
                 .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
@@ -1344,6 +1452,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectedString,responseString,false);
 
     }
+
 
     /**
      * load权限
@@ -1369,5 +1478,41 @@ public class PrivilegeControllerTest {
     }
 
 
+    /**
+     * 新增功能角色
+     * @author 张晖婧
+     * @throws Exception
+     */
 
+    @Test
+    @Transactional
+    public void insertBaseRole() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/0/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新功能角色\",\"descr\":\"新功能角色\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    @Test
+    @Transactional
+    public void insertBaseRole_unmatchedDid() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/999/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
 }
