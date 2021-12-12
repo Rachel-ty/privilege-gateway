@@ -36,6 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
@@ -1006,14 +1007,14 @@ public class PrivilegeController {
                                        @PathVariable("aid") Long userId,
                                        @PathVariable("bid") Long proxyUserId,
                                        @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
-        if(departId!=0){
+        if (departId != 0) {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_NO_RIGHT));
         }
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
             return obj;
         }
-        if(userId.equals(proxyUserId)){
+        if (userId.equals(proxyUserId)) {
             return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.USERPROXY_SELF));
         }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
@@ -1032,7 +1033,7 @@ public class PrivilegeController {
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
     @Audit(departName = "departs")
-    @DeleteMapping("proxies/{id}")
+    @DeleteMapping("self/proxies/{id}")
     public Object removeUserProxy(@PathVariable("id") Long id, @LoginUser Long userId) {
         ReturnObject returnObject = userProxyService.removeUserProxy(id, userId);
         return Common.decorateReturnObject(returnObject);
@@ -1055,9 +1056,16 @@ public class PrivilegeController {
     public Object getProxies(@PathVariable("did") Long departId,
                              @RequestParam(value = "aid", required = false) Long userId,
                              @RequestParam(value = "bid", required = false) Long proxyUserId,
+                             @RequestParam(value = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS") LocalDateTime beginTime,
+                             @RequestParam(value = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS") LocalDateTime endTime,
                              @RequestParam(value = "page", required = false) Integer page,
                              @RequestParam(value = "pageSize", required = false) Integer pageSize) {
-        ReturnObject<List> returnObject = userProxyService.getProxies(userId, proxyUserId, departId, page, pageSize);
+        if (beginTime != null && endTime != null) {
+            if(beginTime.isAfter(endTime)){
+                return new ReturnObject<>(ReturnNo.LATE_BEGINTIME);
+            }
+        }
+        ReturnObject<List> returnObject = userProxyService.getProxies(userId, proxyUserId, departId,beginTime,endTime, page, pageSize);
         return Common.decorateReturnObject(returnObject);
     }
 
