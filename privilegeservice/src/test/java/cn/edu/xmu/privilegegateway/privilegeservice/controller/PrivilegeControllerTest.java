@@ -1348,7 +1348,7 @@ public class PrivilegeControllerTest {
                 "}";
         JSONAssert.assertEquals(expectedString3,responseString3,false);
 
-        String adminToken4 = jwtHelper.createToken(55L, "shop1_both", 10L, 2, 3600);
+        String adminToken4 = jwtHelper.createToken(55L, "5961900008", 10L, 2, 3600);
         //以下是正常情况返回的
         String responseString4;
         responseString4 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/55/privileges/load")
