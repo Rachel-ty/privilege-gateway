@@ -370,39 +370,74 @@ public class Common {
         return newVo;
     }
 
+    /**
+     * 将source对象的值拷贝到target
+     * @param source
+     * @param target
+     * @param <T>
+     * createdBy 蒋欣雨 2021/12/1
+     * modifiedBy Ming Qiu 2021/12/12 9:28
+     */
+
     public static <T> void copyAttribute(Object source, T target) {
         Class sourceClass = source.getClass();
         Class targetClass = target.getClass();
         try {
-            Field[] targetFields = targetClass.getDeclaredFields();
-            for (Field tField : targetFields) {
+            Field[] sourceFields = sourceClass.getDeclaredFields();
+            for (Field sourceField : sourceFields) {
+                sourceField.setAccessible(true);
+                //若修改的字段为空，则说明不修改该字段
+                if (sourceField.get(source) == null)
+                    continue;
+                Field targetField = null;
+                try {
+                    targetField = targetClass.getDeclaredField(sourceField.getName());
+                } catch (NoSuchFieldException e) {
+                    continue;
+                }
+
                 //静态和Final不能拷贝
-                int mod = tField.getModifiers();
+                int mod = targetField.getModifiers();
                 if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
                     continue;
                 }
-                tField.setAccessible(true);
-                Field sField = null;
-                try {
-                    sField = sourceClass.getDeclaredField(tField.getName());
-                    sField.setAccessible(true);
-                }
-                catch (NoSuchFieldException e) {
-                    continue;
-                }
-                Class<?> sFieldType = sField.getType();
-                //属性名相同，类型相同，拷贝
-                if (tField.getType().equals(sFieldType)) {
-                    sField.setAccessible(true);
-                    Object newObject = sField.get(source);
-                    if (null!=newObject) {
-                        //不为空才拷贝
-                        tField.set(target, newObject);
+                targetField.setAccessible(true);
+
+                Class<?> sourceFieldType = sourceField.getType();
+                Class<?> targetFieldType = targetField.getType();
+                //属性名相同，类型相同，直接克隆
+                if (targetFieldType.equals(sourceFieldType)) {
+                    Object newObject = sourceField.get(source);
+                    if (newObject != null) {
+                        targetField.set(target, newObject);
                     }
+                }
+                //属性名相同，类型不同
+                else {
+                    boolean sourceFieldIsIntegerOrByteAndTargetFieldIsEnum = ("Integer".equals(sourceFieldType.getSimpleName()) || "Byte".equals(sourceFieldType.getSimpleName())) && targetFieldType.isEnum();
+                    boolean targetFieldIsIntegerOrByteAndSourceFieldIsEnum = ("Integer".equals(targetFieldType.getSimpleName()) || "Byte".equals(targetFieldType.getSimpleName())) && sourceFieldType.isEnum();
+                    //整形或Byte转枚举
+                    if (sourceFieldIsIntegerOrByteAndTargetFieldIsEnum) {
+                        Object newObj = sourceField.get(source);
+                        if ("Byte".equals(sourceFieldType.getSimpleName())) {
+                            newObj = ((Byte) newObj).intValue();
+                        }
+                        Object[] enumer = targetFieldType.getEnumConstants();
+                        targetField.set(target, enumer[(int) newObj]);
+                    }
+                    //枚举转整形或Byte
+                    else if (targetFieldIsIntegerOrByteAndSourceFieldIsEnum) {
+                        Object value = ((Enum) sourceField.get(source)).ordinal();
+                        if ("Byte".equals(targetFieldType.getSimpleName())) {
+                            value = ((Integer) value).byteValue();
+                        }
+                        targetField.set(target, value);
+                    }
+
                 }
             }
         } catch (Exception e) {
-            logger.error("copyAttribute:"+e);
+            logger.error(e.toString());
         }
     }
 
