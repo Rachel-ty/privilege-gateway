@@ -1383,5 +1383,41 @@ public class PrivilegeControllerTest {
     }
 
 
+    /**
+     * 新增功能角色
+     * @author 张晖婧
+     * @throws Exception
+     */
 
+    @Test
+    @Transactional
+    public void insertBaseRole() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/0/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新功能角色\",\"descr\":\"新功能角色\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    @Test
+    @Transactional
+    public void insertBaseRole_unmatchedDid() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/999/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
 }
