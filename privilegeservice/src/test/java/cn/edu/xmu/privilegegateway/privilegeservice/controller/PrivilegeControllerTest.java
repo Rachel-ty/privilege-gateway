@@ -148,7 +148,7 @@ public class PrivilegeControllerTest {
         String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
         String responseString1 = mvc.perform(post("/departs/1/users/17333/proxyusers/17334").header("authorization", token17334)
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":705,\"errmsg\":\"无权限\"}";
