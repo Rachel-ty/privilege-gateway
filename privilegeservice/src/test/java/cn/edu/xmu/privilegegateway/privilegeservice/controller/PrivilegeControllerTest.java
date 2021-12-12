@@ -318,7 +318,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"departId\":0,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":1,\"name\":\"admin\"},\"gmtCreate\":\"2021-11-29T09:09:09\",\"gmtModified\":null,\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"departId\":0,\"idNumber\":null,\"passportNumber\":null,\"creator\":null,\"gmtCreate\":\"2021-11-29T09:09:09\",\"gmtModified\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -412,7 +412,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"departId\":0,\"idNumber\":\"123456789123\",\"passportNumber\":\"123456\",\"creator\":{\"id\":1,\"name\":\"admin\"},\"gmtCreate\":\"2021-11-29T09:09:09\",\"gmtModified\":null,\"modifier\":{\"id\":null,\"name\":null},\"sign\":1},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":60,\"userName\":\"pikaas\",\"mobile\":\"123456789\",\"email\":\"123456789@qq.com\",\"avatar\":null,\"lastLoginTime\":null,\"lastLoginIp\":null,\"state\":1,\"departId\":0,\"idNumber\":null,\"passportNumber\":null,\"creator\":null,\"gmtCreate\":\"2021-11-29T09:09:09\",\"gmtModified\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
