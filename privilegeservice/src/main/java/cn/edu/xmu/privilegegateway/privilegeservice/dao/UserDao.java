@@ -99,7 +99,9 @@ public class UserDao {
     @Autowired
     @Lazy
     private RoleDao roleDao;
-
+    @Autowired
+    @Lazy
+    private PrivilegeDao privDao;
     @Autowired
     @Lazy
     private GroupDao groupDao;
@@ -378,7 +380,7 @@ public class UserDao {
                 }
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(roleKeys, key);
+                redisUtil.unionAndStoreSet(key,roleKeys, key);
             }
             redisUtil.addSet(key, 0);
 
@@ -499,7 +501,7 @@ public class UserDao {
 
                 if (!redisUtil.hasKey(brKeyStr)) {
                     Long roleId = Long.parseLong(brKeyStr.substring(3));
-                    ReturnObject returnObject1 = roleDao.privDao.loadBaseRolePriv(roleId);
+                    ReturnObject returnObject1 = privDao.loadBaseRolePriv(roleId);
                     if (returnObject1.getCode() != ReturnNo.OK) {
                         return returnObject1;
                     }
@@ -507,7 +509,7 @@ public class UserDao {
                 roleKeys.add(brKeyStr);
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(roleKeys, fKey);
+                redisUtil.unionAndStoreSet(fKey,roleKeys, fKey);
             }
             redisUtil.addSet(fKey, jwt);
             long randTimeout = Common.addRandomTime(timeout);
