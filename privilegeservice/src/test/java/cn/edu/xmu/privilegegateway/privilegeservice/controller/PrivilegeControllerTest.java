@@ -876,22 +876,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
-    @Test
-    @Transactional
-    public void updateRole_roleExit() throws Exception {
-        String json = "{\"name\":\"平台超级管理员\",\"desc\":\"已存在\"}";
 
-        String responseString = this.mvc.perform(put("/departs/0/roles/88")
-                .header("authorization", adminToken)
-                .contentType("application/json;charset=UTF-8")
-                .content(json))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString;
-        expectString = "{\"errno\":736,\"errmsg\":\"角色名在部门内已存在\"}";
-        JSONAssert.assertEquals(expectString, responseString, true);
-    }
 
     @Test
     @Transactional
@@ -1548,6 +1533,37 @@ public class PrivilegeControllerTest {
                 .andReturn().getResponse().getContentAsString();
         String expectString;
         expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
+
+    // 查找角色中用户
+
+    @Test
+    @Transactional
+    public void selectUserByRole() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/0/roles/1/users?pageSize=1")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString="{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"admin\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0}]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+    // 查找角色中用户但部门号不匹配
+
+    @Test
+    @Transactional
+    public void selectUserByRoleWithDepartNotMatched() throws Exception {
+        String responseString = this.mvc.perform(get("/departs/1/roles/1/users?pageSize=1")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString="{\"errno\":505,\"errmsg\":\"部门id不匹配\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 }
