@@ -1,10 +1,12 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
+import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
@@ -1163,12 +1165,28 @@ public class PrivilegeControllerTest {
                 "  \"passportNumber\": \"123456\",\n" +
                 "  \"level\": 0\n" +
                 "}";
-        String responseString1 = mvc.perform(put("/departs/0/users/62")
+        String responseString1 = mvc.perform(put("/departs/0/users/0")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = " {\"errno\":504,\"errmsg\":\"操作的资源id不存在\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+
+        responseString1 = mvc.perform(put("/departs/0/users/17341")
                         .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        expectString1 = "{\"errno\":511,\"errmsg\":\"信息签名不正确\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+
+        responseString1 = mvc.perform(put("/departs/0/users/62")
+                        .contentType("application/json;charset=UTF-8").content(contentJson1).header("authorization", token))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        expectString1 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString1, responseString1, true);
     }
     @Test
@@ -1268,32 +1286,6 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectString1, responseString1, false);
     }
 
-
-    //copyVo的test
-    @Test
-    void copyVotest() {
-        ModifyUserVo userVo=new ModifyUserVo();
-        userVo.setIdNumber("123");
-        userVo.setPassportNumber("99999999");
-        userVo.setName("name");
-
-        UserPo userPo = new UserPo();
-        userPo.setId(1L);
-        userPo.setLevel(0);
-        userPo.setIdNumber("1111");
-        userPo.setName("oldname");
-        userPo.setEmail("111");
-        userPo.setMobile("111");
-        UserPo newUserPo=(UserPo) userDao.copyVo(userVo,userPo);
-        assertEquals(newUserPo.getId(),userPo.getId());
-        assertEquals(newUserPo.getLevel(),userPo.getLevel());
-        assertEquals(newUserPo.getPassportNumber(),userVo.getPassportNumber());
-        assertEquals(newUserPo.getIdNumber(),userVo.getIdNumber());
-        assertEquals(newUserPo.getName(),userVo.getName());
-        assertEquals(newUserPo.getEmail(),userPo.getEmail());
-        assertEquals(newUserPo.getMobile(),userPo.getMobile());
-
-    }
 
      /**
      * load权限

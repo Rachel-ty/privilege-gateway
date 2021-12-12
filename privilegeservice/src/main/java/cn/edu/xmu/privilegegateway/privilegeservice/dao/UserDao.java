@@ -654,72 +654,6 @@ public class UserDao {
     }
 
     /**
-     * createdBy 蒋欣雨 2021/12/1
-     * 将source中对应字段copy至target对象其他字段不变，若source中字段为null说明不修改
-     */
-    public Object copyVo(Object source, Object target) {
-        Class sourceClass = source.getClass();
-        Class targetClass = target.getClass();
-        try {
-            Field[] sourceFields = sourceClass.getDeclaredFields();
-            for (Field sourceField : sourceFields) {
-                sourceField.setAccessible(true);
-                //若修改的字段为空，则说明不修改该字段
-                if (sourceField.get(source) == null)
-                    continue;
-                Field targetField = null;
-                try {
-                    targetField = targetClass.getDeclaredField(sourceField.getName());
-                } catch (NoSuchFieldException e) {
-                    continue;
-                }
-
-                //静态和Final不能拷贝
-                int mod = targetField.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
-                    continue;
-                }
-                targetField.setAccessible(true);
-
-                Class<?> sourceFieldType = sourceField.getType();
-                Class<?> targetFieldType = targetField.getType();
-                //属性名相同，类型相同，直接克隆
-                if (targetFieldType.equals(sourceFieldType)) {
-                    Object newObject = sourceField.get(source);
-                    targetField.set(target, newObject);
-                }
-                //属性名相同，类型不同
-                else {
-                    boolean sourceFieldIsIntegerOrByteAndTargetFieldIsEnum = ("Integer".equals(sourceFieldType.getSimpleName()) || "Byte".equals(sourceFieldType.getSimpleName())) && targetFieldType.isEnum();
-                    boolean targetFieldIsIntegerOrByteAndSourceFieldIsEnum = ("Integer".equals(targetFieldType.getSimpleName()) || "Byte".equals(targetFieldType.getSimpleName())) && sourceFieldType.isEnum();
-                    //整形或Byte转枚举
-                    if (sourceFieldIsIntegerOrByteAndTargetFieldIsEnum) {
-                        Object newObj = sourceField.get(source);
-                        if ("Byte".equals(sourceFieldType.getSimpleName())) {
-                            newObj = ((Byte) newObj).intValue();
-                        }
-                        Object[] enumer = targetFieldType.getEnumConstants();
-                        targetField.set(target, enumer[(int) newObj]);
-                    }
-                    //枚举转整形或Byte
-                    else if (targetFieldIsIntegerOrByteAndSourceFieldIsEnum) {
-                        Object value = ((Enum) sourceField.get(source)).ordinal();
-                        if ("Byte".equals(targetFieldType.getSimpleName())) {
-                            value = ((Integer) value).byteValue();
-                        }
-                        targetField.set(target, value);
-                    }
-
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.toString());
-        }
-        return target;
-    }
-
-
-    /**
      * 根据 id 修改用户信息
      *
      * @param userVo 传入的 User 对象
@@ -742,7 +676,6 @@ public class UserDao {
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
         Common.copyAttribute(userVo, userPo);
-        userPo = (UserPo) copyVo(userVo, userPo);
         Common.setPoModifiedFields(userPo, loginUser, loginName);
         userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
 
@@ -750,26 +683,15 @@ public class UserDao {
         try {
             //更新修改
             ret = userMapper.updateByPrimaryKeySelective(userPo);
-        } catch (DataAccessException e) {
-            // 其他情况属未知错误
-            logger.error("数据库错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-            return retObj;
         } catch (Exception e) {
             // 其他 Exception 即属未知错误
             logger.error("严重错误：" + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
                     String.format("发生了严重的未知错误：%s", e.getMessage()));
         }
-        // 检查更新有否成功
-        if (ret == 0) {
-            logger.info("用户不存在或已被删除：id = " + id);
-            retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-        } else {
-            logger.info("用户 id = " + id + " 的资料已更新");
-            retObj = new ReturnObject<>();
-        }
+        logger.info("用户 id = " + id + " 的资料已更新");
+        retObj = new ReturnObject<>();
+
         return retObj;
     }
 
@@ -805,19 +727,10 @@ public class UserDao {
         int ret;
         try {
             ret = userMapper.updateByPrimaryKeySelective(userPo);
-            if (ret == 0) {
-                logger.info("用户不存在或已被删除：id = " + id);
-                retObj = new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
-            } else {
-                logger.info("用户 id = " + id + " 的状态修改为 " + state.getDescription());
-                retObj = new ReturnObject<>();
-            }
-        } catch (DataAccessException e) {
-            // 数据库错误
-            logger.error("数据库错误：" + e.getMessage());
-            retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
-                    String.format("发生了严重的数据库错误：%s", e.getMessage()));
-        } catch (Exception e) {
+            logger.info("用户 id = " + id + " 的状态修改为 " + state.getDescription());
+            retObj = new ReturnObject<>();
+
+        }  catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
             retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
