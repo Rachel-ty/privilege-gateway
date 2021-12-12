@@ -378,7 +378,7 @@ public class UserDao {
                 }
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(roleKeys, key);
+                redisUtil.unionAndStoreSet(key,roleKeys, key);
             }
             redisUtil.addSet(key, 0);
 
@@ -507,7 +507,7 @@ public class UserDao {
                 roleKeys.add(brKeyStr);
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(roleKeys, fKey);
+                redisUtil.unionAndStoreSet(fKey,roleKeys, fKey);
             }
             redisUtil.addSet(fKey, jwt);
             long randTimeout = Common.addRandomTime(timeout);

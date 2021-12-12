@@ -179,7 +179,7 @@ public class GroupDao {
                 roleKeys.add(roleKey);
             }
             if(roleKeys.size()>0){
-                redisUtil.unionAndStoreSet(roleKeys, gKey);
+                redisUtil.unionAndStoreSet(gKey,roleKeys, gKey);
             }
             redisUtil.addSet(gKey,0);
             long randTimeout = Common.addRandomTime(timeout);
