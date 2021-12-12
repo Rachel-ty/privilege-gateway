@@ -493,6 +493,7 @@ public class Common {
 
             case AUTH_INVALID_JWT:
             case AUTH_JWT_EXPIRED:
+            case AUTH_USER_FORBIDDEN:
                 // 401
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
@@ -508,7 +509,6 @@ public class Common {
             case IMG_FORMAT_ERROR:
             case IMG_SIZE_EXCEED:
             case LATE_BEGINTIME:
-
                 // 400
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
@@ -516,6 +516,7 @@ public class Common {
 
             case RESOURCE_ID_OUTSCOPE:
             case FILE_NO_WRITE_PERMISSION:
+            case AUTH_NO_RIGHT:
                 // 403
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
