@@ -1287,7 +1287,7 @@ public class PrivilegeControllerTest {
     }
 
 
-     /**
+   /**
      * load权限
      * @author RenJieZheng 22920192204334
      * @throws Exception
@@ -1347,6 +1347,19 @@ public class PrivilegeControllerTest {
                 "\"errmsg\": \"成功\"\n" +
                 "}";
         JSONAssert.assertEquals(expectedString3,responseString3,false);
+
+        String adminToken4 = jwtHelper.createToken(55L, "5961900008", 10L, 2, 3600);
+        //以下是正常情况返回的
+        String responseString4;
+        responseString4 = this.mvc.perform(MockMvcRequestBuilders.put("/internal/users/55/privileges/load")
+                .contentType("application/json;charset=UTF-8").header("authorization", adminToken4))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString4 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString4,responseString4,false);
 
 
     }
@@ -1426,6 +1439,23 @@ public class PrivilegeControllerTest {
                 "\"errmsg\": \"成功\"\n" +
                 "}";
         JSONAssert.assertEquals(expectedString4,responseString4,false);
+
+        LoginVo loginVo5 = new LoginVo();
+        loginVo5.setUserName("5961900008");
+        loginVo5.setPassword("123456");
+        String json5 = JacksonUtil.toJson(loginVo5);
+        //以下是正常情况返回的
+        String responseString5;
+        assert json5 != null;
+        responseString5 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json5))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString5 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString5,responseString5,false);
 
         LoginVo loginVo1 = new LoginVo();
         loginVo1.setUserName("13088admin");
