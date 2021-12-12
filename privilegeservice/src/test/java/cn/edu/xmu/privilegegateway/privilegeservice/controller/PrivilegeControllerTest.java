@@ -143,46 +143,54 @@ public class PrivilegeControllerTest {
      * Method: setUsersProxyByAdmin(@LoginUser Long creatorId, @LoginName String creatorName, @PathVariable("did") Long departId, @PathVariable("aid") Long userId, @PathVariable("bid") Long proxyUserId, @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult)
      */
     @Test
-    public void testSetUsersProxyByAdmin() throws Exception {
+    public void testSetUsersProxyByAdminWithErrorPriv() throws Exception {
         //没权限
         String contentJson1 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
         String responseString1 = mvc.perform(post("/departs/1/users/17333/proxyusers/17334").header("authorization", token17334)
                         .contentType("application/json;charset=UTF-8").content(contentJson1))
-                .andExpect(status().isOk())
+                .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString1 = "{\"errno\":705,\"errmsg\":\"无权限\"}";
-        JSONAssert.assertEquals(expectString1, responseString1, true);
-        //开始时间早于结束时间
-        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
-        String responseString2 = mvc.perform(post("/departs/0/users/17333/proxyusers/17334").header("authorization", token17334)
-                        .contentType("application/json;charset=UTF-8").content(contentJson2))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType("application/json;charset=UTF-8"))
-                .andReturn().getResponse().getContentAsString();
-        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
-        JSONAssert.assertEquals(expectString2, responseString2, true);
+        JSONAssert.assertEquals(expectString1, responseString1, false);
+    }
+    @Test
+    public void TestSetUserProxyByAdmin()throws Exception{
         //正常插入
         String contentJson3 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
         String responseString3 = mvc.perform(post("/departs/0/users/17333/proxyusers/17334").header("authorization", token17334)
-                        .contentType("application/json;charset=UTF-8").content(contentJson3))
+                .contentType("application/json;charset=UTF-8").content(contentJson3))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString3 = "{\"errno\":0,\"data\":{\"user\":{\"id\":17333,\"name\":null},\"proxyUser\":{\"id\":17334,\"name\":null},\"beginDate\":\"2021-05-03T18:54:29.000\",\"endDate\":\"2021-05-04T18:54:29.000\",\"valid\":0,\"creator\":{\"id\":17334,\"name\":\"个\"},\"modifier\":{\"id\":17334,\"name\":\"个\"},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString3, responseString3, false);
+    }
+    @Test
+    public void testSetUsersProxyByAdminWithErrorTime() throws Exception {
+        //开始时间早于结束时间
+        String contentJson2 = "{\"beginDate\": \"2020-05-03T18:54:29.000\",\"endDate\": \"2020-05-02T18:54:29.000\"}";
+        String responseString2 = mvc.perform(post("/departs/0/users/17333/proxyusers/17334").header("authorization", token17334)
+                .contentType("application/json;charset=UTF-8").content(contentJson2))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString2 = "{\"errno\":750,\"errmsg\":\"开始时间要小于失效时间\"}";
+        JSONAssert.assertEquals(expectString2, responseString2, false);
+
+    }
+    @Test
+    public void testSetUsersProxyByAdminWithSameUser() throws Exception {
         //代理被代理为同一个人
         String contentJson4 = "{\"beginDate\": \"2021-05-03T18:54:29.000\",\"endDate\": \"2021-05-04T18:54:29.000\"}";
         String responseString4 = mvc.perform(post("/departs/0/users/17334/proxyusers/17334").header("authorization", token17334)
-                        .contentType("application/json;charset=UTF-8").content(contentJson4))
+                .contentType("application/json;charset=UTF-8").content(contentJson4))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString4 = "{\"errno\":751,\"errmsg\":\"自己不可以代理自己\"}";
         JSONAssert.assertEquals(expectString4, responseString4, false);
-
     }
-
     /**
      * Method: removeUserProxy(@PathVariable("id") Long id, @LoginUser Long userId)
      */
@@ -878,7 +886,7 @@ public class PrivilegeControllerTest {
 
     @Test
     @Transactional
-    public void updateRole_roleExit() throws Exception {
+    public void updateRole_roleExist() throws Exception {
         String json = "{\"name\":\"平台超级管理员\",\"desc\":\"已存在\"}";
 
         String responseString = this.mvc.perform(put("/departs/0/roles/88")
@@ -889,7 +897,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":736,\"errmsg\":\"角色名在部门内已存在\"}";
+        expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, true);
     }
 
