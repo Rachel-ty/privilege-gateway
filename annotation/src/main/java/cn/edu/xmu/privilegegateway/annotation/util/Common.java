@@ -494,6 +494,7 @@ public class Common {
             case AUTH_INVALID_JWT:
             case AUTH_JWT_EXPIRED:
             case AUTH_USER_FORBIDDEN:
+            case AUTH_ID_NOTEXIST:
                 // 401
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
