@@ -468,6 +468,9 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByUserId() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/departs/0/users/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
@@ -475,7 +478,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString = "";
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -517,7 +520,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":88,\"name\":\"预售管理\",\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":88,\"name\":\"预售管理\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -615,7 +618,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"name\":\"店铺9超级管理员\",\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"店铺9超级管理员\",\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":1,\"name\":\"13088admin\"},\"sign\":0},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -665,13 +668,16 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByRoleId() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/departs/0/roles/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -701,7 +707,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString="{\"errno\":0,\"data\":{\"total\":4,\"pages\":4,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"店铺1超级管理员\",\"descr\":null,\"departId\":1,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString="{\"errno\":0,\"data\":{\"total\":4,\"pages\":4,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":2,\"name\":\"店铺1超级管理员\",\"descr\":null,\"departId\":1,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -732,7 +738,7 @@ public class PrivilegeControllerTest {
                 .content(json))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":null,\"modifier\":null,\"sign\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新角色\",\"descr\":\"新角色\",\"departId\":1,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -911,7 +917,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -955,7 +961,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":1,\"name\":\"平台超级管理员\",\"descr\":null,\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -964,6 +970,9 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     public void selectSelfBaseRoles() throws Exception {
+        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
+
         String responseString = this.mvc.perform(get("/self/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
@@ -971,7 +980,7 @@ public class PrivilegeControllerTest {
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"creator\":null,\"modifier\":null,\"sign\":null}]},\"errmsg\":\"成功\"}";
+        expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -979,14 +988,14 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     public void selectParentRoles() throws Exception {
-        String responseString = this.mvc.perform(get("/departs/0/roles/1/parents")
+        String responseString = this.mvc.perform(get("/departs/0/roles/1/parents?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
         String expectString;
-        expectString = "{\"errno\":0,\"data\":{\"total\":10,\"pages\":1,\"pageSize\":10,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":89,\"name\":\"团购管理\",\"descr\":\"团购活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":90,\"name\":\"分享管理\",\"descr\":\"分享活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":91,\"name\":\"优惠管理\",\"descr\":\"优惠活动的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":92,\"name\":\"商品维护\",\"descr\":\"商品信息的维护\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":93,\"name\":\"商品销售\",\"descr\":\"销售的管理\",\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":94,\"name\":\"分类管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":95,\"name\":\"店铺管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":96,\"name\":\"运费管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0},{\"id\":97,\"name\":\"后台用户管理\",\"descr\":null,\"departId\":0,\"creator\":null,\"modifier\":null,\"sign\":0}]},\"errmsg\":\"成功\"}\n";
+        expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":0}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -1349,6 +1358,7 @@ public class PrivilegeControllerTest {
 
     }
 
+
     /**
      * load权限
      * @author RenJieZheng 22920192204334
@@ -1373,5 +1383,41 @@ public class PrivilegeControllerTest {
     }
 
 
+    /**
+     * 新增功能角色
+     * @author 张晖婧
+     * @throws Exception
+     */
 
+    @Test
+    @Transactional
+    public void insertBaseRole() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/0/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String expectString = "{\"errno\":0,\"data\":{\"name\":\"新功能角色\",\"descr\":\"新功能角色\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"13088admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString, responseString, false);
+    }
+
+    @Test
+    @Transactional
+    public void insertBaseRole_unmatchedDid() throws Exception {
+        String json = "{\"name\":\"新功能角色\",\"descr\":\"新功能角色\"}";
+
+        String responseString = this.mvc.perform(post("/departs/999/baseroles")
+                .header("authorization", adminToken)
+                .contentType("application/json;charset=UTF-8")
+                .content(json))
+                .andExpect(status().isForbidden())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString;
+        expectString = "{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
+        JSONAssert.assertEquals(expectString, responseString, true);
+    }
 }
