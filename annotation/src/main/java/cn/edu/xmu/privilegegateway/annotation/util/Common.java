@@ -385,6 +385,7 @@ public class Common {
                             voField.set(newVo, null);
                         }
                     }
+                    //如果为空字段则不复制
                     catch (Exception e)
                     {
                         voField.set(newVo, null);
