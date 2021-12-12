@@ -654,49 +654,6 @@ public class UserDao {
     }
 
     /**
-     * createdBy 蒋欣雨 2021/12/1
-     * 将source中对应字段copy至target对象其他字段不变，若source中字段为null说明不修改
-     */
-    public Object copyVo(Object source, Object target) {
-        Class sourceClass = source.getClass();
-        Class targetClass = target.getClass();
-        try {
-            Field[] sourceFields = sourceClass.getDeclaredFields();
-            for (Field sourceField : sourceFields) {
-                sourceField.setAccessible(true);
-                //若修改的字段为空，则说明不修改该字段
-                if (sourceField.get(source) == null)
-                    continue;
-                Field targetField = null;
-                try {
-                    targetField = targetClass.getDeclaredField(sourceField.getName());
-                } catch (NoSuchFieldException e) {
-                    continue;
-                }
-
-                //静态和Final不能拷贝
-                int mod = targetField.getModifiers();
-                if (Modifier.isStatic(mod) || Modifier.isFinal(mod)) {
-                    continue;
-                }
-                targetField.setAccessible(true);
-
-                Class<?> sourceFieldType = sourceField.getType();
-                Class<?> targetFieldType = targetField.getType();
-                //属性名相同，类型相同，直接克隆
-                if (targetFieldType.equals(sourceFieldType)) {
-                    Object newObject = sourceField.get(source);
-                    targetField.set(target, newObject);
-                }
-            }
-        } catch (Exception e) {
-            logger.error(e.toString());
-        }
-        return target;
-    }
-
-
-    /**
      * 根据 id 修改用户信息
      *
      * @param userVo 传入的 User 对象
@@ -719,7 +676,6 @@ public class UserDao {
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
         Common.copyAttribute(userVo, userPo);
-        userPo = (UserPo) copyVo(userVo, userPo);
         Common.setPoModifiedFields(userPo, loginUser, loginName);
         userPo = (UserPo) baseCoder.code_sign(userPo, UserPo.class, userCodeFields, userSignFields, "signature");
 
