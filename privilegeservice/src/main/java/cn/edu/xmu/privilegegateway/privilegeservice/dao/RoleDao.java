@@ -376,7 +376,7 @@ public class RoleDao {
             List<User> users = new ArrayList<>(userRolePos.size());
             for (UserRolePo po : userRolePos) {
                 UserRole userRole = (UserRole) baseCoder.decode_check(po, UserRole.class, codeFields, userRoleSignFields, "signature");
-                User user = (User) Common.cloneVo(userDao.getUserById(po.getUserId()), User.class);
+                User user =userDao.getUserById(po.getUserId()).getData();
                 if (userRole.getSignature() != null) {
                     user.setSign((byte) 0);
                 } else {
