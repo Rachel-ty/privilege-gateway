@@ -352,7 +352,7 @@ public class PrivilegeControllerTest {
      * @author BingShuai Liu 22920192204245
      * @throws Exception
      */
-    @Test
+  /*  @Test
     public void uploadImg() throws Exception {
         String responseString0;
         Resource resource0 = new ClassPathResource("test.png");
@@ -368,7 +368,7 @@ public class PrivilegeControllerTest {
         String expectedString0 = "{\"errno\":0,\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectedString0,responseString0,false);
 
-    }
+    }*/
 
     /**
      * @author BingShuai Liu 22920192204245
