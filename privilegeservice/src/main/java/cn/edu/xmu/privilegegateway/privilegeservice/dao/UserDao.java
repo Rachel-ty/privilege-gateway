@@ -789,7 +789,7 @@ public class UserDao {
 
         String id = userPo1.get(0).getId().toString();
         String key = String.format(CAPTCHAKEY, captcha);
-        redisUtil.set(key, id, 5 * 60L);
+        redisUtil.set(key, id, 30L);
 
 
 //        //发送邮件(请在配置文件application.properties填写密钥)
