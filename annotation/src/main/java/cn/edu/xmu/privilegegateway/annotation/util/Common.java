@@ -378,15 +378,14 @@ public class Common {
                         else if(voFieldIsLocalDateTimeAndAndBoFieldIsZonedDateTime)
                         {
                             ZonedDateTime newObj = (ZonedDateTime) boField.get(bo);
-                            LocalDateTime localDateTime = newObj.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+                            LocalDateTime localDateTime = newObj.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
                             voField.set(newVo, localDateTime);
                         }
                         //LocalDateTime转ZonedDateTime
                         else if(voFieldIsZonedDateTimeAndBoFieldIsLocalDateTime)
                         {
                             LocalDateTime newObj = (LocalDateTime) boField.get(bo);
-                            ZoneId zoneId =ZoneId.of("UTC");
-                            ZonedDateTime zdt = newObj.atZone( zoneId );
+                            ZonedDateTime zdt = newObj.atZone( ZoneId.systemDefault() );
                             voField.set(newVo, zdt);
                         }
                         else {
