@@ -7,7 +7,7 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 /**
  * @author Ming Qiu
  **/
-@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.gateway", "cn.edu.xmu.privilegegateway.annotation"})
+@SpringBootApplication(scanBasePackages = {"cn.edu.xmu.privilegegateway.gateway"})
 @EnableFeignClients(basePackages = "cn.edu.xmu.privilegegateway.gateway.microservice")
 public class GatewayApplication {
     public static void main(String[] args) {
