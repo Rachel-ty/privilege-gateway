@@ -20,12 +20,12 @@
 
     <properties>
         <spring.version>2.4.12</spring.version>
+        <spring.cloud.verion>3.0.1</spring.cloud.verion>
         <java.version>11</java.version>
         <jackson.version>2.11.4</jackson.version>
         <logback.version>1.2.6</logback.version>
         <alibaba.version>2021.1</alibaba.version>
         <swagger2.version>3.0.0</swagger2.version>
-        <openfeign.version>3.0.5</openfeign.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <argLine>-Dfile.encoding=UTF-8</argLine>
@@ -197,26 +197,31 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-openfeign-core</artifactId>
-                <version>${openfeign.version}</version>
+                <version>${spring.cloud.verion}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-openfeign</artifactId>
-                <version>${openfeign.version}</version>
+                <version>${spring.cloud.verion}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.cloud</groupId>
+                <artifactId>spring-cloud-starter</artifactId>
+                <version>${spring.cloud.verion}</version>
             </dependency>
 
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-loadbalancer</artifactId>
-                <version>3.0.4</version>
+                <version>${spring.cloud.verion}</version>
             </dependency>
 
-            <!--            add dependencies-->
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-gateway</artifactId>
-                <version>2.2.6.RELEASE</version>
+                <version>${spring.cloud.verion}</version>
             </dependency>
 
             <dependency>
@@ -234,9 +239,8 @@
             <dependency>
                 <groupId>org.springframework.cloud</groupId>
                 <artifactId>spring-cloud-starter-bootstrap</artifactId>
-                <version>3.1.0</version>
+                <version>${spring.cloud.verion}</version>
             </dependency>
-
 
         </dependencies>
     </dependencyManagement>

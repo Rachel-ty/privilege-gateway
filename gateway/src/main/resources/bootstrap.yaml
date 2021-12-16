@@ -5,6 +5,7 @@ spring:
     nacos:
       config:
         server-addr: 172.16.4.136:8848
+        file-extension: yaml
   profiles:
     active: dev
 
