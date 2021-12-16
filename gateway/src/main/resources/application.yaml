@@ -23,14 +23,14 @@ spring:
       routes:
         #权限模块
         - id: privilege-nologin
-          uri: privilge-service
+          uri: http://privilge-service
           predicates:
             - Path=/privilege/login, /privilege/states, /privilege/self/**
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
         - id: privilege-login
-          uri: privilge-service
+          uri: http://privilge-service
           predicates:
             - Path=/privilege/**
           filters:
@@ -38,7 +38,7 @@ spring:
             - Auth=authorization
 
         - id: activity-nologin
-          uri: activity-service
+          uri: http://activity-service
           predicates:
             - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/groupons/states, /activity/shareactivities/states
             - Method=GET
@@ -46,7 +46,7 @@ spring:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
 
         - id: activity-login
-          uri: activity-service
+          uri: http://activity-service
           predicates:
             - Path=/activity/**
           filters:
@@ -54,7 +54,7 @@ spring:
             - Auth=authorization
 
         - id: freight-nologin
-          uri: freight-service
+          uri: http://freight-service
           predicates:
             - Path=/freight/regions/{id}/ancestor, /freight/regions/{id}/subregions
             - Method=GET
@@ -62,7 +62,7 @@ spring:
             - RewritePath=/freight/(?<segment>.*), /$\{segment}
 
         - id: freight-login
-          uri: freight-service
+          uri: http://freight-service
           predicates:
             - Path=/freight/**
           filters:
@@ -70,7 +70,7 @@ spring:
             - Auth=authorization
 
         - id: goods-nologin
-          uri: goods-service
+          uri: http://goods-service
           predicates:
             - Path=/goods/products/**, /goods/goods/{id}
             - Method=GET
@@ -78,7 +78,7 @@ spring:
             - RewritePath=/goods/(?<segment>.*), /$\{segment}
 
         - id: goods-login
-          uri: goods-service
+          uri: http://goods-service
           predicates:
             - Path=/goods/**
           filters:
@@ -86,7 +86,7 @@ spring:
             - Auth=authorization
 
         - id: comment-nologin
-          uri: comment-service
+          uri: http://comment-service
           predicates:
             - Path=/comment/comments/states, /comment/products/{id}/comments
             - Method=GET
@@ -94,7 +94,7 @@ spring:
             - RewritePath=/comment/(?<segment>.*), /$\{segment}
 
         - id: comment-login
-          uri: comment-service
+          uri: http://comment-service
           predicates:
             - Path=/comment/**
           filters:
@@ -102,7 +102,7 @@ spring:
             - Auth=authorization
 
         - id: coupon-nologin
-          uri: coupon-service
+          uri: http://coupon-service
           predicates:
             - Path=/coupon/couponactivities/states, /coupon/couponactivities, /coupon/couponactivities/{id}/products, /coupon/products/{id}/couponactivities
             - Method=GET
@@ -110,7 +110,7 @@ spring:
             - RewritePath=/coupon/(?<segment>.*), /$\{segment}
 
         - id: coupon-login
-          uri: coupon-service
+          uri: http://coupon-service
           predicates:
             - Path=/coupon/**
           filters:
@@ -118,20 +118,20 @@ spring:
             - Auth=authorization
 
         - id: shop-nologin
-            uri: shop-service
-            predicates:
-              - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories
-              - Method=GET
-            filters:
-              - RewritePath=/shop/(?<segment>.*), /$\{segment}
+          uri: http://shop-service
+          predicates:
+            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories
+            - Method=GET
+          filters:
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}
 
-              - id: shop-login
-                uri: shop-service
-                predicates:
-                  - Path=/shop/**
-                filters:
-                  - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
-                  - Auth=authorization
+        - id: shop-login
+          uri: http://shop-service
+          predicates:
+            - Path=/shop/**
+          filters:
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
 
   redis:
     host: 172.16.2.172
