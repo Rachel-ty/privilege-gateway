@@ -1,12 +1,12 @@
 spring:
   redis:
-    host: 192.168.31.241
+    host: 172.16.2.172
     database: 0
     password: 12345678
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://192.168.31.241:3306/privilege_gateway?serverTimezone=GMT%2B8
+    url: jdbc:mysql://172.16.1.254:3306/privilege_gateway?serverTimezone=GMT%2B8
     username: dbuser
     password: 12345678
   cloud:
