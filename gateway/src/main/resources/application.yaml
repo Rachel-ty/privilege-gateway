@@ -25,7 +25,7 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/states, /privilege/self/**
+            - Path=/privilege/login, /privilege/privileges/states, /privilege/self/**,/privilege/groups/states,/privilege/roles/states,/privilege/users/states
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 

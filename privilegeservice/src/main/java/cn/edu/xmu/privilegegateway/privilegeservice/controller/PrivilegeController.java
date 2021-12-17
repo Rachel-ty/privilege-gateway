@@ -1475,7 +1475,6 @@ public class PrivilegeController {
      * @return Object
      */
     @ApiOperation(value="获得角色的所有状态")
-    @Audit
     @GetMapping("/roles/states")
     public Object getRoleAllStates() {
         return Common.decorateReturnObject(roleService.getAllStates());
