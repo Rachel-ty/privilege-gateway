@@ -47,6 +47,7 @@ public class Common {
 
     /**
      * 生成九位数序号
+     * 要保证同一服务的不同实例生成出的序号是不同的
      * @param  platform 机器号 如果一个服务有多个实例，机器号需不同，目前从1至36
      * @return 序号
      */
@@ -377,15 +378,14 @@ public class Common {
                         else if(voFieldIsLocalDateTimeAndAndBoFieldIsZonedDateTime)
                         {
                             ZonedDateTime newObj = (ZonedDateTime) boField.get(bo);
-                            LocalDateTime localDateTime = newObj.withZoneSameInstant(ZoneId.of("UTC")).toLocalDateTime();
+                            LocalDateTime localDateTime = newObj.withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
                             voField.set(newVo, localDateTime);
                         }
                         //LocalDateTime转ZonedDateTime
                         else if(voFieldIsZonedDateTimeAndBoFieldIsLocalDateTime)
                         {
                             LocalDateTime newObj = (LocalDateTime) boField.get(bo);
-                            ZoneId zoneId =ZoneId.of("UTC");
-                            ZonedDateTime zdt = newObj.atZone( zoneId );
+                            ZonedDateTime zdt = newObj.atZone( ZoneId.systemDefault() );
                             voField.set(newVo, zdt);
                         }
                         else {

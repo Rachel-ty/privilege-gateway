@@ -45,8 +45,8 @@
     </logger>
 
     <!-- 日志输出级别 -->
-    <logger name="cn.edu.xmu.privilegegateway" level = "DEBUG"/>
-    <root level="ERROR">
+    <logger name="cn.edu.xmu.privilegegateway" level = "INFO"/>
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
         <appender-ref ref="FILE" />
     </root>

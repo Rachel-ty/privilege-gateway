@@ -31,6 +31,7 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -41,6 +42,7 @@ import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -61,7 +63,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     private PrivilegeService privilegeService;
 
-    private RedisUtil redisUtil;
+    private RedisTemplate<String, Serializable> redisTemplate;
 
     private Integer jwtExpireTime = 3600;
 
@@ -75,8 +77,8 @@ public class AuthFilter implements GatewayFilter, Ordered {
         this.privilegeService = privilegeService;
     }
 
-    public void setRedisUtil(RedisUtil redisUtil) {
-        this.redisUtil = redisUtil;
+    public void setRedisTemplate(RedisTemplate redisTemplate) {
+        this.redisTemplate = redisTemplate;
     }
 
     public void setJwtExpireTime(Integer jwtExpireTime) {
@@ -138,7 +140,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
             List<String> keyList = Arrays.asList(banSetNames);
 
-            Boolean baned = redisUtil.executeScript(script, keyList, token);
+            Boolean baned = redisTemplate.execute(script, keyList, token);
 
             if(baned) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
@@ -189,7 +191,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             String jwt = token;
             // 判断redis中是否存在该用户的token，若不存在则重新load用户的权限
             String key = String.format(USERKEY, userId);
-            if (!redisUtil.hasKey(key)) {
+            if (!redisTemplate.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
                 privilegeService.loadUserPriv(userId);
@@ -204,11 +206,11 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 找到该url所需要的权限id
             Integer requestType = RequestType.getCodeByType(method).getCode();
             String urlKey = String.format(PRIVKEY, commonUrl, requestType);
-            if (!redisUtil.hasKey(urlKey)){
+            if (!redisTemplate.hasKey(urlKey)){
                 RequestVo vo = new RequestVo(commonUrl, requestType);
                 privilegeService.loadPrivilege(vo);
             }
-            Long privId = (Long) redisUtil.get(urlKey);
+            Long privId = (Long) redisTemplate.opsForValue().get(urlKey);
             boolean next = false;
             if (privId == null) {
                 // 若该url无对应权限id
@@ -217,7 +219,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             }
 
             // 拿到该用户的权限位,检验是否具有访问该url的权限
-            if (redisUtil.isMemberSet(key, privId)) {
+            if (redisTemplate.opsForSet().isMember(key, privId)) {
                 next = true;
             }
 

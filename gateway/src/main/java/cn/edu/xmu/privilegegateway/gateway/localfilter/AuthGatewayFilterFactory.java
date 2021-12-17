@@ -16,7 +16,6 @@
 
 package cn.edu.xmu.privilegegateway.gateway.localfilter;
 
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.gateway.microservice.PrivilegeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,8 +23,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -44,13 +45,15 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     private PrivilegeService privilegeService;
 
     @Autowired
-    private RedisUtil redisUtil;
+    private RedisTemplate<String, Serializable> redisTemplate;
 
     @Value("${privilegegateway.jwtExpire:3600}")
     private Integer jwtExpireTime = 3600;
 
     @Value("${privilegegateway.refreshJwtTime:60}")
     private Integer refreshJwtTime = 60;
+
+
 
     public AuthGatewayFilterFactory() {
         super(AuthFilter.Config.class);
@@ -60,9 +63,9 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     public GatewayFilter apply(AuthFilter.Config config) {
         AuthFilter authFilter = new AuthFilter(config);
         authFilter.setPrivilegeService(privilegeService);
-        authFilter.setRedisUtil(redisUtil);
         authFilter.setJwtExpireTime(jwtExpireTime);
         authFilter.setRefreshJwtTime(refreshJwtTime);
+        authFilter.setRedisTemplate(redisTemplate);
         return authFilter;
     }
 
