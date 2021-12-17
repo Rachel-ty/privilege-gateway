@@ -7,7 +7,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 172.16.4.136
+        server-addr: 121.36.53.115
     gateway:
       globalcors:
         cors-configurations:
@@ -134,9 +134,9 @@ spring:
             - Auth=authorization
 
   redis:
-    host: 172.16.2.172
+    host: 121.36.53.115
     database: 0
-    password: 12345678
+    password: 123456
 
 management:
   endpoint:
@@ -144,7 +144,7 @@ management:
       enabled: true
 
 rocketmq:
-  name-server: 172.16.3.137
+  name-server: 121.36.1.4:9876
   producer:
     group: producer_group
     max-message-size: 4096
