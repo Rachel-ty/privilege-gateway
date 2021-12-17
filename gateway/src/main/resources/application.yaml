@@ -25,7 +25,7 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/privileges/states, /privilege/self/**,/privilege/groups/states,/privilege/roles/states,/privilege/users/states
+            - Path=/privilege/login, /privilege/*/states
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
@@ -40,7 +40,7 @@ spring:
         - id: activity-nologin
           uri: lb://activity-service
           predicates:
-            - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/groupons/states, /activity/shareactivities/states
+            - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/*/states
             - Method=GET
           filters:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
@@ -120,7 +120,7 @@ spring:
         - id: shop-nologin
           uri: lb://shop-service
           predicates:
-            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories
+            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories, /shop/categories/{id}/parents
             - Method=GET
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
