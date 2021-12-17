@@ -449,7 +449,7 @@ public class PrivilegeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"data\":{\"id\":1,\"userName\":\"新用户1\",\"mobile\":\"19E59DE959DE472ABECEC38A0219689A\",\"email\":\"123123@qq.com\",\"name\":\"1\",\"avatar\":null,\"openId\":\"123123\",\"departId\":1,\"password\":\"BCB71451C344BFB09FC0403699098E9E\",\"idNumber\":null,\"passportNumber\":null,\"creator\":{\"id\":null,\"name\":null},\"gmtCreate\":\"2020-11-18T22:48:24\",\"gmtModified\":null,\"modifier\":{\"id\":null,\"name\":null},\"level\":null},\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"id\":1,\"userName\":\"新用户1\",\"mobile\":\"19E59DE959DE472ABECEC38A0219689A\",\"email\":\"123123@qq.com\",\"name\":\"1\",\"avatar\":null,\"openId\":\"123123\",\"departId\":1,\"password\":\"BCB71451C344BFB09FC0403699098E9E\",\"idNumber\":null,\"passportNumber\":null,\"creator\":{\"id\":1,\"name\":\"admin\"},\"gmtCreate\":\"2020-11-18T22:48:24\",\"gmtModified\":null,\"modifier\":{\"id\":null,\"name\":null},\"level\":null},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 

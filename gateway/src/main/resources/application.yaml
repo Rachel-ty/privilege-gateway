@@ -23,14 +23,14 @@ spring:
       routes:
         #权限模块
         - id: privilege-nologin
-          uri: lb://privilge-service
+          uri: lb://privilege-service
           predicates:
             - Path=/privilege/login, /privilege/states, /privilege/self/**
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
         - id: privilege-login
-          uri: lb://privilge-service
+          uri: lb://privilege-service
           predicates:
             - Path=/privilege/**
           filters:
