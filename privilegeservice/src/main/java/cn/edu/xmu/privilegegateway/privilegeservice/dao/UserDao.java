@@ -129,8 +129,7 @@ public class UserDao {
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
     final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
-
-
+    final static List<String> accountCodeFields = new ArrayList<>(Arrays.asList("mobile","email"));
 
     public ReturnObject setUsersProxy(UserProxy bo) {
         try {
@@ -268,18 +267,31 @@ public class UserDao {
     /**
      * 由用户名获得用户
      *
-     * @param userName
+     * @param account 账号，可以是用户名，密码，邮箱
      * @return modifiedBy RenJieZheng 22920192204334
      */
-    public ReturnObject getUserByName(String userName) {
+    public ReturnObject getUserByAccount(String account) {
+        //进行加密
+        UserPo userPoTmp1 = new UserPo();
+        userPoTmp1.setMobile(account);
+        userPoTmp1.setEmail(account);
+        UserPo userPoTmp2 = (UserPo)baseCoder.code(userPoTmp1,UserPo.class,accountCodeFields);
+        //可以根据用户名，或者手机号，或者邮箱进行登录
         UserPoExample example = new UserPoExample();
         UserPoExample.Criteria criteria = example.createCriteria();
-        criteria.andUserNameEqualTo(userName);
+        criteria.andUserNameEqualTo(account);
+        UserPoExample.Criteria criteria1 = example.createCriteria();
+        criteria1.andMobileEqualTo(userPoTmp2.getMobile());
+        UserPoExample.Criteria criteria2 = example.createCriteria();
+        criteria2.andEmailEqualTo(userPoTmp2.getEmail());
+        example.or(criteria);
+        example.or(criteria1);
+        example.or(criteria2);
         List<UserPo> users = null;
         try {
             users = userMapper.selectByExample(example);
         } catch (DataAccessException e) {
-            logger.error(String.format("getUserByName: %s",e.getMessage()));
+            logger.error(String.format("getUserByAccount: %s",e.getMessage()));
         }
 
         if (null == users || users.isEmpty()) {
@@ -291,7 +303,7 @@ public class UserDao {
             }
             UserBo userBo = (UserBo) baseCoder.decode_check(userPo, UserBo.class, userCodeFields, userSignFields, "signature");
             if (userBo.getSignature() == null) {
-                logger.error(String.format("getUserByName: 签名错误(auth_user_group): %d" , userPo.getId()));
+                logger.error(String.format("getUserByAccount: 签名错误(auth_user_group): %d" , userPo.getId()));
                 return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
             return new ReturnObject<>(userBo);
