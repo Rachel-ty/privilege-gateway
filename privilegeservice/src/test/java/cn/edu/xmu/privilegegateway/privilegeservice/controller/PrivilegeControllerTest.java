@@ -1,16 +1,11 @@
 package cn.edu.xmu.privilegegateway.privilegeservice.controller;
 
-import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.annotation.util.JacksonUtil;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
 import cn.edu.xmu.privilegegateway.privilegeservice.PrivilegeServiceApplication;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.LoginVo;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ModifyUserVo;
-import org.apache.http.entity.ContentType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,9 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
@@ -32,9 +24,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
@@ -1370,7 +1359,7 @@ public class PrivilegeControllerTest {
         brKeys.add("br_96");
         Mockito.when(redisUtil.getSet("fu_55")).thenReturn(brKeys);
         LoginVo loginVo = new LoginVo();
-        loginVo.setUserName("13088admin");
+        loginVo.setName("13088admin");
         loginVo.setPassword("123456");
         String json = JacksonUtil.toJson(loginVo);
         //以下是正常情况返回的
@@ -1388,7 +1377,7 @@ public class PrivilegeControllerTest {
 
 
         LoginVo loginVo2 = new LoginVo();
-        loginVo2.setUserName("shop2_both");
+        loginVo2.setName("shop2_both");
         loginVo2.setPassword("123456");
         String json2 = JacksonUtil.toJson(loginVo2);
         //以下是正常情况返回的
@@ -1405,7 +1394,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectedString2,responseString2,false);
 
         LoginVo loginVo3 = new LoginVo();
-        loginVo3.setUserName("comment");
+        loginVo3.setName("comment");
         loginVo3.setPassword("123456");
         String json3 = JacksonUtil.toJson(loginVo3);
         //以下是正常情况返回的
@@ -1422,7 +1411,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectedString3,responseString3,false);
 
         LoginVo loginVo4 = new LoginVo();
-        loginVo4.setUserName("shop2_auth");
+        loginVo4.setName("shop2_auth");
         loginVo4.setPassword("123456");
         String json4 = JacksonUtil.toJson(loginVo4);
         //以下是正常情况返回的
@@ -1439,7 +1428,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectedString4,responseString4,false);
 
         LoginVo loginVo5 = new LoginVo();
-        loginVo5.setUserName("5961900008");
+        loginVo5.setName("5961900008");
         loginVo5.setPassword("123456");
         String json5 = JacksonUtil.toJson(loginVo5);
         //以下是正常情况返回的
@@ -1456,7 +1445,7 @@ public class PrivilegeControllerTest {
         JSONAssert.assertEquals(expectedString5,responseString5,false);
 
         LoginVo loginVo1 = new LoginVo();
-        loginVo1.setUserName("13088admin");
+        loginVo1.setName("13088admin");
         loginVo1.setPassword("1234567");
         String json1 = JacksonUtil.toJson(loginVo1);
         //密码错误

@@ -21,15 +21,11 @@ import cn.edu.xmu.privilegegateway.annotation.aop.Depart;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginName;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginUser;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
@@ -45,13 +41,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -903,7 +897,12 @@ public class PrivilegeController {
         }
 
         String ip = IpUtil.getIpAddr(httpServletRequest);
-        return Common.decorateReturnObject(userService.login(loginVo.getUserName(), loginVo.getPassword(), ip));
+        ReturnObject ret=userService.login(loginVo.getName(), loginVo.getPassword(), ip);
+        if(ret.getCode()==ReturnNo.OK)
+        {
+            httpServletResponse.setStatus(HttpStatus.CREATED.value());
+        }
+        return Common.decorateReturnObject(ret);
     }
 
     /**
