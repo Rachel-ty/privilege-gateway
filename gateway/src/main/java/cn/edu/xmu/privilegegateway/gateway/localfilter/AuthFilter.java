@@ -16,9 +16,6 @@
 
 package cn.edu.xmu.privilegegateway.gateway.localfilter;
 
-import cn.edu.xmu.privilegegateway.annotation.util.RedisUtil;
-import cn.edu.xmu.privilegegateway.gateway.microservice.PrivilegeService;
-import cn.edu.xmu.privilegegateway.gateway.microservice.vo.RequestVo;
 import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
 import com.alibaba.fastjson.JSONObject;
@@ -39,6 +36,7 @@ import org.springframework.http.server.RequestPath;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.scripting.support.ResourceScriptSource;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
@@ -59,9 +57,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
-    private String tokenName;
+    private static final String LOADUSER = "lb://privilege-service/internal/users/{userId}";
+    private static final String LOADPRIV = "/internal/privileges/load";
 
-    private PrivilegeService privilegeService;
+    private String tokenName;
 
     private RedisTemplate<String, Serializable> redisTemplate;
 
@@ -69,12 +68,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     private Integer refreshJwtTime = 60;
 
+    private WebClient webClient = WebClient.create();
+
     public AuthFilter(Config config) {
         this.tokenName = config.getTokenName();
-    }
-
-    public void setPrivilegeService(PrivilegeService privilegeService) {
-        this.privilegeService = privilegeService;
     }
 
     public void setRedisTemplate(RedisTemplate redisTemplate) {
@@ -146,19 +143,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
                 return response.writeWith(Mono.empty());
             }
-/*
-            String[] banSetName = {"BanJwt_0", "BanJwt_1"};
-            for (String singleBanSetName : banSetName) {
-                // 若redis有该banSetname键则检查
-                if (redisUtil.hasKey(singleBanSetName)) {
-                    // 获取全部被ban的jwt,若banjwt中有该token则拦截该请求
-                    if (redisUtil.isMemberSet(singleBanSetName, token)) {
-                        response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                        return response.writeWith(Mono.empty());
-                    }
-                }
-            }
- */
             // 检测完了则该token有效
             // 解析userid和departid和有效期
             Long userId = userAndDepart.getUserId();
@@ -194,7 +178,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (!redisTemplate.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                privilegeService.loadUserPriv(userId);
+                webClient.get().uri(LOADUSER,userId);
             }
             // 将token放在返回消息头中
             response.getHeaders().set(tokenName, jwt);
@@ -207,8 +191,8 @@ public class AuthFilter implements GatewayFilter, Ordered {
             Integer requestType = RequestType.getCodeByType(method).getCode();
             String urlKey = String.format(PRIVKEY, commonUrl, requestType);
             if (!redisTemplate.hasKey(urlKey)){
-                RequestVo vo = new RequestVo(commonUrl, requestType);
-                privilegeService.loadPrivilege(vo);
+                String json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
+                webClient.put().uri(LOADPRIV).bodyValue(json);
             }
             Long privId = (Long) redisTemplate.opsForValue().get(urlKey);
             boolean next = false;
