@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.io.Serializable;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -662,16 +663,18 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByRoleId() throws Exception {
-        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Set set=new HashSet<String>();
+        set.add("br_88");
+        //为方便测试只添加一个，不然返回结果会一直变化
+        Mockito.when(redisUtil.getSet(Mockito.anyString())).thenReturn(set);
         Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
-
         String responseString = this.mvc.perform(get("/departs/0/roles/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
@@ -1460,6 +1463,41 @@ public class PrivilegeControllerTest {
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
 
+        //手机号登录
+        LoginVo loginVo6 = new LoginVo();
+        loginVo6.setName("12334555");
+        loginVo6.setPassword("123456");
+        String json6 = JacksonUtil.toJson(loginVo6);
+        //以下是正常情况返回的
+        String responseString6;
+        assert json6 != null;
+        responseString6 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json6))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString6 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString6,responseString6,false);
+
+        //邮箱登录
+        LoginVo loginVo7 = new LoginVo();
+        loginVo7.setName("admin@112");
+        loginVo7.setPassword("123456");
+        String json7 = JacksonUtil.toJson(loginVo);
+        //以下是正常情况返回的
+        String responseString7;
+        assert json7 != null;
+        responseString7 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json7))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString7 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString7,responseString7,false);
     }
 
 
