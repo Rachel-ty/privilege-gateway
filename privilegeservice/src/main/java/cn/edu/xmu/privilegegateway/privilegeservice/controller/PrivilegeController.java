@@ -901,11 +901,11 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
+        String ip = IpUtil.getIpAddr(httpServletRequest);
         ReturnObject returnObject = userService.login(loginVo.getUserName(), loginVo.getPassword(), ip);
         if(returnObject.getCode()==ReturnNo.OK){
             httpServletResponse.setStatus(HttpServletResponse.SC_CREATED);
         }
-        String ip = IpUtil.getIpAddr(httpServletRequest);
         return Common.decorateReturnObject(returnObject);
     }
 
