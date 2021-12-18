@@ -21,7 +21,6 @@ import cn.edu.xmu.privilegegateway.annotation.util.coder.BaseCoder;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.RoleDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.UserDao;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserBo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.UserRole;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.stereotype.Service;
@@ -133,9 +131,9 @@ public class UserService {
      * Modified By Ming Qiu 2021-12-12 07:44
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject login(String userName, String password, String ipAddr) {
+    public ReturnObject login(String account, String password, String ipAddr) {
         //获得user对象
-        ReturnObject retObj = userDao.getUserByName(userName);
+        ReturnObject retObj = userDao.getUserByAccount(account);
         if (retObj.getCode() != ReturnNo.OK) {
             return retObj;
         }
@@ -174,7 +172,7 @@ public class UserService {
         JwtHelper jwtHelper = new JwtHelper();
         String jwt = jwtHelper.createToken(user.getId(), user.getUserName(), user.getDepartId(), user.getLevel(), jwtExpireTime);
         ReturnObject returnObject = userDao.loadUserPriv(user.getId(), jwt);
-        if (returnObject.getData() != ReturnNo.OK) {
+        if (returnObject.getCode() != ReturnNo.OK) {
             return returnObject;
         }
         logger.debug("login: newJwt = " + jwt);
