@@ -38,6 +38,7 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.lang.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -673,16 +674,18 @@ public class PrivilegeControllerTest {
     @Test
     @Transactional
     void getBaserolesByRoleId() throws Exception {
-        Mockito.when(redisUtil.get(Mockito.anyString())).thenReturn(null);
+        Set set=new HashSet<String>();
+        set.add("br_88");
+        //为方便测试只添加一个，不然返回结果会一直变化
+        Mockito.when(redisUtil.getSet(Mockito.anyString())).thenReturn(set);
         Mockito.when(redisUtil.set(Mockito.anyString(), Mockito.any(), Mockito.anyLong())).thenReturn(true);
-
         String responseString = this.mvc.perform(get("/departs/0/roles/1/baseroles?pageSize=1")
                 .contentType("application/json;charset=UTF-8")
                 .header("authorization", adminToken))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectString = "{\"errno\":0,\"errmsg\":\"成功\"}";
+        String expectString = "{\"errno\":0,\"data\":{\"total\":1,\"pages\":1,\"pageSize\":1,\"page\":1,\"list\":[{\"id\":88,\"name\":\"预售管理\",\"descr\":\"预售活动的管理\",\"departId\":0,\"creator\":{\"id\":1,\"name\":\"admin\"},\"modifier\":{\"id\":null,\"name\":null},\"sign\":null}]},\"errmsg\":\"成功\"}";
         JSONAssert.assertEquals(expectString, responseString, false);
     }
 
