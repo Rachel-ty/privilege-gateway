@@ -172,7 +172,7 @@ public class UserService {
         JwtHelper jwtHelper = new JwtHelper();
         String jwt = jwtHelper.createToken(user.getId(), user.getUserName(), user.getDepartId(), user.getLevel(), jwtExpireTime);
         ReturnObject returnObject = userDao.loadUserPriv(user.getId(), jwt);
-        if (returnObject.getData() != ReturnNo.OK) {
+        if (returnObject.getCode() != ReturnNo.OK) {
             return returnObject;
         }
         logger.debug("login: newJwt = " + jwt);
