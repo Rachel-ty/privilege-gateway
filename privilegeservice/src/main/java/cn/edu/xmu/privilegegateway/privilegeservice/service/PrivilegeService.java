@@ -42,27 +42,22 @@ public class PrivilegeService {
     @Autowired
     PrivilegeDao privilegeDao;
 
-    public final static Byte FORBIDEN = 1;
+    public final static Byte FORBIDDEN = 1;
     public final static Byte NORMAL = 0;
 
 
     public ReturnObject getPrivilegeStates() {
         List<Map<String, Object>> stateList;
         stateList = new ArrayList<>();
-        for (Privilege.RequestType requestType : Privilege.RequestType.values()) {
+        for (Privilege.PrivilegeType privilegeType : Privilege.PrivilegeType.values()) {
             Map<String, Object> temp = new HashMap<>();
-            temp.put("code", requestType.getCode());
-            temp.put("name", requestType.getDescription());
+            temp.put("code", privilegeType.getCode());
+            temp.put("name", privilegeType.getDescription());
             stateList.add(temp);
         }
         return new ReturnObject<>(stateList);
     }
 
-    /**
-     * @param vo
-     * @param cid
-     * @return
-     */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject<VoObject> AddPrivileges(PrivilegeVo vo, Long creatorId, String creatorName) {
         Privilege privilege = (Privilege) Common.cloneVo(vo, Privilege.class);
@@ -103,7 +98,7 @@ public class PrivilegeService {
         Privilege privilege = new Privilege();
         privilege.setId(privilegeId);
         Common.setPoModifiedFields(privilege, modifierId, modifierName);
-        privilege.setState(FORBIDEN);
+        privilege.setState(FORBIDDEN);
         return privilegeDao.changePrivState(privilege);
     }
 

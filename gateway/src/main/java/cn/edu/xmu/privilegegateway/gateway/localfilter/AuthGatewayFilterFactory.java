@@ -16,7 +16,6 @@
 
 package cn.edu.xmu.privilegegateway.gateway.localfilter;
 
-import cn.edu.xmu.privilegegateway.gateway.microservice.PrivilegeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,9 +41,6 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     private  static  final Logger logger = LoggerFactory.getLogger(AuthGatewayFilterFactory.class);
 
     @Autowired
-    private PrivilegeService privilegeService;
-
-    @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
     @Value("${privilegegateway.jwtExpire:3600}")
@@ -53,8 +49,6 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     @Value("${privilegegateway.refreshJwtTime:60}")
     private Integer refreshJwtTime = 60;
 
-
-
     public AuthGatewayFilterFactory() {
         super(AuthFilter.Config.class);
     }
@@ -62,7 +56,6 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     @Override
     public GatewayFilter apply(AuthFilter.Config config) {
         AuthFilter authFilter = new AuthFilter(config);
-        authFilter.setPrivilegeService(privilegeService);
         authFilter.setJwtExpireTime(jwtExpireTime);
         authFilter.setRefreshJwtTime(refreshJwtTime);
         authFilter.setRedisTemplate(redisTemplate);
