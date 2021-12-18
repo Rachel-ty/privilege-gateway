@@ -1,0 +1,229 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: oomall-gateway
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 121.36.53.115
+    gateway:
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - HEAD
+              - OPTIONS
+      routes:
+        # 顾客模块
+        - id: customer-nologin
+          uri: lb://other-service
+            predicates:
+              - Path=/customer/customers/states, /customer/customers
+              - Method=GET,POST
+            filters:
+              - RewritePath=/customer/(?<segment>.*), /$\{segment}
+
+        - id: customer-login
+            uri: lb://other-service
+            predicates:
+              - Path=/customer/**
+            filters:
+              - RewritePath=/customer/(?<segment>.*), /$\{segment}
+              - Auth=authorization
+        # 售后服务模块
+        - id: aftersale-nologin
+            uri: lb://other-service
+              predicates:
+                - Path=/aftersale/aftersales/states
+                - Method=GET
+              filters:
+                - RewritePath=/aftersale/(?<segment>.*), /$\{segment}
+
+        - id: aftersale-login
+            uri: lb://other-service
+              predicates:
+                - Path=/aftersale/**
+              filters:
+                - RewritePath=/aftersale/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+        # 订单服务
+        - id: order-nologin
+            uri: lb://order-service
+              predicates:
+                - Path=/order/orders/states
+                - Method=GET
+              filters:
+                - RewritePath=/order/(?<segment>.*), /$\{segment}
+
+        - id: order-login
+            uri: lb://other-service
+              predicates:
+                - Path=/order/**
+              filters:
+                - RewritePath=/order/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+
+        # 支付服务
+        - id: payment-nologin
+            uri: lb://payment-service
+              predicates:
+                - Path=/payment/paypatterns/states, /payment/payments/states
+                - Method=GET
+              filters:
+                - RewritePath=/payment/(?<segment>.*), /$\{segment}
+
+        - id: payment-login
+            uri: lb://payment-service
+              predicates:
+                - Path=/payment/**
+              filters:
+                - RewritePath=/payment/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+
+        # 活动模块
+        - id: activity-nologin
+          uri: lb://activity-service
+          predicates:
+            - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/*/states
+            - Method=GET
+          filters:
+            - RewritePath=/activity/(?<segment>.*), /$\{segment}
+
+        - id: activity-login
+          uri: lb://activity-service
+          predicates:
+            - Path=/activity/**
+          filters:
+            - RewritePath=/activity/(?<segment>.*), /$\{segment}
+            - Auth=authorization
+
+        # 运费模块
+        - id: freight-nologin
+          uri: lb://freight-service
+          predicates:
+            - Path=/freight/regions/{id}/ancestor, /freight/regions/{id}/subregions
+            - Method=GET
+          filters:
+            - RewritePath=/freight/(?<segment>.*), /$\{segment}
+
+        - id: freight-login
+          uri: lb://freight-service
+          predicates:
+            - Path=/freight/**
+          filters:
+            - RewritePath=/freight/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
+
+        # 商品模块
+        - id: goods-nologin
+          uri: lb://goods-service
+          predicates:
+            - Path=/goods/products/**, /goods/goods/{id}
+            - Method=GET
+          filters:
+            - RewritePath=/goods/(?<segment>.*), /$\{segment}
+
+        - id: goods-login
+          uri: lb://goods-service
+          predicates:
+            - Path=/goods/**
+          filters:
+            - RewritePath=/goods/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
+
+        # 评论模块
+        - id: comment-nologin
+          uri: lb://comment-service
+          predicates:
+            - Path=/comment/comments/states, /comment/products/{id}/comments
+            - Method=GET
+          filters:
+            - RewritePath=/comment/(?<segment>.*), /$\{segment}
+
+        - id: comment-login
+          uri: lb://comment-service
+          predicates:
+            - Path=/comment/**
+          filters:
+            - RewritePath=/comment/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
+
+        # 优惠模块
+        - id: coupon-nologin
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon/couponactivities/states, /coupon/couponactivities, /coupon/couponactivities/{id}/products, /coupon/products/{id}/couponactivities
+            - Method=GET
+          filters:
+            - RewritePath=/coupon/(?<segment>.*), /$\{segment}
+
+        - id: coupon-login
+          uri: lb://coupon-service
+          predicates:
+            - Path=/coupon/**
+          filters:
+            - RewritePath=/coupon/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
+
+        # 商城模块
+        - id: shop-nologin
+          uri: lb://shop-service
+          predicates:
+            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories, /shop/categories/{id}/parents
+            - Method=GET
+          filters:
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}
+
+        - id: shop-login
+          uri: lb://shop-service
+          predicates:
+            - Path=/shop/**
+          filters:
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
+            - Auth=authorization
+
+        # 清算模块
+        - id: liquidation-nologin
+            uri: lb://other-service
+            predicates:
+              - Path=/liquidatiion/liquidatiion/states
+              - Method=GET
+            filters:
+              - RewritePath=/shop/(?<segment>.*), /$\{segment}
+
+        - id: liquidation-login
+            uri: lb://other-service
+            predicates:
+              - Path=/liquidatiion/**
+            filters:
+              - RewritePath=/liquidatiion/(?<segment>.*), /$\{segment}            -
+              - Auth=authorization
+  redis:
+    host: 121.36.53.115
+    database: 0
+    password: 123456
+
+management:
+  endpoint:
+    gateway:
+      enabled: true
+
+rocketmq:
+  name-server: 121.36.1.4:9876
+  producer:
+    group: producer_group
+    max-message-size: 4096
+    send-message-timeout: 3000
+    retry-times-when-send-async-failed: 2
+
+
+#privilegegateway:
+#  jwtExpire: 3600
+#  refreshJwtTime: 60

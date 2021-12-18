@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: oomall-gateway
+  cloud:
+    nacos:
+      config:
+        server-addr: 121.36.53.115:8848
+        file-extension: yaml
+  profiles:
+    active: dev
