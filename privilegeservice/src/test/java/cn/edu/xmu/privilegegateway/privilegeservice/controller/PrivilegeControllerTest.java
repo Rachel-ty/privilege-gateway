@@ -1471,6 +1471,41 @@ public class PrivilegeControllerTest {
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
 
+        //手机号登录
+        LoginVo loginVo6 = new LoginVo();
+        loginVo6.setUserName("12334555");
+        loginVo6.setPassword("123456");
+        String json6 = JacksonUtil.toJson(loginVo6);
+        //以下是正常情况返回的
+        String responseString6;
+        assert json6 != null;
+        responseString6 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json6))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString6 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString6,responseString6,false);
+
+        //邮箱登录
+        LoginVo loginVo7 = new LoginVo();
+        loginVo7.setUserName("admin@112");
+        loginVo7.setPassword("123456");
+        String json7 = JacksonUtil.toJson(loginVo);
+        //以下是正常情况返回的
+        String responseString7;
+        assert json7 != null;
+        responseString7 = this.mvc.perform(MockMvcRequestBuilders.post("/login")
+                .contentType("application/json;charset=UTF-8").content(json7))
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString7 = "{\n" +
+                "\"errno\": 0,\n" +
+                "\"errmsg\": \"成功\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString7,responseString7,false);
     }
 
 
