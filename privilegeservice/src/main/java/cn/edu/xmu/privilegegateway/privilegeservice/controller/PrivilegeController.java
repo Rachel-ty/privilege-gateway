@@ -901,9 +901,12 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-
+        ReturnObject returnObject = userService.login(loginVo.getUserName(), loginVo.getPassword(), ip);
+        if(returnObject.getCode()==ReturnNo.OK){
+            httpServletResponse.setStatus(HttpServletResponse.SC_CREATED);
+        }
         String ip = IpUtil.getIpAddr(httpServletRequest);
-        return Common.decorateReturnObject(userService.login(loginVo.getUserName(), loginVo.getPassword(), ip));
+        return Common.decorateReturnObject(returnObject);
     }
 
     /**
