@@ -895,7 +895,6 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-
         String ip = IpUtil.getIpAddr(httpServletRequest);
         ReturnObject ret=userService.login(loginVo.getName(), loginVo.getPassword(), ip);
         if(ret.getCode()==ReturnNo.OK)
@@ -1474,6 +1473,7 @@ public class PrivilegeController {
      * @return Object
      */
     @ApiOperation(value="获得角色的所有状态")
+    @Audit
     @GetMapping("/roles/states")
     public Object getRoleAllStates() {
         return Common.decorateReturnObject(roleService.getAllStates());
