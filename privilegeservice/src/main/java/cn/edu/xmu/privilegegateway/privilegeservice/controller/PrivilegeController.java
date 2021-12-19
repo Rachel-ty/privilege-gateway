@@ -919,7 +919,9 @@ public class PrivilegeController {
     @Audit
     @GetMapping("logout")
     public Object logout(@LoginUser Long userId){
-
+        if(userId==null){
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_INVALID_JWT));
+        }
         logger.debug("logout: userId = "+userId);
         return Common.decorateReturnObject(userService.Logout(userId));
     }
