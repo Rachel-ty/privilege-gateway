@@ -873,9 +873,12 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-
         String ip = IpUtil.getIpAddr(httpServletRequest);
-        return Common.decorateReturnObject(userService.login(loginVo.getUserName(), loginVo.getPassword(), ip));
+        ReturnObject returnObject = userService.login(loginVo.getName(), loginVo.getPassword(), ip);
+        if(returnObject.getCode()==ReturnNo.OK){
+            httpServletResponse.setStatus(HttpServletResponse.SC_CREATED);
+        }
+        return Common.decorateReturnObject(returnObject);
     }
 
     /**

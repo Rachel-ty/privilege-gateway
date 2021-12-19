@@ -25,7 +25,7 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/states, /privilege/self/**
+            - Path=/privilege/login, /privilege/*/states
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
@@ -40,7 +40,7 @@ spring:
         - id: activity-nologin
           uri: lb://activity-service
           predicates:
-            - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/groupons/states, /activity/shareactivities/states
+            - Path=/activity/advancesales/states, /activity/advancesales, /activity/advancesales/{id}, /activity/*/states
             - Method=GET
           filters:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
@@ -66,7 +66,7 @@ spring:
           predicates:
             - Path=/freight/**
           filters:
-            - RewritePath=/freight/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/freight/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         - id: goods-nologin
@@ -82,7 +82,7 @@ spring:
           predicates:
             - Path=/goods/**
           filters:
-            - RewritePath=/goods/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/goods/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         - id: comment-nologin
@@ -98,7 +98,7 @@ spring:
           predicates:
             - Path=/comment/**
           filters:
-            - RewritePath=/comment/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/comment/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         - id: coupon-nologin
@@ -114,13 +114,13 @@ spring:
           predicates:
             - Path=/coupon/**
           filters:
-            - RewritePath=/coupon/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/coupon/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         - id: shop-nologin
           uri: lb://shop-service
           predicates:
-            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories
+            - Path=/shop/shops/states, /shop/shops/{id}, /shop/categories/{id}/subcategories, /shop/categories/{id}/parents
             - Method=GET
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
@@ -130,7 +130,7 @@ spring:
           predicates:
             - Path=/shop/**
           filters:
-            - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
   redis:
