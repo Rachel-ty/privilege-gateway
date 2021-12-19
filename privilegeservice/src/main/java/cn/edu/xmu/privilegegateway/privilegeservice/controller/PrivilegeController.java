@@ -88,15 +88,10 @@ public class PrivilegeController {
     @Autowired
     private PrivilegeService privilegeService;
 
-    /**
-     * @author: zhang yu
-     * @date: 2021/11/24 16:28
-     * @version: 1.0
-    */
-    /*获取权限状态*/
 
     /**
-     *
+     * 查询权限状态
+     * @author zhangyu
      * @return
      */
     @ApiOperation(value = "查询权限状态")
@@ -109,14 +104,14 @@ public class PrivilegeController {
         ReturnObject<List> ret=privilegeService.getPrivilegeStates();
         return Common.decorateReturnObject(ret);
     }
-    /*查询功能角色权限*/
 
     /**
+     * 查询功能角色权限
      * @author zhangyu
      * @param did
      * @param roleid
      * @param page
-     * @param pagesize
+     * @param pageSize
      * @return
      */
     @ApiOperation(value="查询功能角色权限")
@@ -128,40 +123,17 @@ public class PrivilegeController {
     @GetMapping("/departs/{did}/baseroles/{id}/privileges")
     public Object GetBaseRolePriv(@PathVariable("did") Long did,
                                   @PathVariable("id") Long roleid,
-                                 @RequestParam(required = true,value = "page") Integer page,
-                                  @RequestParam(required = true,value="pageSize") Integer pagesize)
+                                 @RequestParam(required = false,value = "page") Integer page,
+                                  @RequestParam(required = false,value="pageSize") Integer pageSize)
     {
         if(did!=0)
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
+        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pageSize));
     }
-    /*取消功能角色权限,删除功能角色权限
-    * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
-    * */
-    @ApiOperation(value="取消功能角色权限")
-    @ApiResponses({
-            @ApiResponse(code = 505, message = "did不为0"),
-            @ApiResponse(code=0,message="成功")
-    })
-    @Audit(departName = "departs")
-    @DeleteMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
-    public Object delBaseRolePriv(@PathVariable Long did,
-                                  @PathVariable Long roleid,
-                                  @PathVariable("privilegeid") Long pid)
-    {
-        if(did!=0)
-        {
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        }
-        else
-        {
-            return Common.decorateReturnObject(roleService.delBaseRolePriv(roleid,pid));
-        }
-    }
-    /*新建权限，新增权限*/
 
     /**
-     * @author: zhangyu
+     * 新建权限 新增权限
+     * @author zhangyu
      * @param did
      * @param vo
      * @param bindingResult
@@ -193,9 +165,9 @@ public class PrivilegeController {
         return Common.decorateReturnObject(returnObject);
 
     }
-    /*查询权限*/
 
     /**
+     * 查询权限
      * @author zhangyu
      * @param did
      * @param url
@@ -227,9 +199,9 @@ public class PrivilegeController {
         }
         return Common.decorateReturnObject(privilegeService.GetPriv(url,requestType,page,pageSize));
     }
-    /*删除权限*/
 
     /**
+     * 删除权限
      * @author zhangyu
      * @param did
      * @param pid
@@ -257,10 +229,10 @@ public class PrivilegeController {
         }
         return  Common.decorateReturnObject(privilegeService.DelPriv(pid));
     }
-    /*禁用权限*/
 
     /**
-     *
+     * 禁用权限
+     * @author zhangyu
      * @param did
      * @param pid
      * @return
@@ -289,10 +261,10 @@ public class PrivilegeController {
         }
         return Common.decorateReturnObject(privilegeService.ForbidPriv(pid,modifiedId,modifiedName));
     }
-    /*解禁权限*/
 
     /**
-     *
+     * 解禁权限
+     * @author zhangyu
      * @param did
      * @param pid
      * @return
@@ -1184,14 +1156,16 @@ public class PrivilegeController {
     @ApiResponses({
             @ApiResponse(code = 0, message = "成功"),
     })
-    @Audit
-    @DeleteMapping("/departs/{did}/baseroles/{id}/privileges")
-    public Object delRolePriv(@PathVariable Long did,
-                              @PathVariable Long roleid,
-                              @PathVariable Long privilegeid){
+    @Audit(departName = "departs")
+    @DeleteMapping("/departs/{did}/baseroles/{roleid}/privileges/{privilegeid}")
+    public Object delRolePriv(@PathVariable(value = "did") Long did,
+                              @PathVariable(value = "roleid") Long roleid,
+                              @PathVariable(value="privilegeid") Long privilegeid){
         logger.debug("delRolePriv: id = "+ did+roleid+privilegeid);
         if(did!=0)
+        {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        }
         ReturnObject returnObject = roleService.delBaseRolePriv(roleid,privilegeid);
         return Common.decorateReturnObject(returnObject);
     }
