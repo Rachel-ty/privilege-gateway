@@ -511,6 +511,7 @@ public class Common {
             case IMG_FORMAT_ERROR:
             case IMG_SIZE_EXCEED:
             case LATE_BEGINTIME:
+            case PARAMETER_MISSED:
                 // 400
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
@@ -519,6 +520,7 @@ public class Common {
             case RESOURCE_ID_OUTSCOPE:
             case FILE_NO_WRITE_PERMISSION:
             case AUTH_NO_RIGHT:
+            case AUTH_NEED_LOGIN:
                 // 403
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
