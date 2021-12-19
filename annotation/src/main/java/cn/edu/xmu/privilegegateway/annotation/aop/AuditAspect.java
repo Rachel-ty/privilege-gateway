@@ -34,6 +34,7 @@ public class AuditAspect {
     //注入Service用于把日志保存数据库
 
     private  static  final Logger logger = LoggerFactory.getLogger(AuditAspect. class);
+    private static final String LOG = "%s: %s";
 
     //Controller层切点
     @Pointcut("@annotation(cn.edu.xmu.privilegegateway.annotation.aop.Audit)")
@@ -52,7 +53,6 @@ public class AuditAspect {
     //配置controller环绕通知,使用在方法aspect()上注册的切入点
     @Around("auditAspect()")
     public Object around(JoinPoint joinPoint){
-        logger.debug("around: begin joinPoint = "+ joinPoint);
         MethodSignature ms = (MethodSignature) joinPoint.getSignature();
         Method method = ms.getMethod();
 
@@ -76,7 +76,6 @@ public class AuditAspect {
             userLevel=userAndDepart.getUserLevel();
         }
 
-
         //检验/shop的api中传入token是否和departId一致
         String pathInfo = userAndDepart == null ? null : request.getPathInfo();
         String departName=null;
@@ -87,9 +86,8 @@ public class AuditAspect {
 
         boolean flag=false;
         if(null!=pathInfo) {
-            if(!"".equals(departName))
-            {
-                logger.debug("getPathInfo = " + pathInfo);
+            if(!"".equals(departName)) {
+                logger.debug(String.format(LOG,"around","getPathInfo = " + pathInfo));
                 String paths[] = pathInfo.split("/");
                 for (int i = 0; i < paths.length; i++) {
                     //如果departId为0,可以操作所有的depart
@@ -101,13 +99,14 @@ public class AuditAspect {
                         if (i + 1 < paths.length) {
                             //找到路径上对应id 将其与string类型的departId比较
                             String pathId = paths[i + 1];
-                            logger.debug("did =" + pathId);
+                            logger.debug(String.format(LOG,"around","did =" + pathId));
                             if (!pathId.equals(departId.toString())) {
                                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+                                logger.info(String.format(LOG,"around", "不匹配departId = "+departId));
+                                return ResponseUtil.fail(ReturnNo.RESOURCE_ID_OUTSCOPE);
                             } else {
                                 flag = true;
-                                logger.debug("success match Id!");
+                                logger.debug(String.format(LOG,"around","success match Id!"));
                             }
                         }
                         else {
@@ -118,8 +117,8 @@ public class AuditAspect {
                 }
                 if (flag == false) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
-
+                    logger.info(String.format(LOG,"around", "不匹配departId = "+departId));
+                    return ResponseUtil.fail(ReturnNo.RESOURCE_ID_OUTSCOPE);
                 }
             }
             else {
@@ -127,15 +126,15 @@ public class AuditAspect {
             }
         }
         else{
-            logger.error("the api path is null");
+            logger.error(String.format(LOG,"around","the api path is null"));
         }
 
-
         logger.debug("around: userId ="+userId+" departId="+departId);
-//        if (userId == null) {
-//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//            return ResponseUtil.fail(ReturnNo.AUTH_NEED_LOGIN);
-//        }
+        if (userId == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            logger.info(String.format(LOG,"around", "userId is null"));
+            return ResponseUtil.fail(ReturnNo.AUTH_NEED_LOGIN);
+        }
 
         Object[] args = joinPoint.getArgs();
         Annotation[][] annotations = method.getParameterAnnotations();
