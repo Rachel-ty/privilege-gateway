@@ -407,7 +407,7 @@ public class PrivilegeDao {
             return Common.getPageRetVo(returnObject,BaseRolePrivilegeRetVo.class);
         }catch(Exception e)
         {
-            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,String.format("数据库发生错误",e.getMessage()));
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,e.getMessage());
         }
     }
     /**

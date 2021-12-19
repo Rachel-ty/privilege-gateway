@@ -21,15 +21,11 @@ import cn.edu.xmu.privilegegateway.annotation.aop.Depart;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginName;
 import cn.edu.xmu.privilegegateway.annotation.aop.LoginUser;
 import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Role;
-import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.User;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import cn.edu.xmu.privilegegateway.privilegeservice.service.*;
 import cn.edu.xmu.privilegegateway.annotation.util.*;
 import cn.edu.xmu.privilegegateway.annotation.util.IpUtil;
-import com.github.pagehelper.PageHelper;
-import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import io.swagger.annotations.Api;
 import org.slf4j.Logger;
@@ -45,13 +41,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import springfox.documentation.annotations.ApiIgnore;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -128,12 +122,12 @@ public class PrivilegeController {
     @GetMapping("/departs/{did}/baseroles/{id}/privileges")
     public Object GetBaseRolePriv(@PathVariable("did") Long did,
                                   @PathVariable("id") Long roleid,
-                                 @RequestParam(required = true,value = "page") Integer page,
-                                  @RequestParam(required = true,value="pageSize") Integer pagesize)
+                                 @RequestParam(required = false,value = "page") Integer page,
+                                  @RequestParam(required = false,value="pageSize") Integer pageSize)
     {
         if(did!=0)
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
+        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pageSize));
     }
     /*取消功能角色权限,删除功能角色权限
     * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
@@ -902,11 +896,12 @@ public class PrivilegeController {
             return o;
         }
         String ip = IpUtil.getIpAddr(httpServletRequest);
-        ReturnObject returnObject = userService.login(loginVo.getName(), loginVo.getPassword(), ip);
-        if(returnObject.getCode()==ReturnNo.OK){
-            httpServletResponse.setStatus(HttpServletResponse.SC_CREATED);
+        ReturnObject ret=userService.login(loginVo.getName(), loginVo.getPassword(), ip);
+        if(ret.getCode()==ReturnNo.OK)
+        {
+            httpServletResponse.setStatus(HttpStatus.CREATED.value());
         }
-        return Common.decorateReturnObject(returnObject);
+        return Common.decorateReturnObject(ret);
     }
 
     /**
@@ -1478,7 +1473,6 @@ public class PrivilegeController {
      * @return Object
      */
     @ApiOperation(value="获得角色的所有状态")
-    @Audit
     @GetMapping("/roles/states")
     public Object getRoleAllStates() {
         return Common.decorateReturnObject(roleService.getAllStates());
