@@ -32,7 +32,7 @@ import javax.validation.constraints.NotBlank;
 public class LoginVo {
     @NotBlank(message = "必须输入用户名")
     @ApiModelProperty(name = "用户名", value = "testuser")
-    private String userName;
+    private String name;
 
     @NotBlank(message = "必须输入密码")
     @ApiModelProperty(name = "密码", value = "123456r")
