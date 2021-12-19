@@ -122,12 +122,12 @@ public class PrivilegeController {
     @GetMapping("/departs/{did}/baseroles/{id}/privileges")
     public Object GetBaseRolePriv(@PathVariable("did") Long did,
                                   @PathVariable("id") Long roleid,
-                                 @RequestParam(required = true,value = "page") Integer page,
-                                  @RequestParam(required = true,value="pageSize") Integer pagesize)
+                                 @RequestParam(required = false,value = "page") Integer page,
+                                  @RequestParam(required = false,value="pageSize") Integer pageSize)
     {
         if(did!=0)
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pagesize));
+        return Common.decorateReturnObject(roleService.selectBaseRolePrivs(roleid,page,pageSize));
     }
     /*取消功能角色权限,删除功能角色权限
     * 因为角色会有取消继承其它功能角色来取消权限，所以单独写一个
