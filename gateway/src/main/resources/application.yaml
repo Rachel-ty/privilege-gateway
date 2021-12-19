@@ -66,7 +66,7 @@ spring:
           predicates:
             - Path=/freight/**
           filters:
-            - RewritePath=/freight/(?<segment>.*), /$\{segment}
+            - RewritePath=/freight/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
         - id: goods-nologin
@@ -82,7 +82,7 @@ spring:
           predicates:
             - Path=/goods/**
           filters:
-            - RewritePath=/goods/(?<segment>.*), /$\{segment}
+            - RewritePath=/goods/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
         - id: comment-nologin
@@ -98,7 +98,7 @@ spring:
           predicates:
             - Path=/comment/**
           filters:
-            - RewritePath=/comment/(?<segment>.*), /$\{segment}
+            - RewritePath=/comment/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
         - id: coupon-nologin
@@ -130,7 +130,7 @@ spring:
           predicates:
             - Path=/shop/**
           filters:
-            - RewritePath=/shop/(?<segment>.*), /$\{segment}
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
   redis:
