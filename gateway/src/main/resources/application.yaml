@@ -114,7 +114,7 @@ spring:
           predicates:
             - Path=/coupon/**
           filters:
-            - RewritePath=/coupon/(?<segment>.*), /$\{segment}            -
+            - RewritePath=/coupon/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
         - id: shop-nologin
