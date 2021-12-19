@@ -1533,6 +1533,17 @@ public class PrivilegeControllerTest {
                 "\"errmsg\": \"成功\"\n" +
                 "}";
         JSONAssert.assertEquals(expectedString,responseString,false);
+        
+        String responseString1 = this.mvc.perform(MockMvcRequestBuilders.get("/logout")
+                .contentType("application/json;charset=UTF-8").header("authorization", "this is test"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(MockMvcResultMatchers.content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString(StandardCharsets.UTF_8);
+        String expectedString1 = "{\n" +
+                "\"errno\": 501,\n" +
+                "\"errmsg\": \"JWT不合法\"\n" +
+                "}";
+        JSONAssert.assertEquals(expectedString1,responseString1,false);
     }
 
 
