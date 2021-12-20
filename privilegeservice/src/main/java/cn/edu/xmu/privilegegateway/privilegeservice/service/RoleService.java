@@ -29,8 +29,6 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RoleInherited;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleInheritedRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.StateVo;
-import com.github.pagehelper.PageInfo;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,13 +61,13 @@ public class RoleService {
     /**
      * 分页查询所有角色
      *
-     * @author 24320182203281 王纬策
-     * @param page  页数
+     * @param page     页数
      * @param pageSize 每页大小
      * @return ReturnObject<PageInfo < VoObject>> 分页返回角色信息
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2020/11/26 10:55
+     * @author 24320182203281 王纬策
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject selectAllRoles(Long did, Integer page, Integer pageSize) {
@@ -90,12 +88,12 @@ public class RoleService {
     /**
      * 新增角色
      *
-     * @author 24320182203281 王纬策
      * @param bo 角色视图
      * @return ReturnObject<VoObject> 角色返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:03
+     * @author 24320182203281 王纬策
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject insertRole(Role bo) {
@@ -107,12 +105,12 @@ public class RoleService {
     /**
      * 新增功能角色
      *
-     * @author 24320182203281 王纬策
      * @param bo 角色视图
      * @return ReturnObject<VoObject> 角色返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:03
+     * @author 24320182203281 王纬策
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject insertBaseRole(Role bo) {
@@ -124,12 +122,12 @@ public class RoleService {
     /**
      * 删除角色
      *
-     * @author 24320182203281 王纬策
      * @param roleId 角色id
      * @return ReturnObject<Object> 返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:15
+     * @author 24320182203281 王纬策
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject deleteRole(Long roleId, Long did) {
@@ -139,12 +137,12 @@ public class RoleService {
     /**
      * 修改角色
      *
-     * @author 24320182203281 王纬策
      * @param bo 角色视图
      * @return ReturnObject<Object> 角色返回视图
      * createdBy 王纬策 2020/11/04 13:57
      * modifiedBy 王纬策 2020/11/7 19:20
      * modifiedBy 王文凯 2021/11/26 11:26
+     * @author 24320182203281 王纬策
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject updateRole(Role bo) {
@@ -185,37 +183,37 @@ public class RoleService {
     /**
      * author:zhangyu
      * 查询功能角色权限
+     *
      * @param roleid
      * @param pagenum
      * @param pagesize
      * @return
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
-    public ReturnObject selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize)
-    {
-        if(roleDao.isBaseRole(roleid))
-        {
-            return privilegeDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
+    public ReturnObject selectBaseRolePrivs(Long roleid, Integer pagenum, Integer pagesize) {
+        ReturnObject baseRole = roleDao.isBaseRole(roleid);
+        if (baseRole.getCode() != ReturnNo.OK) {
+            return baseRole;
         }
-        else
-            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+        return privilegeDao.selectBaseRolePrivs(roleid, pagenum, pagesize);
     }
 
     /**
      * author:zhangyu
      * 删除角色对应的权限（功能角色用）
+     *
      * @param rid
      * @param pid
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject<Object> delBaseRolePriv(Long rid,Long pid){
-        if(roleDao.isBaseRole(rid))
-        {
-            ReturnObject returnObject=privilegeDao.delRolePriv(rid,pid);
-            return  returnObject;
+    public ReturnObject<Object> delBaseRolePriv(Long rid, Long pid) {
+        ReturnObject baseRole = roleDao.isBaseRole(rid);
+        if (baseRole.getCode() != ReturnNo.OK) {
+            return baseRole;
         }
-        return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        ReturnObject returnObject = privilegeDao.delRolePriv(rid, pid);
+        return returnObject;
     }
 
     /**
@@ -226,6 +224,7 @@ public class RoleService {
      */
     /**
      * 获取功能角色权限
+     *
      * @param roleid
      * @param privilegeid
      * @param creatorid
@@ -233,51 +232,51 @@ public class RoleService {
      * @return
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject addBaseRolePriv(Long roleid,Long privilegeid,Long creatorid,String creatorname){
+    public ReturnObject addBaseRolePriv(Long roleid, Long privilegeid, Long creatorid, String creatorname) {
         //新增
-        if(roleDao.isBaseRole(roleid))
-        {
-            ReturnObject returnObject=privilegeDao.addBaseRolePriv(roleid,privilegeid,creatorid,creatorname);
-            return returnObject;
+        ReturnObject baseRole = roleDao.isBaseRole(roleid);
+        if (baseRole.getCode() != ReturnNo.OK) {
+            return baseRole;
         }
-
-        else
-            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        ReturnObject returnObject = privilegeDao.addBaseRolePriv(roleid, privilegeid, creatorid, creatorname);
+        return returnObject;
     }
 
     /**
      * 设置角色的继承关系
-     * @author 张晖婧
-     * @param pid 父角色id
-     * @param cid 子角色id
+     *
+     * @param pid      父角色id
+     * @param cid      子角色id
      * @param createId 创建者id
-     * @param did 部门id
+     * @param did      部门id
      * @return
+     * @author 张晖婧
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject<VoObject> createRoleInherited(Long createId,String createName,Long did, Long pid, Long cid) {
-        RoleInherited roleInherited=new RoleInherited();
-        Common.setPoCreatedFields(roleInherited,createId,createName);
-        Common.setPoModifiedFields(roleInherited,createId,createName);
+    public ReturnObject<VoObject> createRoleInherited(Long createId, String createName, Long did, Long pid, Long cid) {
+        RoleInherited roleInherited = new RoleInherited();
+        Common.setPoCreatedFields(roleInherited, createId, createName);
+        Common.setPoModifiedFields(roleInherited, createId, createName);
         roleInherited.setRoleId(pid);
         roleInherited.setRoleCId(cid);
 
-        ReturnObject returnObject= roleDao.createRoleInherited(roleInherited,did);
+        ReturnObject returnObject = roleDao.createRoleInherited(roleInherited, did);
 
-        if (returnObject.getCode()!=ReturnNo.OK)
+        if (returnObject.getCode() != ReturnNo.OK)
             return returnObject;
-        RoleInherited roleInheritedBo=(RoleInherited) returnObject.getData();
-        RoleInheritedRetVo retVo=(RoleInheritedRetVo) Common.cloneVo(roleInheritedBo, RoleInheritedRetVo.class);
+        RoleInherited roleInheritedBo = (RoleInherited) returnObject.getData();
+        RoleInheritedRetVo retVo = (RoleInheritedRetVo) Common.cloneVo(roleInheritedBo, RoleInheritedRetVo.class);
 
         return new ReturnObject(retVo);
     }
 
     /**
      * 查询角色的功能角色
-     * @author 22920192204320 张晖婧
+     *
      * @param did: 部门 id
-     * @param id: 用户 id
+     * @param id:  用户 id
      * @return Object
+     * @author 22920192204320 张晖婧
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject findBaserolesByRoleId(Long did, Long id, Integer page, Integer pageSize) {
@@ -286,8 +285,9 @@ public class RoleService {
 
     /**
      * 获得角色的所有状态
-     * @author 22920192204320 张晖婧
+     *
      * @return Object
+     * @author 22920192204320 张晖婧
      */
     public ReturnObject getAllStates() {
         Role.State[] states = Role.State.class.getEnumConstants();
@@ -297,12 +297,14 @@ public class RoleService {
         }
         return new ReturnObject(stateVos);
     }
+
     /**
      * 查询父角色
-     * @author 张晖婧 22920192204320
+     *
      * @param did: 部门 id
-     * @param id: 角色 id
+     * @param id:  角色 id
      * @return Object
+     * @author 张晖婧 22920192204320
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject findParentRoles(Long did, Long id, Integer page, Integer pageSize) {
