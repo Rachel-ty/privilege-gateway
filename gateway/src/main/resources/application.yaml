@@ -32,7 +32,7 @@ spring:
         - id: privilege-login
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/**
+            - Path=/privilege/departs/{did}/**, /privilege/**
           filters:
             - RewritePath=/privilege/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -48,7 +48,7 @@ spring:
         - id: activity-login
           uri: lb://activity-service
           predicates:
-            - Path=/activity/**
+            - Path=/activity/shops/{did}/**
           filters:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -64,7 +64,7 @@ spring:
         - id: freight-login
           uri: lb://freight-service
           predicates:
-            - Path=/freight/**
+            - Path=/freight/shops/{did}/**
           filters:
             - RewritePath=/freight/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -80,7 +80,7 @@ spring:
         - id: goods-login
           uri: lb://goods-service
           predicates:
-            - Path=/goods/**
+            - Path=/goods/shops/{did}/**
           filters:
             - RewritePath=/goods/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -96,7 +96,7 @@ spring:
         - id: comment-login
           uri: lb://comment-service
           predicates:
-            - Path=/comment/**
+            - Path=/comment/shops/{did}/**
           filters:
             - RewritePath=/comment/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -112,7 +112,7 @@ spring:
         - id: coupon-login
           uri: lb://coupon-service
           predicates:
-            - Path=/coupon/**
+            - Path=/coupon/shops/{did}/**
           filters:
             - RewritePath=/coupon/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -128,7 +128,7 @@ spring:
         - id: shop-login
           uri: lb://shop-service
           predicates:
-            - Path=/shop/**
+            - Path=/shop/shops/{did}/**
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
             - Auth=authorization

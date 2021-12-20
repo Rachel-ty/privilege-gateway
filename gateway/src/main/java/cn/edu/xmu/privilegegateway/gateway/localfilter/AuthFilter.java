@@ -165,7 +165,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (url != null) {
                 // 获取路径中的shopId
                 Map<String, String> uriVariables = exchange.getAttribute(ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                ;
                 String pathId = uriVariables.get("did");
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
