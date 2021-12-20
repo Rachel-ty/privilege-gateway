@@ -59,7 +59,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
-    private static final String BASEURL = "http://privilege-service";
     private static final String LOADUSER = "/internal/users/{userId}";
     private static final String LOADPRIV = "/internal/privileges/load";
 

@@ -30,6 +30,6 @@ public class WebClientConfig {
 
     @Bean
     WebClient webClient(){
-        return WebClient.builder().filter(lbfunction).build();
+        return WebClient.builder().filter(lbfunction).baseUrl("http://privilege-service").build();
     }
 }
