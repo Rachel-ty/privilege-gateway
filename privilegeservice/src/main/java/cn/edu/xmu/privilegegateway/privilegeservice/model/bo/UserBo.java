@@ -33,9 +33,10 @@ import java.util.Map;
 public class UserBo {
 
     public enum State {
-        NORM(0, "正常"),
-        FORBID(1, "禁止访问"),
-        DELETE(2, "删除");
+        NEWUSER(0,"新用户"),
+        NORM(1, "正常"),
+        FORBID(2, "禁止访问"),
+        DELETE(3, "删除");
 
         private static final Map<Integer, State> stateMap;
         static { //由类加载机制，静态块初始加载对应的枚举属性到map中，而不用每次取属性时，遍历一次所有枚举值

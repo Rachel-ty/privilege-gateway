@@ -1442,6 +1442,7 @@ public class PrivilegeController {
     @Audit
     @PutMapping("internal/privileges/load")
     public Object loadPrivilege(@Validated @RequestBody PrivilegeRedisVo privilegeVo){
+        logger.info("loading -----------");
         return Common.decorateReturnObject(privilegeService.loadPrivilege(privilegeVo));
     }
 
