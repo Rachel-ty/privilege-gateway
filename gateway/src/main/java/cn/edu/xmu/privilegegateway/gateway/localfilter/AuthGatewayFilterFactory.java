@@ -24,6 +24,7 @@ import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -43,6 +44,9 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     @Autowired
     private RedisTemplate<String, Serializable> redisTemplate;
 
+    @Autowired
+    private WebClient webClient;
+
     @Value("${privilegegateway.jwtExpire:3600}")
     private Integer jwtExpireTime = 3600;
 
@@ -59,6 +63,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
         authFilter.setJwtExpireTime(jwtExpireTime);
         authFilter.setRefreshJwtTime(refreshJwtTime);
         authFilter.setRedisTemplate(redisTemplate);
+        authFilter.setWebClient(webClient);
         return authFilter;
     }
 

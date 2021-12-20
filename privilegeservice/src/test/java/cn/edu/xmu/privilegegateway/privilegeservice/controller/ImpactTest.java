@@ -87,7 +87,7 @@ public class ImpactTest {
         list.add(String.format(USERKEY,49L));
         list.add(String.format(ROLEKEY,5L));
         list.add(String.format(ROLEKEY,23L));
-        String except="[u_51, u_52, u_50, r_106, r_107, r_89, u_55, u_53, r_2, u_17346, r_1, u_1, r_4, r_3, u_17347, r_6, r_5, r_8, r_7, r_9, u_48, r_11, u_49, u_46, u_47]";
+        String except="[r_2, r_1, u_1, r_4, r_3, r_6, r_5, r_8, r_7, r_9, u_51, u_52, u_50, u_48, r_11, r_106, u_49, r_107, u_46, r_89, u_47, u_55, u_53]";
         String result=privilegeDao.privilegeImpact(94L).toString();
         System.out.println(result);
         JSONAssert.assertEquals(result, except,false);
