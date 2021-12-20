@@ -128,7 +128,7 @@ spring:
         - id: shop-login
           uri: lb://shop-service
           predicates:
-            - Path=/shop/shops/{did}/**
+            - Path=/shop/shops/{did}/**, /shop/shops
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
             - Auth=authorization
