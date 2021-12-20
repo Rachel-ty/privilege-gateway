@@ -1,8 +1,6 @@
 package cn.edu.xmu.privilegegateway.annotation.aop;
 
-import cn.edu.xmu.privilegegateway.annotation.util.JwtHelper;
-import cn.edu.xmu.privilegegateway.annotation.util.ResponseUtil;
-import cn.edu.xmu.privilegegateway.annotation.util.ReturnNo;
+import cn.edu.xmu.privilegegateway.annotation.util.*;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -61,7 +59,7 @@ public class AuditAspect {
         String token = request.getHeader(JwtHelper.LOGIN_TOKEN_KEY);
         if (token == null){
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return ResponseUtil.fail(ReturnNo.AUTH_NEED_LOGIN);
+            return  Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_NEED_LOGIN));
         }
 
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
@@ -104,7 +102,7 @@ public class AuditAspect {
                             logger.debug("did =" + pathId);
                             if (!pathId.equals(departId.toString())) {
                                 response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                                return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+                                return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, "departId不匹配"));
                             } else {
                                 flag = true;
                                 logger.debug("success match Id!");
@@ -118,7 +116,7 @@ public class AuditAspect {
                 }
                 if (flag == false) {
                     response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                    return ResponseUtil.fail(ReturnNo.FIELD_NOTVALID, "departId不匹配");
+                    return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.FIELD_NOTVALID, "departId不匹配"));
 
                 }
             }
