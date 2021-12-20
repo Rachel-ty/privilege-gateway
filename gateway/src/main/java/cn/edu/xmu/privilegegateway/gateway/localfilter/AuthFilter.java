@@ -236,19 +236,19 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 });
 
             }
-            Long privId = (Long) redisTemplate.opsForValue().get(urlKey);
+            //用户默认无权限
             boolean next = false;
-            if (privId == null) {
-                // 若该url无对应权限id
-                logger.debug(String.format(LOGMEG,"filter","该url无权限id:" + urlKey));
+            if (!redisTemplate.hasKey(urlKey)) {
+                logger.info(String.format(LOGMEG,"filter","权限url ="+urlKey+"不存在，不校验用户权限"));
                 next = true;
+            } else{
+                Long privId = (Long) redisTemplate.opsForValue().get(urlKey);
+                // 拿到该用户的权限位,检验是否具有访问该url的权限
+                if (redisTemplate.opsForSet().isMember(key, privId)) {
+                    logger.info(String.format(LOGMEG,"filter","用户有权限url ="+urlKey+""));
+                    next = true;
+                }
             }
-
-            // 拿到该用户的权限位,检验是否具有访问该url的权限
-            if (redisTemplate.opsForSet().isMember(key, privId)) {
-                next = true;
-            }
-
             if (next) {
                 return chain.filter(exchange).then(
                         Mono.fromRunnable(() -> {
@@ -264,19 +264,20 @@ public class AuthFilter implements GatewayFilter, Ordered {
                                 }
                         )
                 );
+            }else {
+                // 若全部检查完则无该url权限
+                logger.debug(String.format(LOGMEG, "filter", "无权限"));
+                // 设置返回消息
+                JSONObject message = new JSONObject();
+                message.put("errno", ReturnNo.AUTH_NO_RIGHT);
+                message.put("errmsg", ReturnNo.AUTH_NO_RIGHT.getMessage());
+                byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
+                DataBuffer buffer = factory.wrap(bits);
+                //指定编码，否则在浏览器中会中文乱码
+                response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
+                response.setStatusCode(HttpStatus.FORBIDDEN);
+                return response.writeWith(Mono.just(buffer));
             }
-            // 若全部检查完则无该url权限
-            logger.debug(String.format(LOGMEG,"filter","无权限"));
-            // 设置返回消息
-            JSONObject message = new JSONObject();
-            message.put("errno", ReturnNo.AUTH_NO_RIGHT);
-            message.put("errmsg", ReturnNo.AUTH_NO_RIGHT.getMessage());
-            byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-            DataBuffer buffer = factory.wrap(bits);
-            //指定编码，否则在浏览器中会中文乱码
-            response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
-            response.setStatusCode(HttpStatus.FORBIDDEN);
-            return response.writeWith(Mono.just(buffer));
         }
     }
 
