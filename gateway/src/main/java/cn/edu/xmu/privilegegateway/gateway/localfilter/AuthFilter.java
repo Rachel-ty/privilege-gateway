@@ -135,7 +135,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
         if (userAndDepart == null) {
             // 若token解析不合法
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.writeWith(Mono.empty());
+            response.getHeaders().set("Content-Type", "application/json;charset=UTF-8");
+            String ret = String.format(RETURN, ReturnNo.AUTH_INVALID_JWT.getCode(), ReturnNo.AUTH_INVALID_JWT.getMessage());
+            byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
+            return response.writeWith(Mono.just(factory.wrap(retByte)));
         } else {
             // 若token合法
             // 判断该token是否被ban
@@ -173,7 +176,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
                     if (!pathId.equals(departId.toString())) {
-                        System.out.println(url+"  "+pathId+"   "+departId);
                         // 若id不匹配
                         logger.debug(String.format(LOGMEG,"filter","did不匹配:" + pathId));
                         response.setStatusCode(HttpStatus.FORBIDDEN);
@@ -229,7 +231,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                     if (time > 0) {
                         //网关跑太快了 权限为load到redis
                         logger.info(String.format(LOGMEG,"filter","第"+(time+1)+"次load url ="+urlKey));
-                        Thread.sleep(1);
+                        Thread.sleep(2);
                     }
                 } catch (InterruptedException e) {
                 }

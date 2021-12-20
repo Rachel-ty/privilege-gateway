@@ -360,6 +360,8 @@ public class UserService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject addToDepart(Long did, Long id, Long loginUser, String loginName) {
 
+        String key=String.format(USERPROXYKEY,id);
+        redisUtil.del(key);
         return userDao.changeUserDepart(id, did, loginUser, loginName);
     }
 
