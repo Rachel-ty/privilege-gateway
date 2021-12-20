@@ -26,13 +26,21 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 
 public class JacksonUtil {
 
     private static final Log logger = LogFactory.getLog(JacksonUtil.class);
+    private static final Set<String> primitiveType = new HashSet<>(){
+        {
+            add(Integer.class.getName());
+            add(Long.class.getName());
+            add(Double.class.getName());
+            add(Float.class.getName());
+            add(Boolean.class.getName());
+        }
+    };
 
     public static String parseString(String body, String field) {
         ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
@@ -237,8 +245,24 @@ public class JacksonUtil {
 
         JsonNode node = (JsonNode) toNode(body);
         if (node != null) {
-            return mapper.convertValue(node, new TypeReference<List<T>>() {
+            List<JsonNode> retObj =mapper.convertValue(node, new TypeReference<List<JsonNode>>() {
             });
+            List<T> ret = new ArrayList<>(retObj.size());
+            for (JsonNode item:retObj) {
+                String value = item.toString();
+                T obj = null;
+                try {
+                    if (primitiveType.contains(clazz.getName())) {
+                        obj = clazz.getConstructor(String.class).newInstance(value);
+                    } else {
+                        obj = toObj(value, clazz);
+                    }
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                }
+                ret.add(obj);
+            }
+            return ret;
         }
         return null;
     }
@@ -277,6 +301,56 @@ public class JacksonUtil {
                 return leaf.toString();
             }
         } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public static <T> T parseSubnodeToObject(String body, String field, Class<T> clazz) {
+        ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule());
+        JsonNode node;
+        try {
+            node = mapper.readTree(body);
+            JsonNode leaf = node.at(field);
+            if (leaf != null) {
+                String value = leaf.toString();
+                if (primitiveType.contains(clazz.getName())){
+                    return (T) clazz.getConstructor(String.class).newInstance(value);
+                } else {
+                    return toObj(value, clazz);
+                }
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public static <T>  List<T> parseSubnodeToObjectList(String body, String field, Class<T> clazz) {
+        ObjectMapper mapper = new ObjectMapper().registerModule(new Jdk8Module())
+                .registerModule(new JavaTimeModule());
+        JsonNode node;
+        try {
+            node = mapper.readTree(body);
+            JsonNode leaf = node.at(field);
+            if (leaf != null) {
+                List<JsonNode> retObj =mapper.convertValue(leaf, new TypeReference<List<JsonNode>>() {
+                });
+                List<T> ret = new ArrayList<>(retObj.size());
+                for (JsonNode item:retObj) {
+                    String value = item.toString();
+                    T obj = null;
+                    if (primitiveType.contains(clazz.getName())){
+                        obj = clazz.getConstructor(String.class).newInstance(value);
+                    } else {
+                        obj = toObj(value, clazz);
+                    }
+                    ret.add(obj);
+                }
+                return ret;
+            }
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
         }
         return null;
