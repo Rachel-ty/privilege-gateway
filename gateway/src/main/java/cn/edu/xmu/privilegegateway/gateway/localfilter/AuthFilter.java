@@ -268,7 +268,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
             message.put("errno", ReturnNo.AUTH_NO_RIGHT);
             message.put("errmsg", ReturnNo.AUTH_NO_RIGHT.getMessage());
             byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-            DataBuffer buffer = response.bufferFactory().wrap(bits);
+            DataBuffer buffer = factory.wrap(bits);
             //指定编码，否则在浏览器中会中文乱码
             response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
             response.setStatusCode(HttpStatus.FORBIDDEN);
