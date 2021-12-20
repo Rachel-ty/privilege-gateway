@@ -40,6 +40,7 @@ import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.scripting.support.ResourceScriptSource;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.util.pattern.PathPattern;
 import reactor.core.publisher.Mono;
 
 import java.io.Serializable;
@@ -107,11 +108,13 @@ public class AuthFilter implements GatewayFilter, Ordered {
      */
     /**
      * 将判断token是否被ban的逻辑用lua脚本重写
+     *
      * @author Jianjian Chan
      * @date 2021/12/03
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
+        JSONObject message = new JSONObject();
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         // 获取请求参数
@@ -122,7 +125,13 @@ public class AuthFilter implements GatewayFilter, Ordered {
         logger.debug(String.format(LOGMEG, "filter", "token = " + token));
         if (StringUtil.isNullOrEmpty(token)) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            return response.writeWith(Mono.empty());
+            message.put("errno", ReturnNo.AUTH_NEED_LOGIN.getCode());
+            message.put("errmsg", ReturnNo.AUTH_NEED_LOGIN.getMessage());
+            byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
+            DataBuffer buffer = response.bufferFactory().wrap(bits);
+            //指定编码，否则在浏览器中会中文乱码
+            response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
+            return response.writeWith(Mono.just(buffer));
         }
         // 判断token是否合法
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
@@ -145,9 +154,15 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
             Boolean baned = redisTemplate.execute(script, keyList, token);
 
-            if(baned) {
+            if (baned) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                return response.writeWith(Mono.empty());
+                message.put("errno", ReturnNo. AUTH_USER_FORBIDDEN.getCode());
+                message.put("errmsg", ReturnNo. AUTH_USER_FORBIDDEN.getMessage());
+                byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
+                DataBuffer buffer = response.bufferFactory().wrap(bits);
+                //指定编码，否则在浏览器中会中文乱码
+                response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
+                return response.writeWith(Mono.just(buffer));
             }
             // 检测完了则该token有效
             // 解析userid和departid和有效期
@@ -159,21 +174,32 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 检验api中传入token是否和departId一致
             if (url != null) {
                 // 获取路径中的shopId
+
                 Map<String, String> uriVariables = exchange.getAttribute(ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                ;
+                System.out.println(url+"----"+uriVariables);
                 String pathId = uriVariables.get("did");
+                if(pathId==null)
+                {
+                    pathId=uriVariables.get("shopId");
+                }
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
                     if (!pathId.equals(departId.toString())) {
                         // 若id不匹配
-                        logger.debug(String.format(LOGMEG,"filter","did不匹配:" + pathId));
+                        logger.debug(String.format(LOGMEG, "filter", "did不匹配:" + pathId));
                         response.setStatusCode(HttpStatus.FORBIDDEN);
-                        return response.writeWith(Mono.empty());
+                        message.put("errno", ReturnNo. RESOURCE_ID_OUTSCOPE.getCode());
+                        message.put("errmsg", ReturnNo. RESOURCE_ID_OUTSCOPE.getMessage());
+                        byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
+                        DataBuffer buffer = response.bufferFactory().wrap(bits);
+                        //指定编码，否则在浏览器中会中文乱码
+                        response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
+                        return response.writeWith(Mono.just(buffer));
                     }
                 }
-                logger.debug(String.format(LOGMEG,"filter","did匹配"));
+                logger.debug(String.format(LOGMEG, "filter", "did匹配"));
             } else {
-                logger.debug(String.format(LOGMEG,"filter","请求url为空"));
+                logger.debug(String.format(LOGMEG, "filter", "请求url为空"));
                 response.setStatusCode(HttpStatus.BAD_REQUEST);
                 return response.writeWith(Mono.empty());
             }
@@ -184,13 +210,13 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (!redisTemplate.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                Mono<InternalReturnObject> mono = webClient.get().uri(LOADUSER,userId).header(tokenName,token).retrieve().bodyToMono(InternalReturnObject.class);
-                mono.subscribe(retObj ->{
-                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())){
-                        logger.error(String.format(LOGMEG,"filter","load user errno ="+retObj.getErrno()+" errmsg = "+retObj.getErrmsg()));
+                Mono<InternalReturnObject> mono = webClient.get().uri(LOADUSER, userId).header(tokenName, token).retrieve().bodyToMono(InternalReturnObject.class);
+                mono.subscribe(retObj -> {
+                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())) {
+                        logger.error(String.format(LOGMEG, "filter", "load user errno =" + retObj.getErrno() + " errmsg = " + retObj.getErrmsg()));
                     }
-                }, e ->{
-                    logger.error(String.format(LOGMEG,"filter",e.getMessage()));
+                }, e -> {
+                    logger.error(String.format(LOGMEG, "filter", e.getMessage()));
                 });
             }
             // 将token放在返回消息头中
@@ -203,26 +229,33 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 找到该url所需要的权限id
             Integer requestType = RequestType.getCodeByType(method).getCode();
             String urlKey = String.format(PRIVKEY, commonUrl, requestType);
-            if (!redisTemplate.hasKey(urlKey)){
-                String json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
+            if (!redisTemplate.hasKey(urlKey)) {
+                String json = String.format("{\"url\": \"%s\", \"requestType\": %d}", commonUrl, requestType);
                 Mono<InternalReturnObject> mono = webClient.put().uri(LOADPRIV)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(json).header(tokenName,token)
+                        .bodyValue(json).header(tokenName, token)
                         .retrieve().bodyToMono(InternalReturnObject.class);
-                mono.subscribe(retObj ->{
-                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())){
-                        logger.error(String.format(LOGMEG,"filter","load privilege errno ="+retObj.getErrno()+" errmsg = "+retObj.getErrmsg()));
+                mono.subscribe(retObj -> {
+                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())) {
+                        logger.error(String.format(LOGMEG, "filter", "load privilege errno =" + retObj.getErrno() + " errmsg = " + retObj.getErrmsg()));
                     }
-                }, e ->{
-                    logger.error(String.format(LOGMEG,"filter",e.getMessage()));
+                }, e -> {
+                    logger.error(String.format(LOGMEG, "filter", e.getMessage()));
                 });
 
             }
-            Long privId = (Long) redisTemplate.opsForValue().get(urlKey);
+
+            Long privId;
+            Integer getValue = (Integer) redisTemplate.opsForValue().get(urlKey);
+            if (getValue == null) {
+                privId = null;
+            } else {
+                privId = Long.valueOf(getValue.intValue());
+            }
             boolean next = false;
             if (privId == null) {
                 // 若该url无对应权限id
-                logger.debug(String.format(LOGMEG,"filter","该url无权限id:" + urlKey));
+                logger.debug(String.format(LOGMEG, "filter", "该url无权限id:" + urlKey));
                 next = true;
             }
 
@@ -240,7 +273,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                                         // 若快要过期了则重新换发token 创建新的token
                                         JwtHelper jwtHelper = new JwtHelper();
                                         String newJwt = jwtHelper.createToken(userId, userName, departId, userLevel, jwtExpireTime);
-                                        logger.debug(String.format(LOGMEG,"filter","重新换发token:" + jwt));
+                                        logger.debug(String.format(LOGMEG, "filter", "重新换发token:" + jwt));
                                         response.getHeaders().set(tokenName, newJwt);
                                     }
                                 }
@@ -248,10 +281,9 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 );
             }
             // 若全部检查完则无该url权限
-            logger.debug(String.format(LOGMEG,"filter","无权限"));
+            logger.debug(String.format(LOGMEG, "filter", "无权限"));
             // 设置返回消息
-            JSONObject message = new JSONObject();
-            message.put("errno", ReturnNo.AUTH_NO_RIGHT);
+            message.put("errno", ReturnNo.AUTH_NO_RIGHT.getCode());
             message.put("errmsg", "无权限访问该url");
             byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
             DataBuffer buffer = response.bufferFactory().wrap(bits);
@@ -315,11 +347,16 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
         public static RequestType getCodeByType(HttpMethod method) {
             switch (method) {
-                case GET: return RequestType.GET;
-                case PUT: return RequestType.PUT;
-                case POST: return RequestType.POST;
-                case DELETE: return RequestType.DELETE;
-                default: return null;
+                case GET:
+                    return RequestType.GET;
+                case PUT:
+                    return RequestType.PUT;
+                case POST:
+                    return RequestType.POST;
+                case DELETE:
+                    return RequestType.DELETE;
+                default:
+                    return null;
             }
         }
 
