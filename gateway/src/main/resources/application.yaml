@@ -155,3 +155,4 @@ rocketmq:
 privilegegateway:
   jwtExpire: 3600
   refreshJwtTime: 60
+  retry: 3

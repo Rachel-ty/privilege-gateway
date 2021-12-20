@@ -53,6 +53,9 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
     @Value("${privilegegateway.refreshJwtTime:60}")
     private Integer refreshJwtTime = 60;
 
+    @Value("${privilegegateway.retry:3}")
+    private Integer maxTime = 3;
+
     public AuthGatewayFilterFactory() {
         super(AuthFilter.Config.class);
     }
@@ -64,6 +67,7 @@ public class AuthGatewayFilterFactory extends AbstractGatewayFilterFactory<AuthF
         authFilter.setRefreshJwtTime(refreshJwtTime);
         authFilter.setRedisTemplate(redisTemplate);
         authFilter.setWebClient(webClient);
+        authFilter.setMaxTimes(maxTime);
         return authFilter;
     }
 

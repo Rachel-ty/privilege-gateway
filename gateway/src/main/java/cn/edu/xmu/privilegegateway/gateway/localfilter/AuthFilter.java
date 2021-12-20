@@ -74,6 +74,8 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     private WebClient webClient;
 
+    private Integer maxTimes;
+
     public AuthFilter(Config config) {
         this.tokenName = config.getTokenName();
     }
@@ -94,7 +96,11 @@ public class AuthFilter implements GatewayFilter, Ordered {
         this.webClient = webClient;
     }
 
-    /**
+    public void setMaxTimes(Integer maxTimes) {
+        this.maxTimes = maxTimes;
+    }
+
+/**
      * gateway001 权限过滤器
      * 1. 检查JWT是否合法,以及是否过期，如果过期则需要在response的头里换发新JWT，如果不过期将旧的JWT在response的头中返回
      * 2. 判断用户的shopid是否与路径上的shopid一致（0可以不做这一检查）
@@ -198,13 +204,23 @@ public class AuthFilter implements GatewayFilter, Ordered {
             String jwt = token;
             // 判断redis中是否存在该用户的token，若不存在则重新load用户的权限
             String key = String.format(USERKEY, userId);
-            if (!redisTemplate.hasKey(key)) {
+            int time = 0;
+            String json = String.format("{\"token\": \"%s\"}",token);
+            while (!redisTemplate.hasKey(key) && time < this.maxTimes) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                String json = String.format("{\"token\": \"%s\"}",token);
+                try {
+                    if (time > 0) {
+                        //网关跑太快了 权限为load到redis
+                        logger.info(String.format(LOGMEG,"filter","第"+(time+1)+"次load userId ="+key));
+                        Thread.sleep(1);
+                    }
+                } catch (InterruptedException e) {
+                }
+
                 Mono<InternalReturnObject> mono = webClient.put().uri(LOADUSER,userId)
                         .header(tokenName,token).contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(token)
+                        .bodyValue(json)
                         .retrieve().bodyToMono(InternalReturnObject.class);
                 mono.subscribe(retObj ->{
                     if (!retObj.getErrno().equals(ReturnNo.OK.getCode())){
@@ -213,6 +229,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 }, e ->{
                     logger.error(String.format(LOGMEG,"filter",e.getMessage()));
                 });
+                time++;
             }
             // 将token放在返回消息头中
             response.getHeaders().set(tokenName, jwt);
@@ -224,9 +241,9 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 找到该url所需要的权限id
             Integer requestType = RequestType.getCodeByType(method).getCode();
             String urlKey = String.format(PRIVKEY, commonUrl, requestType);
-            int time = 0;
-            String json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
-            while (!redisTemplate.hasKey(urlKey) && time < 3){
+            time = 0;
+            json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
+            while (!redisTemplate.hasKey(urlKey) && time < this.maxTimes){
                 try {
                     if (time > 0) {
                         //网关跑太快了 权限为load到redis
