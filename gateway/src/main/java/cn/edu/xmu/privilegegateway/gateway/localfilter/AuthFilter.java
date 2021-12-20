@@ -56,7 +56,7 @@ import java.util.regex.Pattern;
  **/
 public class AuthFilter implements GatewayFilter, Ordered {
     private static final Logger logger = LoggerFactory.getLogger(AuthFilter.class);
-    private static final String LOGMEG = "%s: $s";
+    private static final String LOGMEG = "%s: %s";
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
@@ -276,7 +276,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 logger.debug(String.format(LOGMEG, "filter", "无权限"));
                 // 设置返回消息
                 JSONObject message = new JSONObject();
-                message.put("errno", ReturnNo.AUTH_NO_RIGHT);
+                message.put("errno", ReturnNo.AUTH_NO_RIGHT.getCode());
                 message.put("errmsg", ReturnNo.AUTH_NO_RIGHT.getMessage());
                 byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
                 DataBuffer buffer = factory.wrap(bits);
