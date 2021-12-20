@@ -29,6 +29,7 @@ import org.springframework.cloud.gateway.support.ServerWebExchangeUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.http.HttpMethod;
@@ -62,6 +63,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     private static final String LOADUSER = "/internal/users/{userId}";
     private static final String LOADPRIV = "/internal/privileges/load";
+    private static final String RETURN = "{\"errno\": %d, \"errmsg\": \"%s\"}";
 
     private String tokenName;
 
@@ -108,7 +110,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
      */
     /**
      * 将判断token是否被ban的逻辑用lua脚本重写
-     *
      * @author Jianjian Chan
      * @date 2021/12/03
      */
@@ -117,6 +118,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
         JSONObject message = new JSONObject();
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
+        DataBufferFactory factory = response.bufferFactory();
         // 获取请求参数
         String token = request.getHeaders().getFirst(tokenName);
         RequestPath url = request.getPath();
@@ -125,13 +127,9 @@ public class AuthFilter implements GatewayFilter, Ordered {
         logger.debug(String.format(LOGMEG, "filter", "token = " + token));
         if (StringUtil.isNullOrEmpty(token)) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
-            message.put("errno", ReturnNo.AUTH_NEED_LOGIN.getCode());
-            message.put("errmsg", ReturnNo.AUTH_NEED_LOGIN.getMessage());
-            byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-            DataBuffer buffer = response.bufferFactory().wrap(bits);
-            //指定编码，否则在浏览器中会中文乱码
-            response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
-            return response.writeWith(Mono.just(buffer));
+            String ret = String.format(RETURN, ReturnNo.AUTH_NEED_LOGIN.getCode(), ReturnNo.AUTH_NEED_LOGIN.getMessage());
+            byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
+            return response.writeWith(Mono.just(factory.wrap(retByte)));
         }
         // 判断token是否合法
         JwtHelper.UserAndDepart userAndDepart = new JwtHelper().verifyTokenAndGetClaims(token);
