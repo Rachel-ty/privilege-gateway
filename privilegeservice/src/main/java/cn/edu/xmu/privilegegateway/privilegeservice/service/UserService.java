@@ -121,7 +121,7 @@ public class UserService {
     /**
      * 登录
      *
-     * @param userName: 用户名
+     * @param account: 用户名
      * @param password: 密码
      * @param ipAddr:   ip地址
      * @return modified by Ming Qiu 2021-11-21 19:34
