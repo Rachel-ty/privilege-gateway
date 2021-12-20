@@ -514,7 +514,8 @@ public class PrivilegeDao {
             for(PrivilegePo po:poList)
             {
                 String key=String.format(PRIVKEY,po.getUrl(),po.getRequestType());
-                redisUtil.addSet(key,po.getId());
+                logger.info("redis-set:"+key);
+                redisUtil.set(key,po.getId(),timeout);
             }
             return new ReturnObject(ReturnNo.OK);
         }catch (Exception e)
