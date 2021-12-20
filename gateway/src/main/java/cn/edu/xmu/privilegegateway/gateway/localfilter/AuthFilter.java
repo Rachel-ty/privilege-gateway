@@ -60,7 +60,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
-    private static final String LOADUSER = "/internal/users/{userId}";
+    private static final String LOADUSER = "/internal/users/{id}/privileges/load";
     private static final String LOADPRIV = "/internal/privileges/load";
     private static final String RETURN = "{\"errno\": %d, \"errmsg\": \"%s\"}";
 
@@ -198,7 +198,11 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (!redisTemplate.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                Mono<InternalReturnObject> mono = webClient.get().uri(LOADUSER,userId).header(tokenName,token).retrieve().bodyToMono(InternalReturnObject.class);
+                String json = String.format("{\"token\": \"%s\"}",token);
+                Mono<InternalReturnObject> mono = webClient.put().uri(LOADUSER,userId)
+                        .header(tokenName,token).contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(token)
+                        .retrieve().bodyToMono(InternalReturnObject.class);
                 mono.subscribe(retObj ->{
                     if (!retObj.getErrno().equals(ReturnNo.OK.getCode())){
                         logger.error(String.format(LOGMEG,"filter","load user errno ="+retObj.getErrno()+" errmsg = "+retObj.getErrmsg()));
