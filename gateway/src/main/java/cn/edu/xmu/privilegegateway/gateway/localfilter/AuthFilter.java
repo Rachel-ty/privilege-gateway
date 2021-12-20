@@ -154,13 +154,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
             if (baned) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
-                message.put("errno", ReturnNo. AUTH_USER_FORBIDDEN.getCode());
-                message.put("errmsg", ReturnNo. AUTH_USER_FORBIDDEN.getMessage());
-                byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-                DataBuffer buffer = response.bufferFactory().wrap(bits);
-                //指定编码，否则在浏览器中会中文乱码
-                response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
-                return response.writeWith(Mono.just(buffer));
+                String ret = String.format(RETURN, ReturnNo.AUTH_USER_FORBIDDEN.getCode(), ReturnNo.AUTH_USER_FORBIDDEN.getMessage());
+                byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
+                return response.writeWith(Mono.just(factory.wrap(retByte)));
+
             }
             // 检测完了则该token有效
             // 解析userid和departid和有效期
@@ -172,27 +169,17 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 检验api中传入token是否和departId一致
             if (url != null) {
                 // 获取路径中的shopId
-
                 Map<String, String> uriVariables = exchange.getAttribute(ServerWebExchangeUtils.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                System.out.println(url+"----"+uriVariables);
                 String pathId = uriVariables.get("did");
-                if(pathId==null)
-                {
-                    pathId=uriVariables.get("shopId");
-                }
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
                     if (!pathId.equals(departId.toString())) {
                         // 若id不匹配
                         logger.debug(String.format(LOGMEG, "filter", "did不匹配:" + pathId));
                         response.setStatusCode(HttpStatus.FORBIDDEN);
-                        message.put("errno", ReturnNo. RESOURCE_ID_OUTSCOPE.getCode());
-                        message.put("errmsg", ReturnNo. RESOURCE_ID_OUTSCOPE.getMessage());
-                        byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-                        DataBuffer buffer = response.bufferFactory().wrap(bits);
-                        //指定编码，否则在浏览器中会中文乱码
-                        response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
-                        return response.writeWith(Mono.just(buffer));
+                        String ret = String.format(RETURN, ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(), ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
+                        byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
+                        return response.writeWith(Mono.just(factory.wrap(retByte)));
                     }
                 }
                 logger.debug(String.format(LOGMEG, "filter", "did匹配"));
