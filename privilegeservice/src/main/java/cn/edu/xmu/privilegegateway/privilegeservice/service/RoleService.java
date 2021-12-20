@@ -198,7 +198,7 @@ public class RoleService {
             return privilegeDao.selectBaseRolePrivs(roleid,pagenum,pagesize);
         }
         else
-            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
     }
 
     /**
