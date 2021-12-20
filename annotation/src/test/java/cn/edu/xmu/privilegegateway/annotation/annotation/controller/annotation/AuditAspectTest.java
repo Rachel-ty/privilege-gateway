@@ -73,7 +73,7 @@ public class AuditAspectTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectedResponse="{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        String expectedResponse="{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
         assert  expectedResponse.equals(responseString);
 
 
@@ -86,7 +86,7 @@ public class AuditAspectTest {
                 .andExpect(status().isForbidden())
                 .andExpect(content().contentType("application/json;charset=UTF-8"))
                 .andReturn().getResponse().getContentAsString();
-        String expectedResponse="{\"errno\":503,\"errmsg\":\"departId不匹配\"}";
+        String expectedResponse="{\"errno\":505,\"errmsg\":\"操作的资源id不是自己的对象\"}";
         assert  expectedResponse.equals(responseString);
 
 
