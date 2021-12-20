@@ -222,8 +222,18 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 找到该url所需要的权限id
             Integer requestType = RequestType.getCodeByType(method).getCode();
             String urlKey = String.format(PRIVKEY, commonUrl, requestType);
-            if (!redisTemplate.hasKey(urlKey)){
-                String json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
+            int time = 0;
+            String json = String.format("{\"url\": \"%s\", \"requestType\": %d}",commonUrl,requestType);
+            while (!redisTemplate.hasKey(urlKey) && time < 3){
+                try {
+                    if (time > 0) {
+                        //网关跑太快了 权限为load到redis
+                        logger.info(String.format(LOGMEG,"filter","第"+(time+1)+"次load url ="+urlKey));
+                        Thread.sleep(1);
+                    }
+                } catch (InterruptedException e) {
+                }
+
                 Mono<InternalReturnObject> mono = webClient.put().uri(LOADPRIV)
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(json).header(tokenName,token)
@@ -235,7 +245,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 }, e ->{
                     logger.error(String.format(LOGMEG,"filter",e.getMessage()));
                 });
-
+                time++;
             }
             boolean next = false;
             if (!redisTemplate.hasKey(urlKey)) {
