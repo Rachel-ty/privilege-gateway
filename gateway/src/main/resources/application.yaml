@@ -7,7 +7,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 121.36.53.115
+        server-addr: 101.132.164.244:8888
+        username: nacos
+        password: ooad_javaee201
     gateway:
       globalcors:
         cors-configurations:
@@ -134,9 +136,10 @@ spring:
             - Auth=authorization
 
   redis:
-    host: 121.36.53.115
+    host: 101.132.164.244
     database: 0
     password: 123456
+    port: 6889
 
 management:
   endpoint:

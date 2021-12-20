@@ -221,8 +221,8 @@ public class UserService {
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject Logout(Long userId) {
         String key = String.format(USERPROXYKEY, userId);
-        redisUtil.del(key);
-        return new ReturnObject(ReturnNo.OK);
+        kickOutUser(userId);
+        return new ReturnObject<>();
     }
 
     /**
