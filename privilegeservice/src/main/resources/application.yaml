@@ -1,18 +1,21 @@
 spring:
   redis:
-    host: 121.36.53.115
+    host: 101.132.164.244
     database: 0
     password: 123456
+    port: 6889
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-    url: jdbc:mysql://121.36.53.115:3306/privilege_gateway?serverTimezone=GMT%2B8&zeroDateTimeBehavior=convertToNull
+    url: jdbc:mysql://101.132.164.244:3306/privilege_gateway?serverTimezone=GMT%2B8
     username: dbuser
     password: 12345678
   cloud:
     nacos:
       discovery:
-        server-addr: 121.36.53.115
+        server-addr: 101.132.164.244:8888
+        username: nacos
+        password: ooad_javaee201
   application:
     name: privilege-service
 
