@@ -490,7 +490,6 @@ public class Common {
                 return new ResponseEntity(
                         ResponseUtil.fail(returnObject.getCode(), returnObject.getErrmsg()),
                         HttpStatus.NOT_FOUND);
-            case AUTH_INVALID_ACCOUNT:
             case AUTH_INVALID_JWT:
             case AUTH_JWT_EXPIRED:
             case AUTH_USER_FORBIDDEN:

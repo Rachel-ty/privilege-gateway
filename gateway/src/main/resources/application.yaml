@@ -7,7 +7,9 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 121.36.41.192
+        server-addr: 101.132.164.244:8888
+        username: nacos
+        password: ooad_javaee201
     gateway:
       globalcors:
         cors-configurations:
@@ -32,7 +34,7 @@ spring:
         - id: privilege-login
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/departs/{did}/**, /privilege/**
+            - Path=/privilege/**
           filters:
             - RewritePath=/privilege/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -48,7 +50,7 @@ spring:
         - id: activity-login
           uri: lb://activity-service
           predicates:
-            - Path=/activity/shops/{did}/**
+            - Path=/activity/**
           filters:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -64,7 +66,7 @@ spring:
         - id: freight-login
           uri: lb://freight-service
           predicates:
-            - Path=/freight/shops/{did}/**
+            - Path=/freight/**
           filters:
             - RewritePath=/freight/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -80,7 +82,7 @@ spring:
         - id: goods-login
           uri: lb://goods-service
           predicates:
-            - Path=/goods/shops/{did}/**
+            - Path=/goods/**
           filters:
             - RewritePath=/goods/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -96,7 +98,7 @@ spring:
         - id: comment-login
           uri: lb://comment-service
           predicates:
-            - Path=/comment/shops/{did}/**
+            - Path=/comment/**
           filters:
             - RewritePath=/comment/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -112,7 +114,7 @@ spring:
         - id: coupon-login
           uri: lb://coupon-service
           predicates:
-            - Path=/coupon/shops/{did}/**
+            - Path=/coupon/**
           filters:
             - RewritePath=/coupon/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -128,15 +130,16 @@ spring:
         - id: shop-login
           uri: lb://shop-service
           predicates:
-            - Path=/shop/shops/{did}/**,/shop/shops/**
+            - Path=/shop/**
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
   redis:
-    host: 121.36.53.115
+    host: 101.132.164.244
     database: 0
     password: 123456
+    port: 6889
 
 management:
   endpoint:
