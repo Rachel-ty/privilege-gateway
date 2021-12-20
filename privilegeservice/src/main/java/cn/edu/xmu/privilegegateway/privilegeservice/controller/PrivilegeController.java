@@ -1400,6 +1400,7 @@ public class PrivilegeController {
 //        {
 //            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
 //        }
+        System.out.println(did);
         ReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
         return  Common.decorateReturnObject(returnObj);
     }

@@ -174,6 +174,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
                     if (!pathId.equals(departId.toString())) {
+                        System.out.println(url+"  "+pathId+"   "+departId);
                         // 若id不匹配
                         logger.debug(String.format(LOGMEG,"filter","did不匹配:" + pathId));
                         response.setStatusCode(HttpStatus.FORBIDDEN);
