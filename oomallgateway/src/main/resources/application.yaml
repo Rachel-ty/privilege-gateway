@@ -3,13 +3,11 @@ server:
 
 spring:
   application:
-    name: privilege-gateway
+    name: oomall-gateway
   cloud:
     nacos:
       discovery:
-        server-addr: 101.132.164.244:8888
-        username: nacos
-        password: ooad_javaee201
+        server-addr: 121.36.53.115
     gateway:
       globalcors:
         cors-configurations:
@@ -23,22 +21,73 @@ spring:
               - HEAD
               - OPTIONS
       routes:
-        #权限模块
-        - id: privilege-nologin
-          uri: lb://privilege-service
-          predicates:
-            - Path=/privilege/login, /privilege/*/states
-          filters:
-            - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
+        # 顾客模块
+        - id: customer-nologin
+          uri: lb://other-service
+            predicates:
+              - Path=/customer/customers/states, /customer/customers
+              - Method=GET,POST
+            filters:
+              - RewritePath=/customer/(?<segment>.*), /$\{segment}
 
-        - id: privilege-login
-          uri: lb://privilege-service
-          predicates:
-            - Path=/privilege/**
-          filters:
-            - RewritePath=/privilege/(?<segment>.*), /$\{segment}
-            - Auth=authorization
+        - id: customer-login
+            uri: lb://other-service
+            predicates:
+              - Path=/customer/**
+            filters:
+              - RewritePath=/customer/(?<segment>.*), /$\{segment}
+              - Auth=authorization
+        # 售后服务模块
+        - id: aftersale-nologin
+            uri: lb://other-service
+              predicates:
+                - Path=/aftersale/aftersales/states
+                - Method=GET
+              filters:
+                - RewritePath=/aftersale/(?<segment>.*), /$\{segment}
 
+        - id: aftersale-login
+            uri: lb://other-service
+              predicates:
+                - Path=/aftersale/**
+              filters:
+                - RewritePath=/aftersale/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+        # 订单服务
+        - id: order-nologin
+            uri: lb://order-service
+              predicates:
+                - Path=/order/orders/states
+                - Method=GET
+              filters:
+                - RewritePath=/order/(?<segment>.*), /$\{segment}
+
+        - id: order-login
+            uri: lb://other-service
+              predicates:
+                - Path=/order/**
+              filters:
+                - RewritePath=/order/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+
+        # 支付服务
+        - id: payment-nologin
+            uri: lb://payment-service
+              predicates:
+                - Path=/payment/paypatterns/states, /payment/payments/states
+                - Method=GET
+              filters:
+                - RewritePath=/payment/(?<segment>.*), /$\{segment}
+
+        - id: payment-login
+            uri: lb://payment-service
+              predicates:
+                - Path=/payment/**
+              filters:
+                - RewritePath=/payment/(?<segment>.*), /$\{segment}
+                - Auth=authorization
+
+        # 活动模块
         - id: activity-nologin
           uri: lb://activity-service
           predicates:
@@ -55,6 +104,7 @@ spring:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
             - Auth=authorization
 
+        # 运费模块
         - id: freight-nologin
           uri: lb://freight-service
           predicates:
@@ -68,9 +118,10 @@ spring:
           predicates:
             - Path=/freight/**
           filters:
-            - RewritePath=/freight/(?<segment>.*), /$\{segment}
+            - RewritePath=/freight/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
+        # 商品模块
         - id: goods-nologin
           uri: lb://goods-service
           predicates:
@@ -84,9 +135,10 @@ spring:
           predicates:
             - Path=/goods/**
           filters:
-            - RewritePath=/goods/(?<segment>.*), /$\{segment}
+            - RewritePath=/goods/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
+        # 评论模块
         - id: comment-nologin
           uri: lb://comment-service
           predicates:
@@ -100,9 +152,10 @@ spring:
           predicates:
             - Path=/comment/**
           filters:
-            - RewritePath=/comment/(?<segment>.*), /$\{segment}
+            - RewritePath=/comment/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
+        # 优惠模块
         - id: coupon-nologin
           uri: lb://coupon-service
           predicates:
@@ -116,9 +169,10 @@ spring:
           predicates:
             - Path=/coupon/**
           filters:
-            - RewritePath=/coupon/(?<segment>.*), /$\{segment}
+            - RewritePath=/coupon/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
+        # 商城模块
         - id: shop-nologin
           uri: lb://shop-service
           predicates:
@@ -132,14 +186,29 @@ spring:
           predicates:
             - Path=/shop/**
           filters:
-            - RewritePath=/shop/(?<segment>.*), /$\{segment}
+            - RewritePath=/shop/(?<segment>.*), /$\{segment}            -
             - Auth=authorization
 
+        # 清算模块
+        - id: liquidation-nologin
+            uri: lb://other-service
+            predicates:
+              - Path=/liquidatiion/liquidatiion/states
+              - Method=GET
+            filters:
+              - RewritePath=/shop/(?<segment>.*), /$\{segment}
+
+        - id: liquidation-login
+            uri: lb://other-service
+            predicates:
+              - Path=/liquidatiion/**
+            filters:
+              - RewritePath=/liquidatiion/(?<segment>.*), /$\{segment}            -
+              - Auth=authorization
   redis:
-    host: 101.132.164.244
+    host: 121.36.53.115
     database: 0
     password: 123456
-    port: 6889
 
 management:
   endpoint:
@@ -155,6 +224,6 @@ rocketmq:
     retry-times-when-send-async-failed: 2
 
 
-privilegegateway:
-  jwtExpire: 3600
-  refreshJwtTime: 60
+#privilegegateway:
+#  jwtExpire: 3600
+#  refreshJwtTime: 60

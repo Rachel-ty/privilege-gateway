@@ -895,7 +895,6 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-
         String ip = IpUtil.getIpAddr(httpServletRequest);
         ReturnObject ret=userService.login(loginVo.getName(), loginVo.getPassword(), ip);
         if(ret.getCode()==ReturnNo.OK)
