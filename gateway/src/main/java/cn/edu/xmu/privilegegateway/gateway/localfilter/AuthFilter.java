@@ -59,7 +59,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
-    private static final String BASEURL = "lb://privilege-service";
+    private static final String BASEURL = "http://privilege-service";
     private static final String LOADUSER = "/internal/users/{userId}";
     private static final String LOADPRIV = "/internal/privileges/load";
 
@@ -71,7 +71,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     private Integer refreshJwtTime = 60;
 
-    private WebClient webClient = WebClient.create(BASEURL);
+    private WebClient webClient;
 
     public AuthFilter(Config config) {
         this.tokenName = config.getTokenName();
@@ -87,6 +87,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
     public void setRefreshJwtTime(Integer refreshJwtTime) {
         this.refreshJwtTime = refreshJwtTime;
+    }
+
+    public void setWebClient(WebClient webClient) {
+        this.webClient = webClient;
     }
 
     /**
