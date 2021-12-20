@@ -1393,11 +1393,13 @@ public class PrivilegeController {
     })
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/internal/users/{id}/departs/{did}")
-    public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@LoginUser Long loginUser,@LoginName String loginName) {
-        if(did!=0)
-        {
-            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        }
+    public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@Depart Long departId,@LoginUser Long loginUser,@LoginName String loginName) {
+//        System.out.println(departId);
+//        System.out.println(loginName);
+//        if(departId!=0)
+//        {
+//            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
+//        }
         ReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
         return  Common.decorateReturnObject(returnObj);
     }
@@ -1440,6 +1442,7 @@ public class PrivilegeController {
     @Audit
     @PutMapping("internal/privileges/load")
     public Object loadPrivilege(@Validated @RequestBody PrivilegeRedisVo privilegeVo){
+        logger.info("loading -----------");
         return Common.decorateReturnObject(privilegeService.loadPrivilege(privilegeVo));
     }
 
