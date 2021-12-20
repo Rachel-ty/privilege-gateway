@@ -533,15 +533,15 @@ public class RoleDao {
      * @param roleid
      * @return
      */
-    public boolean isBaseRole(Long roleid) {
+    public ReturnObject isBaseRole(Long roleid) {
         RolePo rolePo = roleMapper.selectByPrimaryKey(roleid);
         if (rolePo == null) {
-            return false;
+            return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
         }
         if (rolePo.getBaserole() != BASEROLE) {
-            return false;
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
-        return true;
+        return new ReturnObject(rolePo);
     }
 
 
