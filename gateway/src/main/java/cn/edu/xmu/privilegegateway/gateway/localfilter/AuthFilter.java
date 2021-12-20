@@ -61,7 +61,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
     private static final String USERKEY = "up_%d";
     private static final String PRIVKEY = "%s-%d";
 
-    private static final String LOADUSER = "/internal/users/{userId}";
+    private static final String LOADUSER = "/internal/users/{id}/privileges/load";
     private static final String LOADPRIV = "/internal/privileges/load";
     private static final String RETURN = "{\"errno\": %d, \"errmsg\": \"%s\"}";
 
@@ -115,7 +115,6 @@ public class AuthFilter implements GatewayFilter, Ordered {
      */
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
-        JSONObject message = new JSONObject();
         ServerHttpRequest request = exchange.getRequest();
         ServerHttpResponse response = exchange.getResponse();
         DataBufferFactory factory = response.bufferFactory();
@@ -127,6 +126,7 @@ public class AuthFilter implements GatewayFilter, Ordered {
         logger.debug(String.format(LOGMEG, "filter", "token = " + token));
         if (StringUtil.isNullOrEmpty(token)) {
             response.setStatusCode(HttpStatus.UNAUTHORIZED);
+            response.getHeaders().set("Content-Type", "application/json;charset=UTF-8");
             String ret = String.format(RETURN, ReturnNo.AUTH_NEED_LOGIN.getCode(), ReturnNo.AUTH_NEED_LOGIN.getMessage());
             byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
             return response.writeWith(Mono.just(factory.wrap(retByte)));
@@ -154,10 +154,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
             if (baned) {
                 response.setStatusCode(HttpStatus.UNAUTHORIZED);
+                response.getHeaders().set("Content-Type", "application/json;charset=UTF-8");
                 String ret = String.format(RETURN, ReturnNo.AUTH_USER_FORBIDDEN.getCode(), ReturnNo.AUTH_USER_FORBIDDEN.getMessage());
                 byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
                 return response.writeWith(Mono.just(factory.wrap(retByte)));
-
             }
             // 检测完了则该token有效
             // 解析userid和departid和有效期
@@ -174,10 +174,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
                 if (pathId != null && !departId.equals(0L)) {
                     // 若非空且解析出的部门id非0则检查是否匹配
                     if (!pathId.equals(departId.toString())) {
-                        System.out.println();
                         // 若id不匹配
                         logger.debug(String.format(LOGMEG, "filter", "did不匹配:" + pathId));
                         response.setStatusCode(HttpStatus.FORBIDDEN);
+                        response.getHeaders().set("Content-Type", "application/json;charset=UTF-8");
                         String ret = String.format(RETURN, ReturnNo.RESOURCE_ID_OUTSCOPE.getCode(), ReturnNo.RESOURCE_ID_OUTSCOPE.getMessage());
                         byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
                         return response.writeWith(Mono.just(factory.wrap(retByte)));
@@ -187,7 +187,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
             } else {
                 logger.debug(String.format(LOGMEG, "filter", "请求url为空"));
                 response.setStatusCode(HttpStatus.BAD_REQUEST);
-                return response.writeWith(Mono.empty());
+                response.getHeaders().set("Content-Type", "application/json;charset=UTF-8");
+                String ret = String.format(RETURN, ReturnNo.FIELD_NOTVALID.getCode(), ReturnNo.FIELD_NOTVALID.getMessage());
+                byte[] retByte = ret.getBytes(StandardCharsets.UTF_8);
+                return response.writeWith(Mono.just(factory.wrap(retByte)));
             }
 
             String jwt = token;
@@ -196,10 +199,14 @@ public class AuthFilter implements GatewayFilter, Ordered {
             if (!redisTemplate.hasKey(key)) {
                 // 如果redis中没有该键值
                 // 通过内部调用将权限载入redis并返回新的token
-                Mono<InternalReturnObject> mono = webClient.get().uri(LOADUSER, userId).header(tokenName, token).retrieve().bodyToMono(InternalReturnObject.class);
-                mono.subscribe(retObj -> {
-                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())) {
-                        logger.error(String.format(LOGMEG, "filter", "load user errno =" + retObj.getErrno() + " errmsg = " + retObj.getErrmsg()));
+                String json = String.format("{\"token\": \"%s\"}",token);
+                Mono<InternalReturnObject> mono = webClient.put().uri(LOADUSER,userId)
+                        .header(tokenName,token).contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(token)
+                        .retrieve().bodyToMono(InternalReturnObject.class);
+                mono.subscribe(retObj ->{
+                    if (!retObj.getErrno().equals(ReturnNo.OK.getCode())){
+                        logger.error(String.format(LOGMEG,"filter","load user errno ="+retObj.getErrno()+" errmsg = "+retObj.getErrmsg()));
                     }
                 }, e -> {
                     logger.error(String.format(LOGMEG, "filter", e.getMessage()));
@@ -269,12 +276,13 @@ public class AuthFilter implements GatewayFilter, Ordered {
             // 若全部检查完则无该url权限
             logger.debug(String.format(LOGMEG, "filter", "无权限"));
             // 设置返回消息
-            message.put("errno", ReturnNo.AUTH_NO_RIGHT.getCode());
-            message.put("errmsg", "无权限访问该url");
+            JSONObject message = new JSONObject();
+            message.put("errno", ReturnNo.AUTH_NO_RIGHT);
+            message.put("errmsg", ReturnNo.AUTH_NO_RIGHT.getMessage());
             byte[] bits = message.toJSONString().getBytes(StandardCharsets.UTF_8);
-            DataBuffer buffer = response.bufferFactory().wrap(bits);
+            DataBuffer buffer = factory.wrap(bits);
             //指定编码，否则在浏览器中会中文乱码
-            response.getHeaders().add("Content-Type", "text/plain;charset=UTF-8");
+            response.getHeaders().add("Content-Type", "application/json;charset=UTF-8");
             response.setStatusCode(HttpStatus.FORBIDDEN);
             return response.writeWith(Mono.just(buffer));
         }
