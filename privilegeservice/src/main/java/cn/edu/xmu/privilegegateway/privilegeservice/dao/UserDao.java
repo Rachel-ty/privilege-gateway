@@ -30,6 +30,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.ResetPwdVo;
 
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import io.swagger.models.auth.In;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -145,14 +146,14 @@ public class UserDao {
                 return proxyUser;
             }
             if (!(user.getData().getDepartId().equals(proxyUser.getData().getDepartId()))) {
-                return new ReturnObject<>(ReturnNo.USERPROXY_DEPART_CONFLICT);
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
             bo.setUserName(user.getData().getName());
             bo.setProxyUserName(proxyUser.getData().getName());
             bo.setValid((byte) 0);
             UserProxyPo userProxyPo = (UserProxyPo) baseCoder.code_sign(bo, UserProxyPo.class, null, proxySignFields, "signature");
             userProxyPoMapper.insert(userProxyPo);
-            UserProxy userProxy = (UserProxy) Common.cloneVo(userProxyPo, UserProxy.class);
+            UserProxy userProxy = Common.cloneVo(userProxyPo, UserProxy.class);
             userProxy.setSign((byte) 0);
             return new ReturnObject<>(userProxy);
         } catch (Exception e) {
@@ -220,6 +221,47 @@ public class UserDao {
         } catch (Exception e) {
             logger.error(e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
+        }
+    }
+
+    public ReturnObject getProxiesSelf(Long userId, Integer page, Integer pageSize) {
+        UserProxyPoExample userProxyPoExample = new UserProxyPoExample();
+        LocalDateTime now = LocalDateTime.now();
+        userProxyPoExample.createCriteria()
+                .andBeginDateLessThan(now)
+                .andEndDateGreaterThan(now)
+                .andUserIdEqualTo(userId);
+        userProxyPoExample.or(
+                userProxyPoExample.createCriteria()
+                        .andBeginDateLessThan(now)
+                        .andEndDateGreaterThan(now)
+                        .andProxyUserIdEqualTo(userId));
+        PageHelper.startPage(page, pageSize);
+        try {
+            List<UserProxyPo> results = userProxyPoMapper.selectByExample(userProxyPoExample);
+            PageInfo pageInfo = new PageInfo<>(results);
+            ReturnObject pageRetVo = Common.getPageRetVo(new ReturnObject<>(pageInfo), UserProxyRetVo.class);
+            Map<String, Object> data = (Map<String, Object>) pageRetVo.getData();
+            List<UserProxyRetVo> list = (List<UserProxyRetVo>) data.get("list");
+            boolean flag = true;
+            for (int i = 0; i < list.size(); i++) {
+                UserProxyPo u = (UserProxyPo) baseCoder.decode_check(results.get(i), null, null, proxySignFields, "signature");
+                if (u.getSignature() != null) {
+                    list.get(i).setSign((byte) 0);
+                } else {
+                    list.get(i).setSign((byte) 1);
+                    flag = false;
+                }
+            }
+            data.put("list", list);
+            if (flag) {
+                return new ReturnObject(data);
+            } else {
+                return new ReturnObject(ReturnNo.RESOURCE_FALSIFY, data);
+            }
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            return new ReturnObject(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
     }
 

@@ -134,9 +134,10 @@ spring:
             - Auth=authorization
 
   redis:
-    host: 172.16.2.172
+    host: 101.132.164.244
     database: 0
-    password: 12345678
+    password: 123456
+    port: 6889
 
 management:
   endpoint:
@@ -144,7 +145,7 @@ management:
       enabled: true
 
 rocketmq:
-  name-server: 172.16.3.137
+  name-server: 121.36.1.4:9876
   producer:
     group: producer_group
     max-message-size: 4096

@@ -992,6 +992,12 @@ public class PrivilegeController {
         return Common.decorateReturnObject(returnObject);
     }
 
+    @Audit(departName = "departs")
+    @GetMapping("/self/proxies")
+    public Object getProxiesSelf(@LoginUser Long userId,@RequestParam(value = "page", required = false) Integer page,
+                                 @RequestParam(value = "pageSize", required = false) Integer pageSize){
+        return Common.decorateReturnObject(userProxyService.getProxiesSelf(userId,page,pageSize));
+    }
     /**
      * 查询所有用户代理关系(2021-2-14)
      *
