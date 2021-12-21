@@ -123,6 +123,15 @@ public class GroupController {
         return Common.decorateReturnObject(returnObject);
     }
 
+    /**
+     * 新获得用户的组
+     * @param page
+     * @param pageSize
+     * @param userId
+     * @param userName
+     * @return
+     */
+
     @ApiOperation(value = "获得用户的组")
     @ApiImplicitParams({
             @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
