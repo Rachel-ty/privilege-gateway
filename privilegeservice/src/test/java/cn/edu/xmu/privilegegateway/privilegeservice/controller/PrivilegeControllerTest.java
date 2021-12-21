@@ -219,6 +219,16 @@ public class PrivilegeControllerTest {
 
     }
 
+    @Test
+    public void testGetProxiesSelf()throws Exception{
+        String responseString1 = mvc.perform(get("/self/proxies").header("authorization", token17333)
+                        .contentType("application/json;charset=UTF-8"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json;charset=UTF-8"))
+                .andReturn().getResponse().getContentAsString();
+        String expectString1 = "{\"errno\":0,\"data\":{\"total\":0,\"pages\":0,\"pageSize\":10,\"page\":1,\"list\":[]},\"errmsg\":\"成功\"}";
+        JSONAssert.assertEquals(expectString1, responseString1, true);
+    }
     /**
      * Method: removeAllProxies(@PathVariable("did") Long departId, @PathVariable("id") Long id)
      */
