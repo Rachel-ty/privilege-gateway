@@ -25,7 +25,7 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/*/states
+            - Path=/privilege/login, /privilege/*/states,/privilege/self/password/reset,/privilege/self/password
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
@@ -96,7 +96,7 @@ spring:
         - id: comment-login
           uri: lb://comment-service
           predicates:
-            - Path=/comment/shops/{did}/**
+            - Path=/comment/shops/{did}/**,/comment/**
           filters:
             - RewritePath=/comment/(?<segment>.*), /$\{segment}
             - Auth=authorization
