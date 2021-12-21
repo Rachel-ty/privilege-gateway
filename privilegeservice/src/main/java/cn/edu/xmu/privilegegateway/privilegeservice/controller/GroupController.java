@@ -124,6 +124,32 @@ public class GroupController {
     }
 
     /**
+     * 新获得用户的组
+     * @param page
+     * @param pageSize
+     * @param userId
+     * @param userName
+     * @return
+     */
+
+    @ApiOperation(value = "获得用户的组")
+    @ApiImplicitParams({
+            @ApiImplicitParam(paramType = "header", dataType = "String", name = "authorization", value = "Token", required = true),
+    })
+    @ApiResponses({
+            @ApiResponse(code = 0, message = "成功"),
+    })
+    @Audit(departName = "departs")
+    @GetMapping("/self/groups")
+    public Object getusersgroup(@RequestParam(required = false) Integer page,
+                                @RequestParam(required = false) Integer pageSize,
+                                @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
+                                @RequestParam(required = false) @LoginName @ApiIgnore String userName){
+        ReturnObject returnObject =  groupService.getusersgroup(0L,userId,page,pageSize);
+        return Common.decorateReturnObject(returnObject);
+    }
+
+    /**
      * 修改用户组的信息
      * @param did
      * @param id
@@ -180,15 +206,15 @@ public class GroupController {
     @PostMapping("/departs/{did}/groups")
     public Object insertgroup(@LoginUser Long userId,
                               @LoginName String userName,
-                              @PathVariable(value="did") Long did,
+                              @Depart Long depart_id, @PathVariable(name="did") Long did,
                               @RequestBody @Valid GroupVo vo, BindingResult bindingResult
     ) {
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;
         }
-//        if(!did.equals(depart_id))
-//            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        if(!did.equals(depart_id))
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         ReturnObject retObject = groupService.insertGroup(vo,did,userId,userName);
         return Common.decorateReturnObject(retObject);
 
@@ -277,10 +303,11 @@ public class GroupController {
     @DeleteMapping("/departs/{did}/groups/{id}")
     public Object deleteGroup(@PathVariable("did") Long did, @PathVariable("id") Long id,
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                              @RequestParam(required = false) @LoginName @ApiIgnore String userName) {
-//        if(!did.equals(departId))
-//            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = groupService.deleteGroup(did, id);
+                              @RequestParam(required = false) @LoginName @ApiIgnore String userName,
+                              @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
+        if(!did.equals(departId))
+            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = groupService.deleteGroup(departId, id);
         return Common.decorateReturnObject(returnObject);
     }
 
@@ -461,4 +488,8 @@ public class GroupController {
         ReturnObject ret= groupService.releaseGroup(did,id, loginUser,loginUsername);
         return Common.decorateReturnObject(ret);
     }
+
+
+
+
 }
