@@ -1304,7 +1304,7 @@ public class PrivilegeController {
         if(ret.getCode()!=ReturnNo.OK){
             return Common.decorateReturnObject(ret);
         }
-        return Common.getPageRetVo(ret, UserRetVo.class);
+        return Common.decorateReturnObject(Common.getPageRetVo(ret, UserRetVo.class));
     }
 
     /**
@@ -1352,7 +1352,8 @@ public class PrivilegeController {
         if(ret.getCode()!=ReturnNo.OK){
             return Common.decorateReturnObject(ret);
         }
-        return Common.getPageRetVo(ret, UserSimpleRetVo.class);
+        logger.info(ret.getData().toString());
+        return Common.decorateReturnObject(Common.getPageRetVo(ret, UserSimpleRetVo.class));
     }
 
 

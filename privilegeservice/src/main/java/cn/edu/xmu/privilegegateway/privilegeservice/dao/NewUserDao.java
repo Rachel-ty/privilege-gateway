@@ -298,7 +298,7 @@ public class NewUserDao implements InitializingBean {
     public ReturnObject selectNewUser(Long did, Long id){
         try {
             NewUserPo newUserPo = newUserPoMapper.selectByPrimaryKey(id);
-            if (newUserPo.getDepartId()!=did){
+            if (!newUserPo.getDepartId().equals(did)){
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
             }
             return new ReturnObject(newUserPo);
