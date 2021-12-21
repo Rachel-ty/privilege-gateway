@@ -151,7 +151,7 @@ public class PrivilegeController {
                           @LoginUser Long creatorid,
                         @LoginName String creatorname)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -182,12 +182,12 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @GetMapping("/departs/{did}/privileges")
     public Object getPrivs(@PathVariable Long did,
-                           @RequestParam String url,
-                           @RequestParam Byte requestType,
-                            @RequestParam(required = true,value="page") Integer page,
-                           @RequestParam(required = true,value="pageSize") Integer pageSize)
+                           @RequestParam(required = false) String url,
+                           @RequestParam(required = false) Byte requestType,
+                            @RequestParam(required = true) Integer page,
+                           @RequestParam(required = true) Integer pageSize)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -217,7 +217,7 @@ public class PrivilegeController {
     public Object DeletePriv(@PathVariable("did") Long did,
                              @PathVariable("id") Long pid)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -249,7 +249,7 @@ public class PrivilegeController {
                              @LoginUser Long modifiedId,
                              @LoginName String modifiedName)
     {
-        if(!did.equals(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -281,7 +281,7 @@ public class PrivilegeController {
                               @LoginUser Long mid,
                               @LoginName String mname)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -321,7 +321,7 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-        if (departId !=0){
+        if (!departId.equals(0L)){
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 

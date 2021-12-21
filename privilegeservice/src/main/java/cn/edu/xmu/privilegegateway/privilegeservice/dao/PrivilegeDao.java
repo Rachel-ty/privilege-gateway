@@ -163,14 +163,14 @@ public class PrivilegeDao {
         try {
             Collection<String> keys = privilegeImpact(bo.getId());
             PrivilegePo po = poMapper.selectByPrimaryKey(bo.getId());
-            if (po == null)
-                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+            if (po == null) {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
             po.setState(bo.getState());
             //生成签名
             PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
             poMapper.updateByPrimaryKeySelective(newpo);
             for (String key : keys) {
-                System.out.println(key);
                 redisUtil.del(key);
             }
             //清除缓存中的权限
@@ -226,8 +226,12 @@ public class PrivilegeDao {
             PageHelper.startPage(pagenum, pagesize);
             PrivilegePoExample example = new PrivilegePoExample();
             PrivilegePoExample.Criteria criteria = example.createCriteria();
-            criteria.andUrlEqualTo(url);
-            criteria.andRequestTypeEqualTo(type);
+            if (url != null) {
+                criteria.andUrlEqualTo(url);
+            }
+            if (type != null) {
+                criteria.andRequestTypeEqualTo(type);
+            }
             List<PrivilegePo> polist = poMapper.selectByExample(example);
             List<PrivilegeRetVo> vo=new ArrayList<>(polist.size());
             Collection<PrivilegePo> newpolist=Common.listDecode(polist,PrivilegePo.class,baseCoder,null,privilegeSignFields,"signature",true);
@@ -238,7 +242,7 @@ public class PrivilegeDao {
                 {
                     sign=MODIFIED;
                 }
-                PrivilegeRetVo retVo=(PrivilegeRetVo) Common.cloneVo(po,PrivilegeRetVo.class);
+                PrivilegeRetVo retVo=Common.cloneVo(po,PrivilegeRetVo.class);
                 retVo.setSign(sign);
                 vo.add(retVo);
             }
