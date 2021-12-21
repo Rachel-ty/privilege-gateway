@@ -1121,7 +1121,7 @@ public class PrivilegeController {
      * Created at 2020/11/11 19:32
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    @ApiOperation(value="用户修改密码",produces = "application/json")
+    @ApiOperation(value="用户修改密码",produces = "application/json;charset=UTF-8")
     @ApiResponses({
             @ApiResponse(code = 700, message = "用户名不存在或者密码错误"),
             @ApiResponse(code = 741, message = "不能与旧密码相同"),
@@ -1131,7 +1131,7 @@ public class PrivilegeController {
     @ResponseBody
     public Object modifyPassword(@RequestBody ModifyPwdVo vo) {
 
-        logger.debug("modifyPassword");
+        logger.info("modifyPassword");
 
         ReturnObject returnObject = userService.modifyPassword(vo);
         return Common.decorateReturnObject(returnObject);

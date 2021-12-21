@@ -334,7 +334,7 @@ public class UserService {
      * Created at 2020/11/11 19:32
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
+    public ReturnObject resetPassword(ResetPwdVo vo) {
         return userDao.resetPassword(vo);
     }
 
@@ -346,7 +346,7 @@ public class UserService {
      * Created at 2020/11/11 19:32
      */
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject<Object> modifyPassword(ModifyPwdVo vo) {
+    public ReturnObject modifyPassword(ModifyPwdVo vo) {
         return userDao.modifyPassword(vo);
     }
 
