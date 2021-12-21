@@ -297,7 +297,7 @@ public class PrivilegeDao {
             PrivilegePo privilege=poMapper.selectByPrimaryKey(privilegeid);
             if(privilege==null)
             {
-                return new ReturnObject(ReturnNo.PRIVILEGE_RELATION_EXIST);
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
             RolePrivilegePo newpo=(RolePrivilegePo)baseCoder.code_sign(rolePrivilegePo,RolePrivilegePo.class,null,newRolePrivilegeSignFields,"signature");
             rolePrivilegePoMapper.insertSelective(newpo);
@@ -346,7 +346,10 @@ public class PrivilegeDao {
             RolePrivilegePoExample.Criteria criteria = example.createCriteria();
             criteria.andRoleIdEqualTo(rid);
             criteria.andPrivilegeIdEqualTo(pid);
-            rolePrivilegePoMapper.deleteByExample(example);
+            int flag=rolePrivilegePoMapper.deleteByExample(example);
+            if (flag==0){
+                return new ReturnObject<>(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
             //删除缓存功能角色权限
             String key=String.format(RoleDao.BASEROLEKEY,rid);
             redisUtil.del(key);
@@ -535,5 +538,6 @@ public class PrivilegeDao {
         criteriaRP.andRoleIdEqualTo(roleId);
         return rolePrivilegePoMapper.deleteByExample(exampleRP);
     }
+
 
 }
