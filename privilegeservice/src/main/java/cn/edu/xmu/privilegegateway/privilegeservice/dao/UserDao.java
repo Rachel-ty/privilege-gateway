@@ -809,7 +809,6 @@ public class UserDao {
      */
     public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
 
-
         //验证邮箱、手机号
 
         UserPoExample userPoExample1 = new UserPoExample();
@@ -828,7 +827,7 @@ public class UserDao {
             userPoExample1.or(criteria_username);
             userPo1 = userMapper.selectByExample(userPoExample1);
             if (userPo1.isEmpty()) {
-                return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
+                return new ReturnObject<>(ReturnNo.AUTH_ID_NOTEXIST);
             }
 
         } catch (Exception e) {
@@ -841,7 +840,7 @@ public class UserDao {
         while (redisUtil.hasKey(captcha))
             captcha = RandomCaptcha.getRandomString(6);
 
-        String id = userPo1.get(0).getId().toString();
+        Long id = userPo1.get(0).getId();
         String key = String.format(CAPTCHAKEY, captcha);
         redisUtil.set(key, id, 30L);
 
@@ -871,22 +870,24 @@ public class UserDao {
      * Created at 2020/11/11 19:32
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> modifyPassword(ModifyPwdVo modifyPwdVo) {
+    public ReturnObject modifyPassword(ModifyPwdVo modifyPwdVo) {
 
         //防止重复请求验证码
         String key = String.format(CAPTCHAKEY, modifyPwdVo.getCaptcha());
-
         //通过验证码取出id
         if (!redisUtil.hasKey(key))
             return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
-        Long id = (Long) redisUtil.get(key);
-
+        Long id = null;
+        Serializable serializable = redisUtil.get(key);
+        if (serializable == null) id = null;
+        else {
+            id = Long.valueOf(serializable.toString());
+        }
         ReturnObject<Object> retObj = getUserPoById(id);
         if (retObj.getCode() != ReturnNo.OK)
             return retObj;
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
-
         //新密码与原密码相同
         if (userPo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
@@ -899,6 +900,7 @@ public class UserDao {
             e.printStackTrace();
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
+
         return new ReturnObject<>(ReturnNo.OK);
     }
 

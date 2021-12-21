@@ -152,7 +152,7 @@ public class PrivilegeController {
                           @LoginUser Long creatorid,
                         @LoginName String creatorname)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -183,12 +183,12 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @GetMapping("/departs/{did}/privileges")
     public Object getPrivs(@PathVariable Long did,
-                           @RequestParam String url,
-                           @RequestParam Byte requestType,
-                            @RequestParam(required = true,value="page") Integer page,
-                           @RequestParam(required = true,value="pageSize") Integer pageSize)
+                           @RequestParam(required = false) String url,
+                           @RequestParam(required = false) Byte requestType,
+                            @RequestParam(required = true) Integer page,
+                           @RequestParam(required = true) Integer pageSize)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -218,7 +218,7 @@ public class PrivilegeController {
     public Object DeletePriv(@PathVariable("did") Long did,
                              @PathVariable("id") Long pid)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -250,7 +250,7 @@ public class PrivilegeController {
                              @LoginUser Long modifiedId,
                              @LoginName String modifiedName)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -282,7 +282,7 @@ public class PrivilegeController {
                               @LoginUser Long mid,
                               @LoginName String mname)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0L))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -312,7 +312,7 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}")
     public Object changePriv(@PathVariable("id") Long id,
-                             @Validated @RequestBody PrivilegeVo vo,
+                             @Validated @RequestBody PrivilegeModifyVo vo,
                              BindingResult bindingResult,
                              @LoginUser Long ModifierId,
                              @LoginName String ModifierName,
@@ -322,7 +322,7 @@ public class PrivilegeController {
         if(o != null){
             return o;
         }
-        if (departId !=0){
+        if (!departId.equals(0L)){
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
 
@@ -1138,7 +1138,7 @@ public class PrivilegeController {
      * Created at 2020/11/11 19:32
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    @ApiOperation(value="用户修改密码",produces = "application/json")
+    @ApiOperation(value="用户修改密码",produces = "application/json;charset=UTF-8")
     @ApiResponses({
             @ApiResponse(code = 700, message = "用户名不存在或者密码错误"),
             @ApiResponse(code = 741, message = "不能与旧密码相同"),
@@ -1148,7 +1148,7 @@ public class PrivilegeController {
     @ResponseBody
     public Object modifyPassword(@RequestBody ModifyPwdVo vo) {
 
-        logger.debug("modifyPassword");
+        logger.info("modifyPassword");
 
         ReturnObject returnObject = userService.modifyPassword(vo);
         return Common.decorateReturnObject(returnObject);
@@ -1411,7 +1411,12 @@ public class PrivilegeController {
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/internal/users/{id}/departs/{did}")
     public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@Depart Long departId,@LoginUser Long loginUser,@LoginName String loginName) {
-
+//        System.out.println(departId);
+//        System.out.println(loginName);
+//        if(departId!=0)
+//        {
+//            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
+//        }
         ReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
         return  Common.decorateReturnObject(returnObj);
     }
