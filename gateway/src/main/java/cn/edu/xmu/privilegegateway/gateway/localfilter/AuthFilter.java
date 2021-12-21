@@ -231,12 +231,10 @@ public class AuthFilter implements GatewayFilter, Ordered {
 
             }
 
-            Long privId;
-            Integer getValue = (Integer) redisTemplate.opsForValue().get(urlKey);
-            if (getValue == null) {
-                privId = null;
-            } else {
-                privId = Long.valueOf(getValue.intValue());
+            Long privId = null;
+            Serializable serializable = redisTemplate.opsForValue().get(urlKey);
+            if (serializable != null) {
+                privId = Long.valueOf(serializable.toString());
             }
             boolean next = false;
             if (privId == null) {

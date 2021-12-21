@@ -23,4 +23,5 @@ import lombok.*;
 @ApiModel(description = "用户组视图对象")
 public class GroupVo {
     private String name;
+    private String descr;
 }
