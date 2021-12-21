@@ -43,7 +43,7 @@ public class UserProxyService {
 
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject setUsersProxy(Long proxyUserId, Long userId, UserProxyVo vo, Long departId, Long creatorId, String creratorName) {
-        UserProxy bo = (UserProxy) Common.cloneVo(vo, UserProxy.class);
+        UserProxy bo = Common.cloneVo(vo, UserProxy.class);
         Common.setPoCreatedFields(bo, creatorId, creratorName);
         Common.setPoModifiedFields(bo, creatorId, creratorName);
         bo.setUserId(userId);
@@ -54,7 +54,7 @@ public class UserProxyService {
             return returnObject;
         }
         UserProxy userProxy = (UserProxy) returnObject.getData();
-        UserProxyRetVo userProxyRetVo = (UserProxyRetVo) Common.cloneVo(userProxy, UserProxyRetVo.class);
+        UserProxyRetVo userProxyRetVo = Common.cloneVo(userProxy, UserProxyRetVo.class);
         return new ReturnObject(userProxyRetVo);
     }
 
@@ -67,6 +67,10 @@ public class UserProxyService {
     public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, LocalDateTime beginTime, LocalDateTime endTime, Integer page, Integer pageSize) {
         ReturnObject proxies = userProxyDao.getProxies(userId, proxyUserId, departId, beginTime, endTime, page, pageSize);
         return proxies;
+    }
+    @Transactional(readOnly = true)
+    public ReturnObject getProxiesSelf(Long userId,Integer page,Integer pageSize){
+        return userProxyDao.getProxiesSelf(userId,page,pageSize);
     }
 
     @Transactional(rollbackFor = Exception.class)
