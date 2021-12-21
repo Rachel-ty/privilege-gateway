@@ -353,14 +353,14 @@ public class PrivilegeController {
             @ApiResponse(code = 0, message = "成功"),
     })
     @Audit(departName = "departs")
-    @GetMapping("/departs/{did}/roles")
+    @GetMapping("departs/{did}/roles")
     public Object selectAllRoles(@LoginUser Long userId,
+                                 @LoginName String userName,
                                  @Depart Long departId,
                                  @PathVariable("did") Long did,
                                  @RequestParam(required = false) Integer page,
                                  @RequestParam(required = false) Integer pageSize) {
         logger.debug("selectAllRoles: page = " + page + "  pageSize =" + pageSize);
-
         ReturnObject retObj = roleService.selectAllRoles(did, page, pageSize);
         return Common.decorateReturnObject(retObj);
     }
@@ -391,8 +391,7 @@ public class PrivilegeController {
                              @Validated @RequestBody RoleVo vo,
                              BindingResult bindingResult,
                              @LoginUser Long userId,
-                             @LoginName String userName,
-                             @Depart Long departId) {
+                             @LoginName String userName) {
         logger.debug("insert role by userId:" + userId);
         // 校验前端数据
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
@@ -551,9 +550,9 @@ public class PrivilegeController {
                              @Depart Long departId) {
         logger.debug("update role by userId:" + userId);
         // 校验前端数据
-        Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
-        if (null != returnObject) {
-            return Common.decorateReturnObject(new ReturnObject(returnObject));
+        Object o = Common.processFieldErrors(bindingResult, httpServletResponse);
+        if(o != null){
+            return o;
         }
 
         Role role = (Role) Common.cloneVo(vo, Role.class);

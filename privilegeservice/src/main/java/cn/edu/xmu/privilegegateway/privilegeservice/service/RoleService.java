@@ -29,6 +29,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.RoleInherited;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleInheritedRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.RoleRetVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.StateVo;
+import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +72,8 @@ public class RoleService {
      */
     @Transactional(readOnly = true, rollbackFor = Exception.class)
     public ReturnObject selectAllRoles(Long did, Integer page, Integer pageSize) {
-        return roleDao.selectAllRole(did, page, pageSize);
+        ReturnObject ret=roleDao.selectAllRole(did, page, pageSize);
+        return ret;
     }
 
 
@@ -146,6 +148,11 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject updateRole(Role bo) {
+        ReturnObject ret=roleDao.getRoleById(bo.getId());
+        if(!ret.getCode().equals(ReturnNo.OK))
+        {
+            return ret;
+        }
         return roleDao.updateRole(bo);
     }
 
@@ -156,6 +163,11 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject forbidRole(Role bo) {
+        ReturnObject role=roleDao.getRoleById(bo.getId());
+        if(!role.getCode().equals(ReturnNo.OK))
+        {
+            return role;
+        }
         return roleDao.updateRole(bo);
     }
 
@@ -166,6 +178,11 @@ public class RoleService {
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject releaseRole(Role bo) {
+        ReturnObject ret=roleDao.getRoleById(bo.getId());
+        if(!ret.getCode().equals(ReturnNo.OK))
+        {
+            return ret;
+        }
         return roleDao.updateRole(bo);
     }
 

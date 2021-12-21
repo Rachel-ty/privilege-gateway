@@ -224,7 +224,6 @@ public class RoleDao {
         PageHelper.startPage(page, pageSize);
         try {
             List<RolePo> pos = roleMapper.selectByExample(example);
-
             PageInfo info = new PageInfo<>(pos);
             return Common.getPageRetVo(new ReturnObject<>(info), RoleRetVo.class);
         } catch (Exception e) {
@@ -274,7 +273,7 @@ public class RoleDao {
             logger.debug("insertRole: insert role = " + rolePo.toString());
 
             role.setId(rolePo.getId());
-            return new ReturnObject<>(role);
+            return new ReturnObject(role);
         } catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR);
@@ -342,12 +341,29 @@ public class RoleDao {
         RolePo rolePo = (RolePo) Common.cloneVo(role, RolePo.class);
         try {
             if (!checkRoleDid(role.getId(), role.getDepartId())) {
-                return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE, "部门id不匹配");
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
             }
 
             int ret = roleMapper.updateByPrimaryKeySelective(rolePo);
-            return new ReturnObject<>();
+            return new ReturnObject<>(ReturnNo.OK);
         } catch (Exception e) {
+            logger.error("other exception : " + e.getMessage());
+            return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
+        }
+    }
+
+    public ReturnObject getRoleById(Long id)
+    {
+        try
+        {
+            RolePo rolePo=roleMapper.selectByPrimaryKey(id);
+            if(rolePo==null)
+            {
+                return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST);
+            }
+            return new ReturnObject(Common.cloneVo(rolePo,Role.class));
+        }
+        catch (Exception e) {
             logger.error("other exception : " + e.getMessage());
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, String.format("数据库错误：%s", e.getMessage()));
         }
