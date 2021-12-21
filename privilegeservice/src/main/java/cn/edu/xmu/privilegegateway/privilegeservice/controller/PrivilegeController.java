@@ -960,9 +960,6 @@ public class PrivilegeController {
                                        @PathVariable("aid") Long userId,
                                        @PathVariable("bid") Long proxyUserId,
                                        @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
-        if (departId != 0) {
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_NO_RIGHT));
-        }
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
             return obj;
