@@ -129,7 +129,7 @@ public class UserDao {
     final static List<String> userRoleSignFields = new ArrayList<>(Arrays.asList("userId", "roleId"));
     final static Collection<String> userRoleCodeFields = new ArrayList<>();
     final static List<String> proxySignFields = new ArrayList<>(Arrays.asList("userId", "proxyUserId", "beginDate", "endDate", "valid"));
-    final static List<String> accountCodeFields = new ArrayList<>(Arrays.asList("mobile","email"));
+    final static List<String> accountCodeFields = new ArrayList<>(Arrays.asList("mobile", "email"));
 
     public ReturnObject setUsersProxy(UserProxy bo) {
         try {
@@ -178,7 +178,7 @@ public class UserDao {
         }
     }
 
-    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId,LocalDateTime beginTime,LocalDateTime endTime, Integer page, Integer pageSize) {
+    public ReturnObject getProxies(Long userId, Long proxyUserId, Long departId, LocalDateTime beginTime, LocalDateTime endTime, Integer page, Integer pageSize) {
         UserProxyPoExample example = new UserProxyPoExample();
         UserProxyPoExample.Criteria criteria = example.createCriteria();
         if (userId != null) {
@@ -187,10 +187,10 @@ public class UserDao {
         if (proxyUserId != null) {
             criteria.andProxyUserIdEqualTo(proxyUserId);
         }
-        if(beginTime!=null){
+        if (beginTime != null) {
             criteria.andBeginDateGreaterThan(beginTime);
         }
-        if(endTime!=null){
+        if (endTime != null) {
             criteria.andEndDateLessThan(endTime);
         }
         criteria.andDepartIdEqualTo(departId);
@@ -254,7 +254,7 @@ public class UserDao {
             for (UserProxyPo po : results) {
                 LocalDateTime beginDate = po.getBeginDate();
                 LocalDateTime endDate = po.getEndDate();
-                if (!(nowBeginDate.isAfter(endDate)||nowEndDate.isBefore(beginDate))) {
+                if (!(nowBeginDate.isAfter(endDate) || nowEndDate.isBefore(beginDate))) {
                     isExist = true;
                     break;
                 }
@@ -275,7 +275,7 @@ public class UserDao {
         UserPo userPoTmp1 = new UserPo();
         userPoTmp1.setMobile(account);
         userPoTmp1.setEmail(account);
-        UserPo userPoTmp2 = (UserPo)baseCoder.code(userPoTmp1,UserPo.class,accountCodeFields);
+        UserPo userPoTmp2 = (UserPo) baseCoder.code(userPoTmp1, UserPo.class, accountCodeFields);
         //可以根据用户名，或者手机号，或者邮箱进行登录
         UserPoExample example = new UserPoExample();
         UserPoExample.Criteria criteria = example.createCriteria();
@@ -291,7 +291,7 @@ public class UserDao {
         try {
             users = userMapper.selectByExample(example);
         } catch (DataAccessException e) {
-            logger.error(String.format("getUserByAccount: %s",e.getMessage()));
+            logger.error(String.format("getUserByAccount: %s", e.getMessage()));
         }
 
         if (null == users || users.isEmpty()) {
@@ -303,7 +303,7 @@ public class UserDao {
             }
             UserBo userBo = (UserBo) baseCoder.decode_check(userPo, UserBo.class, userCodeFields, userSignFields, "signature");
             if (userBo.getSignature() == null) {
-                logger.error(String.format("getUserByAccount: 签名错误(auth_user_group): %d" , userPo.getId()));
+                logger.error(String.format("getUserByAccount: 签名错误(auth_user_group): %d", userPo.getId()));
                 return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
             }
             return new ReturnObject<>(userBo);
@@ -392,7 +392,7 @@ public class UserDao {
                 }
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(key,roleKeys, key);
+                redisUtil.unionAndStoreSet(key, roleKeys, key);
             }
             redisUtil.addSet(key, 0);
 
@@ -521,7 +521,7 @@ public class UserDao {
                 roleKeys.add(brKeyStr);
             }
             if (roleKeys.size() > 0) {
-                redisUtil.unionAndStoreSet(fKey,roleKeys, fKey);
+                redisUtil.unionAndStoreSet(fKey, roleKeys, fKey);
             }
             redisUtil.addSet(fKey, jwt);
             long randTimeout = Common.addRandomTime(timeout);
@@ -744,7 +744,7 @@ public class UserDao {
             logger.info("用户 id = " + id + " 的状态修改为 " + state.getDescription());
             retObj = new ReturnObject<>();
 
-        }  catch (Exception e) {
+        } catch (Exception e) {
             // 属未知错误
             logger.error("严重错误：" + e.getMessage());
             retObj = new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR,
@@ -767,7 +767,6 @@ public class UserDao {
      */
     public ReturnObject<Object> resetPassword(ResetPwdVo vo) {
 
-
         //验证邮箱、手机号
 
         UserPoExample userPoExample1 = new UserPoExample();
@@ -786,7 +785,7 @@ public class UserDao {
             userPoExample1.or(criteria_username);
             userPo1 = userMapper.selectByExample(userPoExample1);
             if (userPo1.isEmpty()) {
-                return new ReturnObject<>(ReturnNo.EMAIL_WRONG);
+                return new ReturnObject<>(ReturnNo.AUTH_ID_NOTEXIST);
             }
 
         } catch (Exception e) {
@@ -799,7 +798,7 @@ public class UserDao {
         while (redisUtil.hasKey(captcha))
             captcha = RandomCaptcha.getRandomString(6);
 
-        String id = userPo1.get(0).getId().toString();
+        Long id = userPo1.get(0).getId();
         String key = String.format(CAPTCHAKEY, captcha);
         redisUtil.set(key, id, 30L);
 
@@ -829,22 +828,24 @@ public class UserDao {
      * Created at 2020/11/11 19:32
      * Modified by 22920192204219 蒋欣雨 at 2021/11/29
      */
-    public ReturnObject<Object> modifyPassword(ModifyPwdVo modifyPwdVo) {
+    public ReturnObject modifyPassword(ModifyPwdVo modifyPwdVo) {
 
         //防止重复请求验证码
         String key = String.format(CAPTCHAKEY, modifyPwdVo.getCaptcha());
-
         //通过验证码取出id
         if (!redisUtil.hasKey(key))
             return new ReturnObject<>(ReturnNo.AUTH_INVALID_ACCOUNT);
-        Long id = (Long) redisUtil.get(key);
-
+        Long id = null;
+        Serializable serializable = redisUtil.get(key);
+        if (serializable == null) id = null;
+        else {
+            id = Long.valueOf(serializable.toString());
+        }
         ReturnObject<Object> retObj = getUserPoById(id);
         if (retObj.getCode() != ReturnNo.OK)
             return retObj;
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
-
         //新密码与原密码相同
         if (userPo.getPassword().equals(modifyPwdVo.getNewPassword()))
             return new ReturnObject<>(ReturnNo.PASSWORD_SAME);
@@ -857,6 +858,7 @@ public class UserDao {
             e.printStackTrace();
             return new ReturnObject<>(ReturnNo.INTERNAL_SERVER_ERR, e.getMessage());
         }
+
         return new ReturnObject<>(ReturnNo.OK);
     }
 

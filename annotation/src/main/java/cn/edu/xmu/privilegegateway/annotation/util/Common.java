@@ -492,6 +492,7 @@ public class Common {
                         HttpStatus.NOT_FOUND);
             case AUTH_INVALID_JWT:
             case AUTH_JWT_EXPIRED:
+            case AUTH_INVALID_ACCOUNT:
             case AUTH_USER_FORBIDDEN:
             case AUTH_ID_NOTEXIST:
                 // 401
