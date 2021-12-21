@@ -7,7 +7,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 121.36.53.115
+        server-addr: 172.16.4.136
     gateway:
       globalcors:
         cors-configurations:
@@ -25,7 +25,7 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/*/states,/privilege/self/**
+            - Path=/privilege/login, /privilege/*/states, /privilege/self/password/*
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
@@ -134,10 +134,9 @@ spring:
             - Auth=authorization
 
   redis:
-    host: 121.36.53.115
+    host: 172.16.2.172
     database: 0
-    password: 123456
-    port: 6379
+    password: 12345678
 
 management:
   endpoint:
@@ -145,7 +144,7 @@ management:
       enabled: true
 
 rocketmq:
-  name-server: 121.36.1.4:9876
+  name-server: 172.16.3.137
   producer:
     group: producer_group
     max-message-size: 4096
