@@ -29,6 +29,7 @@ import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserGroupPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.po.UserPo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.*;
 import com.github.pagehelper.PageInfo;
+import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
@@ -85,7 +86,17 @@ public class GroupService {
      */
     @Transactional(rollbackFor = Exception.class)
     public ReturnObject changeGroup(Long did, Long id, Group group, Long loginUserId, String loginUserName) {
-        ReturnObject<PageInfo<RetGroup>> ret = groupDao.getGroupsBydid(did, 1, 10);
+//        ReturnObject<PageInfo<RetGroup>> ret = groupDao.getGroupsBydid(did, 1, 10);
+        ReturnObject ret=groupDao.getGroupByid(id);
+        if(!ret.getCode().equals(ReturnNo.OK))
+        {
+            return ret;
+        }
+        Group group1=(Group) ret.getData();
+        if(!group1.getDepartId().equals(did))
+        {
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
         return groupDao.updateGroup(id, group, loginUserId, loginUserName);
     }
 
@@ -115,7 +126,11 @@ public class GroupService {
         if (retGroup.getData() == null) {
             return new ReturnObject(ReturnNo.RESOURCE_ID_NOTEXIST, "该用户组不存在");
         }
-
+        Group group=retGroup.getData();
+        if(!group.getDepartId().equals(did))
+        {
+            return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
+        }
         return groupDao.deleteGroup(id);
     }
 

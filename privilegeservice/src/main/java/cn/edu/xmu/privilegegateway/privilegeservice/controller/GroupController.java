@@ -180,15 +180,15 @@ public class GroupController {
     @PostMapping("/departs/{did}/groups")
     public Object insertgroup(@LoginUser Long userId,
                               @LoginName String userName,
-                              @Depart Long depart_id, @PathVariable(name="did") Long did,
+                              @PathVariable(value="did") Long did,
                               @RequestBody @Valid GroupVo vo, BindingResult bindingResult
     ) {
         Object returnObject = Common.processFieldErrors(bindingResult, httpServletResponse);
         if (null != returnObject) {
             return returnObject;
         }
-        if(!did.equals(depart_id))
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+//        if(!did.equals(depart_id))
+//            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         ReturnObject retObject = groupService.insertGroup(vo,did,userId,userName);
         return Common.decorateReturnObject(retObject);
 
@@ -277,11 +277,10 @@ public class GroupController {
     @DeleteMapping("/departs/{did}/groups/{id}")
     public Object deleteGroup(@PathVariable("did") Long did, @PathVariable("id") Long id,
                               @LoginUser @ApiIgnore @RequestParam(required = false) Long userId,
-                              @RequestParam(required = false) @LoginName @ApiIgnore String userName,
-                              @Depart @ApiIgnore @RequestParam(required = false) Long departId) {
-        if(!did.equals(departId))
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
-        ReturnObject returnObject = groupService.deleteGroup(departId, id);
+                              @RequestParam(required = false) @LoginName @ApiIgnore String userName) {
+//        if(!did.equals(departId))
+//            return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
+        ReturnObject returnObject = groupService.deleteGroup(did, id);
         return Common.decorateReturnObject(returnObject);
     }
 

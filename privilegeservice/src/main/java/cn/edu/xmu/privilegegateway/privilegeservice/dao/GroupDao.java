@@ -393,7 +393,14 @@ public class GroupDao {
         RetGroup temp=new RetGroup();
         try {
             GroupPo groupPo = groupPoMapper.selectByPrimaryKey(id);
-            groupPo.setName(group.getName());
+            if(group.getName()!=null)
+            {
+                groupPo.setName(group.getName());
+            }
+            if(group.getDescr()!=null)
+            {
+                groupPo.setDescr(group.getDescr());
+            }
             if(group.getState()!=null) {
                 groupPo.setState(group.getState());
                 ids = groupImpact(groupPo.getId());
