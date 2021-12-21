@@ -34,7 +34,7 @@ spring:
         - id: privilege-login
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/**
+            - Path=/privilege/departs/{did}/**,/privilege/**
           filters:
             - RewritePath=/privilege/(?<segment>.*), /$\{segment}
             - Auth=authorization

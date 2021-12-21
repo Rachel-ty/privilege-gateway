@@ -46,6 +46,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
@@ -911,15 +912,15 @@ public class PrivilegeController {
     //====================以下
 
     /**
-     *设置用户代理关系(2021-2-14)
-     * @param proxyUserId  被代理用户
-     * @param creatorName 创建者
-     * @param departId  部门id
-     * @param userId    代理用户
-     * @param vo        代理时间
+     * 设置用户代理关系(2021-2-14)
+     *
+     * @param proxyUserId   被代理用户
+     * @param creatorName   创建者
+     * @param departId      部门id
+     * @param userId        代理用户
+     * @param vo            代理时间
      * @param bindingresult
-     * @return
-     * createdBy Di Han Li 2020/11/04 09:57
+     * @return createdBy Di Han Li 2020/11/04 09:57
      * Modified by 24320182203221 李狄翰 at 2020/11/8 8:00
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
@@ -931,7 +932,7 @@ public class PrivilegeController {
         if (null != obj) {
             return obj;
         }
-        if(userId.equals(proxyUserId)){
+        if (userId.equals(proxyUserId)) {
             return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.USERPROXY_SELF));
         }
         if (vo.getBeginDate().isAfter(vo.getEndDate())) {
@@ -993,13 +994,13 @@ public class PrivilegeController {
 
     /**
      * 查询所有用户代理关系(2021-2-14)
-     * @param departId 部门id
-     * @param userId   代理者id
+     *
+     * @param departId    部门id
+     * @param userId      代理者id
      * @param proxyUserId 被代理者id
-     * @param page 页数
-     * @param pageSize 页大小
-     * @return
-     * createdBy Di Han Li 2020/11/04 09:57
+     * @param page        页数
+     * @param pageSize    页大小
+     * @return createdBy Di Han Li 2020/11/04 09:57
      * Modified by 24320182203221 李狄翰 at 2020/11/8 8:00
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
      */
@@ -1008,23 +1009,33 @@ public class PrivilegeController {
     public Object getProxies(@PathVariable("did") Long departId,
                              @RequestParam(value = "aid", required = false) Long userId,
                              @RequestParam(value = "bid", required = false) Long proxyUserId,
-                             @RequestParam(value = "beginTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS") LocalDateTime beginTime,
-                             @RequestParam(value = "endTime", required = false) @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS") LocalDateTime endTime,
+                             @RequestParam(value = "beginTime", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime beginTime,
+                             @RequestParam(value = "endTime", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime endTime,
                              @RequestParam(value = "page", required = false) Integer page,
                              @RequestParam(value = "pageSize", required = false) Integer pageSize) {
         if (beginTime != null && endTime != null) {
-            if(beginTime.isAfter(endTime)){
+            if (beginTime.isAfter(endTime)) {
                 return new ReturnObject<>(ReturnNo.LATE_BEGINTIME);
             }
         }
-        ReturnObject<List> returnObject = userProxyService.getProxies(userId, proxyUserId, departId,beginTime,endTime, page, pageSize);
+        LocalDateTime beginLocalDateTime = null;
+        LocalDateTime endLocalDateTime = null;
+
+        if (beginTime != null) {
+            beginLocalDateTime = beginTime.toLocalDateTime();
+        }
+        if (endTime != null) {
+            endLocalDateTime = endTime.toLocalDateTime();
+        }
+        ReturnObject<List> returnObject = userProxyService.getProxies(userId, proxyUserId, departId, beginLocalDateTime, endLocalDateTime, page, pageSize);
         return Common.decorateReturnObject(returnObject);
     }
 
     /**
      * 解除代理关系(2021-2-14)
+     *
      * @param departId 部门
-     * @param id 主键
+     * @param id       主键
      * @return createdBy Di Han Li 2020/11/04 09:57
      * Modified by 24320182203221 李狄翰 at 2020/11/8 8:00
      * Modified by 22920192204222 郎秀晨 at 2021/11/25
