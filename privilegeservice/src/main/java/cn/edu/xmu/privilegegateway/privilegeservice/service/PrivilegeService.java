@@ -19,6 +19,7 @@ import cn.edu.xmu.privilegegateway.annotation.model.VoObject;
 import cn.edu.xmu.privilegegateway.annotation.util.Common;
 import cn.edu.xmu.privilegegateway.privilegeservice.dao.PrivilegeDao;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.bo.Privilege;
+import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeModifyVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeRedisVo;
 import cn.edu.xmu.privilegegateway.privilegeservice.model.vo.PrivilegeVo;
 import cn.edu.xmu.privilegegateway.annotation.util.ReturnObject;
@@ -80,8 +81,8 @@ public class PrivilegeService {
     }
 
     @Transactional(rollbackFor = Exception.class)
-    public ReturnObject changePriv(Long privilegeId, PrivilegeVo vo, Long modifierId, String modifierName) {
-        Privilege privilege = (Privilege) Common.cloneVo(vo, Privilege.class);
+    public ReturnObject changePriv(Long privilegeId, PrivilegeModifyVo vo, Long modifierId, String modifierName) {
+        Privilege privilege = Common.cloneVo(vo, Privilege.class);
         privilege.setId(privilegeId);
         Common.setPoModifiedFields(privilege, modifierId, modifierName);
         privilege.setState(NORMAL);

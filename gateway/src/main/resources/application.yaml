@@ -7,7 +7,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 121.36.41.192
+        server-addr:  121.36.41.192
     gateway:
       globalcors:
         cors-configurations:
