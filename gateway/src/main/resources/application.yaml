@@ -7,9 +7,7 @@ spring:
   cloud:
     nacos:
       discovery:
-        server-addr: 101.132.164.244:8888
-        username: nacos
-        password: ooad_javaee201
+        server-addr: 172.16.4.136
     gateway:
       globalcors:
         cors-configurations:
@@ -27,14 +25,14 @@ spring:
         - id: privilege-nologin
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/login, /privilege/*/states
+            - Path=/privilege/login, /privilege/*/states, /privilege/self/password/*
           filters:
             - RewritePath=/privilege/?(?<segment>.*), /$\{segment}
 
         - id: privilege-login
           uri: lb://privilege-service
           predicates:
-            - Path=/privilege/**
+            - Path=/privilege/departs/{did}/**, /privilege/**
           filters:
             - RewritePath=/privilege/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -50,7 +48,7 @@ spring:
         - id: activity-login
           uri: lb://activity-service
           predicates:
-            - Path=/activity/**
+            - Path=/activity/shops/{did}/**
           filters:
             - RewritePath=/activity/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -66,7 +64,7 @@ spring:
         - id: freight-login
           uri: lb://freight-service
           predicates:
-            - Path=/freight/**
+            - Path=/freight/shops/{did}/**
           filters:
             - RewritePath=/freight/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -82,7 +80,7 @@ spring:
         - id: goods-login
           uri: lb://goods-service
           predicates:
-            - Path=/goods/**
+            - Path=/goods/shops/{did}/**
           filters:
             - RewritePath=/goods/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -98,7 +96,7 @@ spring:
         - id: comment-login
           uri: lb://comment-service
           predicates:
-            - Path=/comment/**
+            - Path=/comment/shops/{did}/**,/comment/**
           filters:
             - RewritePath=/comment/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -114,7 +112,7 @@ spring:
         - id: coupon-login
           uri: lb://coupon-service
           predicates:
-            - Path=/coupon/**
+            - Path=/coupon/shops/{did}/**
           filters:
             - RewritePath=/coupon/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -130,7 +128,7 @@ spring:
         - id: shop-login
           uri: lb://shop-service
           predicates:
-            - Path=/shop/**
+            - Path=/shop/shops/{did}/**,/shop/shops/**
           filters:
             - RewritePath=/shop/(?<segment>.*), /$\{segment}
             - Auth=authorization
@@ -158,3 +156,4 @@ rocketmq:
 privilegegateway:
   jwtExpire: 3600
   refreshJwtTime: 60
+  retry: 3

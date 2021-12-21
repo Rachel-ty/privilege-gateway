@@ -25,6 +25,7 @@ import lombok.ToString;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * 权限传值对象
@@ -40,12 +41,12 @@ import java.time.LocalDateTime;
 public class UserProxyVo {
 
     @ApiModelProperty(name = "代理开始时间", value = "beginDate", required = true)
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime beginDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime beginDate;
 
     @ApiModelProperty(name = "代理过期时间", value = "beginDate", required = true)
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime endDate;
 
 
 }

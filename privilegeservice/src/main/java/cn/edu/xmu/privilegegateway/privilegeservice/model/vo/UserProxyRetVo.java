@@ -21,6 +21,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 /**
  * @author xiuchen lang 22920192204222
@@ -32,15 +33,15 @@ public class UserProxyRetVo {
     private Long id;
     private UserProxySimpleRetVo user;
     private UserProxySimpleRetVo proxyUser;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime beginDate;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime endDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime beginDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime endDate;
     private Byte valid;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime gmtCreate;
-    @JsonFormat(pattern="yyyy-MM-dd'T'HH:mm:ss.SSS")
-    private LocalDateTime gmtModified;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime gmtCreate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSZZZZZ", timezone = "GMT+8")
+    private ZonedDateTime gmtModified;
     private UserProxySimpleRetVo creator;
     private UserProxySimpleRetVo modifier;
     private Byte sign;

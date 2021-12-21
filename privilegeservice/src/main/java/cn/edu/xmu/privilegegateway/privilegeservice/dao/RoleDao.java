@@ -652,6 +652,7 @@ public class RoleDao {
             for (int i = (page - 1) * pageSize; i <= lastIndex; i++) {
                 //去掉"br_"
                 Object obj = baseroleKeyIds.get(i);
+                if(obj.equals(0))continue;
                 RolePo rolePo = roleMapper.selectByPrimaryKey(Long.parseLong(((String) obj).substring(3)));
                 pageBaseroles.add(rolePo);
             }
