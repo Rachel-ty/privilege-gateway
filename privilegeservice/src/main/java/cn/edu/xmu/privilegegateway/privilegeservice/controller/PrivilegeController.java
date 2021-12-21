@@ -249,7 +249,7 @@ public class PrivilegeController {
                              @LoginUser Long modifiedId,
                              @LoginName String modifiedName)
     {
-        if(did!=Long.valueOf(0))
+        if(!did.equals(0))
         {
             return Common.decorateReturnObject(new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE));
         }
@@ -311,7 +311,7 @@ public class PrivilegeController {
     @Audit(departName = "departs")
     @PutMapping("/departs/{did}/privileges/{id}")
     public Object changePriv(@PathVariable("id") Long id,
-                             @Validated @RequestBody PrivilegeVo vo,
+                             @Validated @RequestBody PrivilegeModifyVo vo,
                              BindingResult bindingResult,
                              @LoginUser Long ModifierId,
                              @LoginName String ModifierName,
@@ -1394,7 +1394,12 @@ public class PrivilegeController {
     @Audit(departName = "departs") // 需要认证
     @PutMapping("/internal/users/{id}/departs/{did}")
     public Object addToDepart(@PathVariable Long id,@PathVariable Long did,@Depart Long departId,@LoginUser Long loginUser,@LoginName String loginName) {
-
+//        System.out.println(departId);
+//        System.out.println(loginName);
+//        if(departId!=0)
+//        {
+//            return Common.decorateReturnObject(new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE));
+//        }
         ReturnObject returnObj = userService.addToDepart(did,id,loginUser,loginName);;
         return  Common.decorateReturnObject(returnObj);
     }

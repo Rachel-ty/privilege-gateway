@@ -123,10 +123,18 @@ public class PrivilegeDao {
             PrivilegePo po=poMapper.selectByPrimaryKey(bo.getId());
             if(po==null)
                 return new ReturnObject(ReturnNo.RESOURCE_ID_OUTSCOPE);
-            po.setState(bo.getState());
-            po.setUrl(bo.getUrl());
-            po.setRequestType(bo.getRequestType().getCode());
-            po.setName(bo.getName());
+            if (bo.getState()!=null) {
+                po.setState(bo.getState());
+            }
+            if (bo.getUrl()!=null) {
+                po.setUrl(bo.getUrl());
+            }
+            if (bo.getRequestType()!=null) {
+                po.setRequestType(bo.getRequestType().getCode());
+            }
+            if (bo.getName()!=null) {
+                po.setName(bo.getName());
+            }
             //生成签名
             PrivilegePo newpo=(PrivilegePo)baseCoder.code_sign(po,PrivilegePo.class,null,privilegeSignFields,"signature");
             poMapper.updateByPrimaryKeySelective(newpo);
@@ -162,6 +170,7 @@ public class PrivilegeDao {
             PrivilegePo newpo = (PrivilegePo) baseCoder.code_sign(po, PrivilegePo.class, null, privilegeSignFields, "signature");
             poMapper.updateByPrimaryKeySelective(newpo);
             for (String key : keys) {
+                System.out.println(key);
                 redisUtil.del(key);
             }
             //清除缓存中的权限
