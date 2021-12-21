@@ -959,9 +959,6 @@ public class PrivilegeController {
                                        @PathVariable("aid") Long userId,
                                        @PathVariable("bid") Long proxyUserId,
                                        @Validated @RequestBody UserProxyVo vo, BindingResult bindingresult) {
-        if (departId != 0) {
-            return Common.decorateReturnObject(new ReturnObject(ReturnNo.AUTH_NO_RIGHT));
-        }
         Object obj = Common.processFieldErrors(bindingresult, httpServletResponse);
         if (null != obj) {
             return obj;
@@ -1309,7 +1306,7 @@ public class PrivilegeController {
         if(ret.getCode()!=ReturnNo.OK){
             return Common.decorateReturnObject(ret);
         }
-        return Common.getPageRetVo(ret, UserRetVo.class);
+        return Common.decorateReturnObject(Common.getPageRetVo(ret, UserRetVo.class));
     }
 
     /**
@@ -1357,7 +1354,8 @@ public class PrivilegeController {
         if(ret.getCode()!=ReturnNo.OK){
             return Common.decorateReturnObject(ret);
         }
-        return Common.getPageRetVo(ret, UserSimpleRetVo.class);
+        logger.info(ret.getData().toString());
+        return Common.decorateReturnObject(Common.getPageRetVo(ret, UserSimpleRetVo.class));
     }
 
 

@@ -656,6 +656,7 @@ public class UserDao {
      * createdBy 3218 2020/11/4 15:48
      * modifiedBy 3218 2020/11/4 15:48
      * modifiedBy Ming Qiu 2021/12/11 21:21
+     * modifiedBy lzl 2021/12/21
      */
 
     public ReturnObject<User> getUserById(Long id) {
@@ -666,7 +667,11 @@ public class UserDao {
             }
             User user = (User) baseCoder.decode_check(userPo, User.class, userCodeFields, userSignFields, "signature");
             if (null == user.getSignature()) {
+                // 校验错误，直接返回
                 user.setSign((byte) 1);
+                return new ReturnObject<>(ReturnNo.RESOURCE_FALSIFY);
+            } else {
+                user.setSign((byte) 0);
             }
             return new ReturnObject<>(user);
 
@@ -721,14 +726,15 @@ public class UserDao {
      */
     public ReturnObject<Object> modifyUserByVo(Long did, Long id, ModifyUserVo userVo, Long loginUser, String
             loginName) {
-        if (!checkUserDid(id, did) && did != Long.valueOf(0)) {
+        if (!checkUserDid(id, did) && !did.equals(Long.valueOf(0))) {
             return new ReturnObject<>(ReturnNo.RESOURCE_ID_OUTSCOPE);
         }
 
         // 更新数据库
         ReturnObject<Object> retObj = getUserPoById(id);
-        if (retObj.getCode() != ReturnNo.OK)
+        if (retObj.getCode() != ReturnNo.OK) {
             return retObj;
+        }
         // 查询密码等资料以计算新签名
         UserPo userPo = (UserPo) retObj.getData();
         Common.copyAttribute(userVo, userPo);
